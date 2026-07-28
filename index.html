@@ -75,8 +75,9 @@
       document.open();
       document.write(new TextDecoder().decode(plaintext));
       document.close();
-    })().catch(() => {
+    })().catch((error) => {
       document.getElementById("status").className = "error";
+      document.getElementById("status").dataset.error = error.message;
       document.getElementById("status").textContent = "׳”׳§׳™׳©׳•׳¨ ׳׳™׳ ׳• ׳©׳׳ ׳׳• ׳©׳”׳“׳•׳— ׳׳™׳ ׳• ׳–׳׳™׳.";
     });
   </script>
