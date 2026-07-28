@@ -24,6 +24,41 @@
       const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
       return Uint8Array.from(atob(padded), character => character.charCodeAt(0));
     };
+    const rotateLeft = (value, bits) => ((value << bits) | (value >>> (32 - bits))) >>> 0;
+    const readWord = (bytes, offset) =>
+      (bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24)) >>> 0;
+    const quarterRound = (state, a, b, c, d) => {
+      state[a] = (state[a] + state[b]) >>> 0; state[d] = rotateLeft(state[d] ^ state[a], 16);
+      state[c] = (state[c] + state[d]) >>> 0; state[b] = rotateLeft(state[b] ^ state[c], 12);
+      state[a] = (state[a] + state[b]) >>> 0; state[d] = rotateLeft(state[d] ^ state[a], 8);
+      state[c] = (state[c] + state[d]) >>> 0; state[b] = rotateLeft(state[b] ^ state[c], 7);
+    };
+    const chacha20 = (input, key, nonce) => {
+      const output = new Uint8Array(input.length);
+      const constants = new TextEncoder().encode("expand 32-byte k");
+      for (let offset = 0, counter = 1; offset < input.length; offset += 64, counter++) {
+        const initial = new Uint32Array(16);
+        for (let i = 0; i < 4; i++) initial[i] = readWord(constants, i * 4);
+        for (let i = 0; i < 8; i++) initial[4 + i] = readWord(key, i * 4);
+        initial[12] = counter >>> 0;
+        initial[13] = readWord(nonce, 0);
+        initial[14] = readWord(nonce, 4);
+        initial[15] = readWord(nonce, 8);
+        const state = new Uint32Array(initial);
+        for (let i = 0; i < 10; i++) {
+          quarterRound(state, 0, 4, 8, 12); quarterRound(state, 1, 5, 9, 13);
+          quarterRound(state, 2, 6, 10, 14); quarterRound(state, 3, 7, 11, 15);
+          quarterRound(state, 0, 5, 10, 15); quarterRound(state, 1, 6, 11, 12);
+          quarterRound(state, 2, 7, 8, 13); quarterRound(state, 3, 4, 9, 14);
+        }
+        const block = new Uint8Array(64);
+        const view = new DataView(block.buffer);
+        for (let i = 0; i < 16; i++) view.setUint32(i * 4, (state[i] + initial[i]) >>> 0, true);
+        const length = Math.min(64, input.length - offset);
+        for (let i = 0; i < length; i++) output[offset + i] = input[offset + i] ^ block[i];
+      }
+      return output;
+    };
     (async () => {
       const reportId = new URLSearchParams(location.search).get("r");
       const keyText = location.hash.slice(1);
@@ -31,11 +66,11 @@
       const response = await fetch(`reports/${reportId}.json`, { cache: "no-store" });
       if (!response.ok) throw new Error("not-found");
       const encrypted = await response.json();
-      const key = await crypto.subtle.importKey("raw", fromBase64Url(keyText), "AES-GCM", false, ["decrypt"]);
-      const plaintext = await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv: fromBase64Url(encrypted.iv) },
-        key,
-        fromBase64Url(encrypted.data)
+      if (encrypted.algorithm !== "chacha20") throw new Error("unsupported");
+      const plaintext = chacha20(
+        fromBase64Url(encrypted.data),
+        fromBase64Url(keyText),
+        fromBase64Url(encrypted.nonce)
       );
       document.open();
       document.write(new TextDecoder().decode(plaintext));
