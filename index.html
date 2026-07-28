@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#050a13">
+  <title>My Cosmic Mentor</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#050a13;color:#f6f0e4;font-family:Arial,sans-serif;text-align:center}
+    main{max-width:520px;padding:34px;border:1px solid #635026;border-radius:24px;background:linear-gradient(145deg,#111a2b,#070d18);box-shadow:0 28px 80px #0008}
+    h1{color:#f2c46d}p{line-height:1.7}.error{color:#ff8792}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>My Cosmic Mentor</h1>
+    <p id="status">׳”׳“׳•׳— ׳”׳׳™׳©׳™ ׳©׳׳ ׳ ׳˜׳¢׳ג€¦</p>
+  </main>
+  <script>
+    const fromBase64Url = (value) => {
+      const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+      const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
+      return Uint8Array.from(atob(padded), character => character.charCodeAt(0));
+    };
+    (async () => {
+      const reportId = new URLSearchParams(location.search).get("r");
+      const keyText = location.hash.slice(1);
+      if (!/^[a-z0-9]{8}$/.test(reportId || "") || !keyText) throw new Error("missing");
+      const response = await fetch(`reports/${reportId}.json`, { cache: "no-store" });
+      if (!response.ok) throw new Error("not-found");
+      const encrypted = await response.json();
+      const key = await crypto.subtle.importKey("raw", fromBase64Url(keyText), "AES-GCM", false, ["decrypt"]);
+      const plaintext = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: fromBase64Url(encrypted.iv) },
+        key,
+        fromBase64Url(encrypted.data)
+      );
+      document.open();
+      document.write(new TextDecoder().decode(plaintext));
+      document.close();
+    })().catch(() => {
+      document.getElementById("status").className = "error";
+      document.getElementById("status").textContent = "׳”׳§׳™׳©׳•׳¨ ׳׳™׳ ׳• ׳©׳׳ ׳׳• ׳©׳”׳“׳•׳— ׳׳™׳ ׳• ׳–׳׳™׳.";
+    });
+  </script>
+</body>
+</html>
+
