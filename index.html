@@ -63,7 +63,7 @@
       const reportId = new URLSearchParams(location.search).get("r");
       const keyText = location.hash.slice(1);
       if (!/^[a-z0-9]{8}$/.test(reportId || "") || !keyText) throw new Error("missing");
-      const response = await fetch(`reports/${reportId}.json`, { cache: "no-store" });
+      const response = await fetch(`reports/${reportId}.json?v=${Date.now()}`, { cache: "no-store" });
       if (!response.ok) throw new Error("not-found");
       const encrypted = await response.json();
       if (encrypted.algorithm !== "chacha20") throw new Error("unsupported");
@@ -88,4 +88,3 @@
   </script>
 </body>
 </html>
-
