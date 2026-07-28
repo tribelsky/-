@@ -72,8 +72,13 @@
         fromBase64Url(keyText),
         fromBase64Url(encrypted.nonce)
       );
+      const decompressed = encrypted.compression === "gzip"
+        ? await new Response(
+            new Blob([plaintext]).stream().pipeThrough(new DecompressionStream("gzip"))
+          ).arrayBuffer()
+        : plaintext;
       document.open();
-      document.write(new TextDecoder().decode(plaintext));
+      document.write(new TextDecoder().decode(decompressed));
       document.close();
     })().catch((error) => {
       document.getElementById("status").className = "error";
