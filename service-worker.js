@@ -1,5 +1,5 @@
-const CACHE_NAME = "mcm-shell-v1";
-const SHELL = ["./", "./manifest.webmanifest", "./mcm-icon.svg"];
+const CACHE_NAME = "mcm-shell-v2-logo";
+const SHELL = ["./", "./manifest.webmanifest"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)));
