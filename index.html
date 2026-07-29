@@ -16,7 +16,7 @@
 <body>
   <main>
     <h1>My Cosmic Mentor</h1>
-    <p id="status">׳”׳“׳•׳— ׳”׳׳™׳©׳™ ׳©׳׳ ׳ ׳˜׳¢׳ג€¦</p>
+    <p id="status">הדוח האישי שלך נטען…</p>
   </main>
   <script>
     const fromBase64Url = (value) => {
@@ -77,13 +77,21 @@
             new Blob([plaintext]).stream().pipeThrough(new DecompressionStream("gzip"))
           ).arrayBuffer()
         : plaintext;
+      const reportHtml = new TextDecoder().decode(decompressed);
+      const mobileScrollFix = `<style id="mcm-mobile-scroll-fix">
+        html{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important}
+        body{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:visible!important;touch-action:pan-y pinch-zoom!important;overscroll-behavior-y:auto!important}
+        .chart-wrap,.chart{touch-action:pan-y pinch-zoom!important}
+      </style>`;
       document.open();
-      document.write(new TextDecoder().decode(decompressed));
+      document.write(reportHtml.includes("</head>")
+        ? reportHtml.replace("</head>", `${mobileScrollFix}</head>`)
+        : mobileScrollFix + reportHtml);
       document.close();
     })().catch((error) => {
       document.getElementById("status").className = "error";
       document.getElementById("status").dataset.error = error.message;
-      document.getElementById("status").textContent = "׳”׳§׳™׳©׳•׳¨ ׳׳™׳ ׳• ׳©׳׳ ׳׳• ׳©׳”׳“׳•׳— ׳׳™׳ ׳• ׳–׳׳™׳.";
+      document.getElementById("status").textContent = "הקישור אינו שלם או שהדוח אינו זמין.";
     });
   </script>
 </body>
