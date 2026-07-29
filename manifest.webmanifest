@@ -1,0 +1,21 @@
+{
+  "name": "My Cosmic Mentor",
+  "short_name": "Cosmic Mentor",
+  "description": "היועץ הקוסמי האישי שלך",
+  "id": "./?installed",
+  "start_url": "./?installed",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#050a13",
+  "theme_color": "#050a13",
+  "lang": "he",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "mcm-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
