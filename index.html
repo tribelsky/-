@@ -6,7 +6,8 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="theme-color" content="#050a13">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="mcm-icon.svg" type="image/svg+xml">
+  <link rel="icon" href="https://mcm-rosana-talking-map.yairtri1927.chatgpt.site/assets/mycosmic-logo-icon-v2-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="https://mcm-rosana-talking-map.yairtri1927.chatgpt.site/assets/mycosmic-logo-icon-v2-192.png">
   <title>My Cosmic Mentor</title>
   <style>
     *{box-sizing:border-box}
@@ -18,7 +19,7 @@
 <body>
   <main>
     <h1>My Cosmic Mentor</h1>
-    <p id="status">הדוח האישי שלך נטען…</p>
+    <p id="status">׳”׳“׳•׳— ׳”׳׳™׳©׳™ ׳©׳׳ ׳ ׳˜׳¢׳ג€¦</p>
   </main>
   <script>
     const fromBase64Url = (value) => {
@@ -61,6 +62,16 @@
       }
       return output;
     };
+    const israelDate = () => {
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Jerusalem",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).formatToParts(new Date());
+      const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+      return `${values.year}-${values.month}-${values.day}`;
+    };
     (async () => {
       const reportId = new URLSearchParams(location.search).get("r");
       const keyText = location.hash.slice(1);
@@ -75,10 +86,13 @@
       if (!response.ok) throw new Error("not-found");
       const encrypted = await response.json();
       if (encrypted.algorithm !== "chacha20") throw new Error("unsupported");
+      const currentDate = israelDate();
+      const encryptedDay = encrypted.days ? encrypted.days[currentDate] : encrypted;
+      if (!encryptedDay?.data || !encryptedDay?.nonce) throw new Error("date-not-ready");
       const plaintext = chacha20(
-        fromBase64Url(encrypted.data),
+        fromBase64Url(encryptedDay.data),
         fromBase64Url(keyText),
-        fromBase64Url(encrypted.nonce)
+        fromBase64Url(encryptedDay.nonce)
       );
       const decompressed = encrypted.compression === "gzip"
         ? await new Response(
@@ -93,7 +107,7 @@
         #mcm-install{position:fixed;left:12px;top:12px;z-index:9999;border:1px solid #f4c44f;border-radius:999px;padding:9px 14px;background:#071321ee;color:#f4c44f;font:700 14px Arial,sans-serif;box-shadow:0 8px 28px #0009;cursor:pointer}
         @media(display-mode:standalone){#mcm-install{display:none!important}}
       </style>`;
-      const installControl = `<button id="mcm-install" type="button">התקיני את My Cosmic Mentor</button>`;
+      const installControl = `<button id="mcm-install" type="button">׳”׳×׳§׳™׳ ׳™ ׳׳× My Cosmic Mentor</button>`;
       const installScript = `<script>
         (() => {
           const button = document.getElementById("mcm-install");
@@ -112,13 +126,25 @@
               installPrompt = null;
               return;
             }
-            alert("ב־Chrome לחצי על שלוש הנקודות ובחרי: הוספה למסך הבית.");
+            alert("׳‘ײ¾Chrome ׳׳—׳¦׳™ ׳¢׳ ׳©׳׳•׳© ׳”׳ ׳§׳•׳“׳•׳× ׳•׳‘׳—׳¨׳™: ׳”׳•׳¡׳₪׳” ׳׳׳¡׳ ׳”׳‘׳™׳×.");
           });
           navigator.serviceWorker?.register("./service-worker.js").catch(() => {});
+          const loadedDate = "${currentDate}";
+          setInterval(() => {
+            const parts = new Intl.DateTimeFormat("en-CA", {
+              timeZone: "Asia/Jerusalem",
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit"
+            }).formatToParts(new Date());
+            const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+            const liveDate = values.year + "-" + values.month + "-" + values.day;
+            if (liveDate !== loadedDate) location.reload();
+          }, 60000);
         })();
       <\/script>`;
       const installableReport = reportHtml
-        .replace("</head>", `<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="mcm-icon.svg" type="image/svg+xml">${mobileScrollFix}</head>`)
+        .replace("</head>", `<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="https://mcm-rosana-talking-map.yairtri1927.chatgpt.site/assets/mycosmic-logo-icon-v2-192.png" type="image/png"><link rel="apple-touch-icon" href="https://mcm-rosana-talking-map.yairtri1927.chatgpt.site/assets/mycosmic-logo-icon-v2-192.png">${mobileScrollFix}</head>`)
         .replace(/<body([^>]*)>/i, `<body$1>${installControl}`)
         .replace("</body>", `${installScript}</body>`);
       document.open();
@@ -127,7 +153,7 @@
     })().catch((error) => {
       document.getElementById("status").className = "error";
       document.getElementById("status").dataset.error = error.message;
-      document.getElementById("status").textContent = "הקישור אינו שלם או שהדוח אינו זמין.";
+      document.getElementById("status").textContent = "׳”׳§׳™׳©׳•׳¨ ׳׳™׳ ׳• ׳©׳׳ ׳׳• ׳©׳”׳“׳•׳— ׳׳™׳ ׳• ׳–׳׳™׳.";
     });
   </script>
 </body>
