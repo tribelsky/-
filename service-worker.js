@@ -1,5 +1,8 @@
-const CACHE_NAME = "mcm-shell-v2-logo";
-const SHELL = ["./", "./manifest.webmanifest"];
+const CACHE_NAME = "mcm-shell-v3-daily-horizon";
+const SHELL = [
+  "./",
+  "./manifest.webmanifest"
+];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)));
@@ -16,5 +19,7 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
-  event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+  event.respondWith(
+    fetch(event.request).catch(() => caches.match(event.request))
+  );
 });
