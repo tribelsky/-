@@ -1,0 +1,78 @@
+name: MCM daily report watchdog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "37 6 * * *"
+      timezone: "Asia/Jerusalem"
+    - cron: "7 7 * * *"
+      timezone: "Asia/Jerusalem"
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: mcm-daily-report-watchdog
+  cancel-in-progress: false
+
+jobs:
+  verify-five-personal-reports:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify today's encrypted reports locally and publicly
+        id: verify
+        env:
+          PUBLIC_BASE: https://tribelsky.github.io/-
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const ids = ['5b7c2e9a', '7f2b8c1e', '3a9d6f4b', '8c1e5a7d', '6d4b9f2a'];
+          const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+          }).formatToParts(new Date()).map(part => [part.type, part.value]));
+          const date = `${parts.year}-${parts.month}-${parts.day}`;
+          const failures = [];
+          async function verify() {
+            for (const id of ids) {
+              const local = JSON.parse(fs.readFileSync(`reports/${id}.json`, 'utf8'));
+              if (!local.days?.[date]?.data || !local.days?.[date]?.nonce) {
+                failures.push(`local ${id} ${date}`);
+              }
+              const response = await fetch(`${process.env.PUBLIC_BASE}/reports/${id}.json?v=${Date.now()}`, {
+                cache: 'no-store'
+              });
+              if (!response.ok) {
+                failures.push(`public ${id} HTTP ${response.status}`);
+                continue;
+              }
+              const remote = await response.json();
+              if (!remote.days?.[date]?.data || !remote.days?.[date]?.nonce) {
+                failures.push(`public ${id} ${date}`);
+              }
+            }
+            const shell = await fetch(`${process.env.PUBLIC_BASE}/index.html?v=${Date.now()}`, { cache: 'no-store' });
+            const shellText = await shell.text();
+            if (!shell.ok || !shellText.includes('israelReportDate') || !shellText.includes('Number(values.hour) >= 7')) {
+              failures.push('public 07:00 shell cutoff');
+            }
+            if (failures.length) {
+              console.error(`MCM WATCHDOG BLOCKED ${date}: ${failures.join(', ')}`);
+              process.exit(1);
+            }
+            console.log(`MCM WATCHDOG PASS ${date} ${parts.hour}:${parts.minute} Asia/Jerusalem`);
+          }
+          verify().catch(error => { console.error(error); process.exit(1); });
+          NODE
+
+      - name: Open a blocking incident when verification fails
+        if: failure() && steps.verify.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --title "MCM daily report watchdog failed" \
+            --body "The automatic daily report verification failed. Open the failed Actions run for the missing report IDs and date. Do not promise delivery until the run is repaired and re-run successfully."
