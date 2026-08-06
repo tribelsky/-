@@ -63,7 +63,12 @@
       return output;
     };
     const queryParams = new URLSearchParams(location.search);
-    const noonCutoverTest = queryParams.get("cutoverTest") === "noon";
+    const cutoverTestValue = queryParams.get("cutoverTest");
+    const cutoverTestMinutes = cutoverTestValue === "noon"
+      ? 12 * 60
+      : /^\d{4}$/.test(cutoverTestValue || "")
+        ? Number(cutoverTestValue.slice(0, 2)) * 60 + Number(cutoverTestValue.slice(2))
+        : null;
     const israelReportDate = () => {
       const parts = new Intl.DateTimeFormat("en-CA", {
         timeZone: "Asia/Jerusalem",
@@ -71,12 +76,14 @@
         month: "2-digit",
         day: "2-digit",
         hour: "2-digit",
+        minute: "2-digit",
         hourCycle: "h23"
       }).formatToParts(new Date());
       const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
       const calendarDate = `${values.year}-${values.month}-${values.day}`;
-      if (noonCutoverTest) {
-        if (Number(values.hour) < 12) return calendarDate;
+      if (cutoverTestMinutes !== null) {
+        const currentMinutes = Number(values.hour) * 60 + Number(values.minute || 0);
+        if (currentMinutes < cutoverTestMinutes) return calendarDate;
         return new Date(Date.UTC(
           Number(values.year), Number(values.month) - 1, Number(values.day) + 1
         )).toISOString().slice(0, 10);
@@ -144,7 +151,12 @@
           });
           navigator.serviceWorker?.register("./service-worker.js").catch(() => {});
           const loadedDate = "${currentDate}";
-          const noonCutoverTest = new URLSearchParams(location.search).get("cutoverTest") === "noon";
+          const cutoverTestValue = new URLSearchParams(location.search).get("cutoverTest");
+          const cutoverTestMinutes = cutoverTestValue === "noon"
+            ? 12 * 60
+            : /^\d{4}$/.test(cutoverTestValue || "")
+              ? Number(cutoverTestValue.slice(0, 2)) * 60 + Number(cutoverTestValue.slice(2))
+              : null;
           const reportDateNow = () => {
             const parts = new Intl.DateTimeFormat("en-CA", {
               timeZone: "Asia/Jerusalem",
@@ -152,12 +164,14 @@
               month: "2-digit",
               day: "2-digit",
               hour: "2-digit",
+              minute: "2-digit",
               hourCycle: "h23"
             }).formatToParts(new Date());
             const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
             const calendarDate = values.year + "-" + values.month + "-" + values.day;
-            if (noonCutoverTest) {
-              if (Number(values.hour) < 12) return calendarDate;
+            if (cutoverTestMinutes !== null) {
+              const currentMinutes = Number(values.hour) * 60 + Number(values.minute || 0);
+              if (currentMinutes < cutoverTestMinutes) return calendarDate;
               return new Date(Date.UTC(
                 Number(values.year), Number(values.month) - 1, Number(values.day) + 1
               )).toISOString().slice(0, 10);
