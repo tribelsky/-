@@ -62,6 +62,8 @@
       }
       return output;
     };
+    const queryParams = new URLSearchParams(location.search);
+    const noonCutoverTest = queryParams.get("cutoverTest") === "noon";
     const israelReportDate = () => {
       const parts = new Intl.DateTimeFormat("en-CA", {
         timeZone: "Asia/Jerusalem",
@@ -73,13 +75,19 @@
       }).formatToParts(new Date());
       const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
       const calendarDate = `${values.year}-${values.month}-${values.day}`;
+      if (noonCutoverTest) {
+        if (Number(values.hour) < 12) return calendarDate;
+        return new Date(Date.UTC(
+          Number(values.year), Number(values.month) - 1, Number(values.day) + 1
+        )).toISOString().slice(0, 10);
+      }
       if (Number(values.hour) >= 7) return calendarDate;
       return new Date(Date.UTC(
         Number(values.year), Number(values.month) - 1, Number(values.day) - 1
       )).toISOString().slice(0, 10);
     };
     (async () => {
-      const reportId = new URLSearchParams(location.search).get("r");
+      const reportId = queryParams.get("r");
       const keyText = location.hash.slice(1);
       const savedPersonalUrl = localStorage.getItem("mcmPersonalUrl");
       if (!reportId && savedPersonalUrl && new URLSearchParams(location.search).has("installed")) {
@@ -136,6 +144,7 @@
           });
           navigator.serviceWorker?.register("./service-worker.js").catch(() => {});
           const loadedDate = "${currentDate}";
+          const noonCutoverTest = new URLSearchParams(location.search).get("cutoverTest") === "noon";
           const reportDateNow = () => {
             const parts = new Intl.DateTimeFormat("en-CA", {
               timeZone: "Asia/Jerusalem",
@@ -147,6 +156,12 @@
             }).formatToParts(new Date());
             const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
             const calendarDate = values.year + "-" + values.month + "-" + values.day;
+            if (noonCutoverTest) {
+              if (Number(values.hour) < 12) return calendarDate;
+              return new Date(Date.UTC(
+                Number(values.year), Number(values.month) - 1, Number(values.day) + 1
+              )).toISOString().slice(0, 10);
+            }
             if (Number(values.hour) >= 7) return calendarDate;
             return new Date(Date.UTC(
               Number(values.year), Number(values.month) - 1, Number(values.day) - 1
