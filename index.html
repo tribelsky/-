@@ -62,15 +62,21 @@
       }
       return output;
     };
-    const israelDate = () => {
+    const israelReportDate = () => {
       const parts = new Intl.DateTimeFormat("en-CA", {
         timeZone: "Asia/Jerusalem",
         year: "numeric",
         month: "2-digit",
-        day: "2-digit"
+        day: "2-digit",
+        hour: "2-digit",
+        hourCycle: "h23"
       }).formatToParts(new Date());
       const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
-      return `${values.year}-${values.month}-${values.day}`;
+      const calendarDate = `${values.year}-${values.month}-${values.day}`;
+      if (Number(values.hour) >= 7) return calendarDate;
+      return new Date(Date.UTC(
+        Number(values.year), Number(values.month) - 1, Number(values.day) - 1
+      )).toISOString().slice(0, 10);
     };
     (async () => {
       const reportId = new URLSearchParams(location.search).get("r");
@@ -86,7 +92,7 @@
       if (!response.ok) throw new Error("not-found");
       const encrypted = await response.json();
       if (encrypted.algorithm !== "chacha20") throw new Error("unsupported");
-      const currentDate = israelDate();
+      const currentDate = israelReportDate();
       const encryptedDay = encrypted.days ? encrypted.days[currentDate] : encrypted;
       if (!encryptedDay?.data || !encryptedDay?.nonce) throw new Error("date-not-ready");
       const plaintext = chacha20(
@@ -130,15 +136,24 @@
           });
           navigator.serviceWorker?.register("./service-worker.js").catch(() => {});
           const loadedDate = "${currentDate}";
-          setInterval(() => {
+          const reportDateNow = () => {
             const parts = new Intl.DateTimeFormat("en-CA", {
               timeZone: "Asia/Jerusalem",
               year: "numeric",
               month: "2-digit",
-              day: "2-digit"
+              day: "2-digit",
+              hour: "2-digit",
+              hourCycle: "h23"
             }).formatToParts(new Date());
             const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
-            const liveDate = values.year + "-" + values.month + "-" + values.day;
+            const calendarDate = values.year + "-" + values.month + "-" + values.day;
+            if (Number(values.hour) >= 7) return calendarDate;
+            return new Date(Date.UTC(
+              Number(values.year), Number(values.month) - 1, Number(values.day) - 1
+            )).toISOString().slice(0, 10);
+          };
+          setInterval(() => {
+            const liveDate = reportDateNow();
             if (liveDate !== loadedDate) location.reload();
           }, 60000);
         })();
