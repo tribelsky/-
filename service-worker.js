@@ -1,4 +1,4 @@
-const CACHE_NAME = "mcm-shell-v5-easy-install";
+const CACHE_NAME = "mcm-shell-v6-readable-mobile-type";
 const SHELL = [
   "./",
   "./manifest.webmanifest"
