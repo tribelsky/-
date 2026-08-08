@@ -1,3 +1,6 @@
+Exit code: 0
+Wall time: 0.4 seconds
+Output:
 <!doctype html>
 <html lang="he" dir="rtl">
 <head>
@@ -19,7 +22,7 @@
 <body>
   <main>
     <h1>My Cosmic Mentor</h1>
-    <p id="status">׳”׳“׳•׳— ׳”׳׳™׳©׳™ ׳©׳׳ ׳ ׳˜׳¢׳ג€¦</p>
+    <p id="status">הדוח האישי שלך נטען…</p>
   </main>
   <script>
     const fromBase64Url = (value) => {
@@ -90,7 +93,9 @@
       }
       if (Number(values.hour) >= 7) return calendarDate;
       return new Date(Date.UTC(
-        Number(values.year), Number(values.month) - 1, Number(values.day) - 1
+        Number(values.year),
+        Number(values.month) - 1,
+        Number(values.day) - 1
       )).toISOString().slice(0, 10);
     };
     (async () => {
@@ -125,15 +130,17 @@
         html{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important}
         body{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:visible!important;touch-action:pan-y pinch-zoom!important;overscroll-behavior-y:auto!important}
         .chart-wrap,.chart{touch-action:pan-y pinch-zoom!important}
-        #mcm-install{position:fixed;left:12px;top:12px;z-index:9999;border:1px solid #f4c44f;border-radius:999px;padding:9px 14px;background:#071321ee;color:#f4c44f;font:700 14px Arial,sans-serif;box-shadow:0 8px 28px #0009;cursor:pointer}
+        #mcm-install{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9999;width:min(92vw,420px);border:1px solid #ffe08a;border-radius:18px;padding:15px 20px;background:linear-gradient(135deg,#f2c46d,#ffe292);color:#16110a;font:800 17px Arial,"Noto Sans Hebrew",sans-serif;box-shadow:0 14px 42px #000b,0 0 0 4px #f2c46d22;cursor:pointer;text-align:center}
+        #mcm-install:focus-visible{outline:3px solid #63ddff;outline-offset:3px}
         @media(display-mode:standalone){#mcm-install{display:none!important}}
       </style>`;
-      const installControl = `<button id="mcm-install" type="button">׳”׳×׳§׳™׳ ׳™ ׳׳× My Cosmic Mentor</button>`;
+      const installControl = `<button id="mcm-install" type="button" aria-label="הוספת האפליקציה למסך הבית">הוספת האפליקציה למסך הבית</button>`;
       const installScript = `<script>
         (() => {
           const button = document.getElementById("mcm-install");
           let installPrompt = null;
-          if (window.matchMedia("(display-mode: standalone)").matches) button?.remove();
+          const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+          if (isStandalone) button?.remove();
           window.addEventListener("beforeinstallprompt", event => {
             event.preventDefault();
             installPrompt = event;
@@ -147,7 +154,12 @@
               installPrompt = null;
               return;
             }
-            alert("׳‘ײ¾Chrome ׳׳—׳¦׳™ ׳¢׳ ׳©׳׳•׳© ׳”׳ ׳§׳•׳“׳•׳× ׳•׳‘׳—׳¨׳™: ׳”׳•׳¡׳₪׳” ׳׳׳¡׳ ׳”׳‘׳™׳×.");
+            const isApplePhone = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+            if (isApplePhone) {
+              alert("לחצי על סמל השיתוף בתחתית המסך, ואז בחרי: הוספה למסך הבית.");
+              return;
+            }
+            alert("לחצי על שלוש הנקודות בדפדפן, ואז בחרי: התקנת אפליקציה או הוספה למסך הבית.");
           });
           navigator.serviceWorker?.register("./service-worker.js").catch(() => {});
           const loadedDate = "${currentDate}";
@@ -178,7 +190,9 @@
             }
             if (Number(values.hour) >= 7) return calendarDate;
             return new Date(Date.UTC(
-              Number(values.year), Number(values.month) - 1, Number(values.day) - 1
+              Number(values.year),
+              Number(values.month) - 1,
+              Number(values.day) - 1
             )).toISOString().slice(0, 10);
           };
           setInterval(() => {
@@ -197,8 +211,9 @@
     })().catch((error) => {
       document.getElementById("status").className = "error";
       document.getElementById("status").dataset.error = error.message;
-      document.getElementById("status").textContent = "׳”׳§׳™׳©׳•׳¨ ׳׳™׳ ׳• ׳©׳׳ ׳׳• ׳©׳”׳“׳•׳— ׳׳™׳ ׳• ׳–׳׳™׳.";
+      document.getElementById("status").textContent = "הקישור אינו שלם או שהדוח אינו זמין.";
     });
   </script>
 </body>
 </html>
+
