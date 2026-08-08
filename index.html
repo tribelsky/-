@@ -129,6 +129,12 @@
         .chart-wrap,.chart{touch-action:pan-y pinch-zoom!important}
         #mcm-install{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9999;width:min(92vw,420px);border:1px solid #ffe08a;border-radius:18px;padding:15px 20px;background:linear-gradient(135deg,#f2c46d,#ffe292);color:#16110a;font:800 17px Arial,"Noto Sans Hebrew",sans-serif;box-shadow:0 14px 42px #000b,0 0 0 4px #f2c46d22;cursor:pointer;text-align:center}
         #mcm-install:focus-visible{outline:3px solid #63ddff;outline-offset:3px}
+        @media(max-width:820px){
+          body{font-size:17px!important}
+          p,.short-text,.source-row,.timeline-card p,.meeting-card p,.process-meta,.process-house,.process-time{font-size:17px!important;line-height:1.65!important}
+          .source-ref,.voice-status,.stamp,.eyebrow{font-size:13px!important;line-height:1.5!important}
+          .page-nav a,.voice-button{font-size:16px!important}
+        }
         @media(display-mode:standalone){#mcm-install{display:none!important}}
       </style>`;
       const installControl = `<button id="mcm-install" type="button" aria-label="הוספת האפליקציה למסך הבית">הוספת האפליקציה למסך הבית</button>`;
