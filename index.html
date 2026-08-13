@@ -6,8 +6,8 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="theme-color" content="#050a13">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="https://mcm-rosana-talking-map.yairtri1927.chatgpt.site/assets/mycosmic-logo-icon-v2-192.png" type="image/png">
-  <link rel="apple-touch-icon" href="https://mcm-rosana-talking-map.yairtri1927.chatgpt.site/assets/mycosmic-logo-icon-v2-192.png">
+  <link rel="icon" href="mcm-icon.svg" type="image/png">
+  <link rel="apple-touch-icon" href="mcm-icon.svg">
   <title>My Cosmic Mentor</title>
   <style>
     *{box-sizing:border-box}
@@ -205,7 +205,7 @@
         })();
       <\/script>`;
       const installableReport = reportHtml
-        .replace("</head>", `<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="https://mcm-rosana-talking-map.yairtri1927.chatgpt.site/assets/mycosmic-logo-icon-v2-192.png" type="image/png"><link rel="apple-touch-icon" href="https://mcm-rosana-talking-map.yairtri1927.chatgpt.site/assets/mycosmic-logo-icon-v2-192.png">${mobileScrollFix}</head>`)
+        .replace("</head>", `<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="mcm-icon.svg" type="image/png"><link rel="apple-touch-icon" href="mcm-icon.svg">${mobileScrollFix}</head>`)
         .replace(/<body([^>]*)>/i, `<body$1>${installControl}`)
         .replace("</body>", `${installScript}</body>`);
       document.open();
