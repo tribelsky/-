@@ -1,7 +1,7 @@
-const CACHE_NAME = "mcm-shell-v6-readable-mobile-type";
+const CACHE_NAME = "mcm-shell-v7-local-icon";
 const SHELL = [
   "./",
-  "./manifest.webmanifest"
+  "./manifest.webmanifest",\n  "./mcm-icon.svg"
 ];
 
 self.addEventListener("install", event => {
