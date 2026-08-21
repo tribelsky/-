@@ -184,7 +184,18 @@
             }
             alert("לחצי על שלוש הנקודות בדפדפן, ואז בחרי: התקנת אפליקציה או הוספה למסך הבית.");
           });
-          navigator.serviceWorker?.register("./service-worker.js").catch(() => {});
+          if ("serviceWorker" in navigator) {
+            let reloadingForFreshShell = false;
+            navigator.serviceWorker.addEventListener("controllerchange", () => {
+              if (reloadingForFreshShell) return;
+              reloadingForFreshShell = true;
+              location.reload();
+            });
+            navigator.serviceWorker
+              .register("./service-worker.js?v=8", { updateViaCache: "none" })
+              .then(registration => registration.update())
+              .catch(() => {});
+          }
           const loadedDate = "${currentDate}";
           const cutoverTestValue = new URLSearchParams(location.search).get("cutoverTest");
           const cutoverTestMinutes = cutoverTestValue === "noon"

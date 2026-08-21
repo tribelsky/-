@@ -1,7 +1,7 @@
-const CACHE_NAME = "mcm-shell-v7-local-icon";
+const CACHE_NAME = "mcm-shell-v8-fresh-content";
 const SHELL = [
-  "./",
-  "./manifest.webmanifest",\n  "./mcm-icon.svg"
+  "./manifest.webmanifest",
+  "./mcm-icon.svg"
 ];
 
 self.addEventListener("install", event => {
@@ -19,6 +19,18 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
+
+  const requestUrl = new URL(event.request.url);
+  const mustBeFresh =
+    event.request.mode === "navigate" ||
+    event.request.destination === "document" ||
+    requestUrl.pathname.includes("/reports/");
+
+  if (mustBeFresh) {
+    event.respondWith(fetch(event.request, { cache: "no-store" }));
+    return;
+  }
+
   event.respondWith(
     fetch(event.request).catch(() => caches.match(event.request))
   );
