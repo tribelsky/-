@@ -1,4 +1,4 @@
-const CACHE_NAME = "mcm-shell-v8-fresh-content";
+const CACHE_NAME = "mcm-shell-v9-auto-refresh";
 const SHELL = [
   "./manifest.webmanifest",
   "./mcm-icon.svg"
@@ -14,6 +14,8 @@ self.addEventListener("activate", event => {
     caches.keys()
       .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
+      .then(() => self.clients.matchAll({ type: "window", includeUncontrolled: true }))
+      .then(clients => Promise.all(clients.map(client => client.navigate(client.url))))
   );
 });
 
@@ -24,7 +26,8 @@ self.addEventListener("fetch", event => {
   const mustBeFresh =
     event.request.mode === "navigate" ||
     event.request.destination === "document" ||
-    requestUrl.pathname.includes("/reports/");
+    requestUrl.pathname.includes("/reports/") ||
+    requestUrl.pathname.includes("/versions/");
 
   if (mustBeFresh) {
     event.respondWith(fetch(event.request, { cache: "no-store" }));

@@ -192,11 +192,13 @@
               location.reload();
             });
             navigator.serviceWorker
-              .register("./service-worker.js?v=8", { updateViaCache: "none" })
+              .register("./service-worker.js?v=9", { updateViaCache: "none" })
               .then(registration => registration.update())
               .catch(() => {});
           }
           const loadedDate = "${currentDate}";
+          const loadedRevision = ${JSON.stringify(encrypted.generated_at || "")};
+          const activeReportId = ${JSON.stringify(reportId)};
           const cutoverTestValue = new URLSearchParams(location.search).get("cutoverTest");
           const cutoverTestMinutes = cutoverTestValue === "noon"
             ? 12 * 60
@@ -229,10 +231,29 @@
               Number(values.day) - 1
             )).toISOString().slice(0, 10);
           };
-          setInterval(() => {
+          const refreshIfUpdated = async () => {
             const liveDate = reportDateNow();
-            if (liveDate !== loadedDate) location.reload();
-          }, 60000);
+            if (liveDate !== loadedDate) {
+              location.reload();
+              return;
+            }
+            try {
+              const versionResponse = await fetch(
+                "versions/" + encodeURIComponent(activeReportId) + ".json?v=" + Date.now(),
+                { cache: "no-store" }
+              );
+              if (versionResponse.ok) {
+                const latestVersion = await versionResponse.json();
+                if (latestVersion.generated_at && latestVersion.generated_at !== loadedRevision) {
+                  location.reload();
+                  return;
+                }
+              }
+              const registration = await navigator.serviceWorker?.getRegistration();
+              await registration?.update();
+            } catch {}
+          };
+          setInterval(refreshIfUpdated, 60000);
         })();
       <\/script>`;
       const installableReport = reportHtml
