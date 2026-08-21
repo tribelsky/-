@@ -122,7 +122,27 @@
             new Blob([plaintext]).stream().pipeThrough(new DecompressionStream("gzip"))
           ).arrayBuffer()
         : plaintext;
-      const reportHtml = new TextDecoder().decode(decompressed);
+      const decodedReport = new TextDecoder().decode(decompressed);
+      let reportPackage = null;
+      try {
+        const candidate = JSON.parse(decodedReport);
+        if (candidate?.format === "mcm-multipage-v1" && candidate.pages) reportPackage = candidate;
+      } catch {}
+      const allowedPages = new Set(["home", "today", "tomorrow", "week"]);
+      const requestedPage = allowedPages.has(queryParams.get("page"))
+        ? queryParams.get("page")
+        : (reportPackage?.default_page || "today.html").replace(/\.html$/i, "");
+      let reportHtml = reportPackage
+        ? reportPackage.pages[`${requestedPage}.html`] || reportPackage.pages[reportPackage.default_page]
+        : decodedReport;
+      if (!reportHtml) throw new Error("page-not-ready");
+      if (reportPackage) {
+        const pageUrl = page => `?r=${encodeURIComponent(reportId)}&page=${page}#${encodeURIComponent(keyText)}`;
+        reportHtml = reportHtml.replace(
+          /href=(["'])(?:\.\/)?(home|today|tomorrow|week)\.html(?:#[^"']*)?\1/gi,
+          (_match, quote, page) => `href=${quote}${pageUrl(page.toLowerCase())}${quote}`
+        );
+      }
       const mobileScrollFix = `<style id="mcm-mobile-scroll-fix">
         html{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important}
         body{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:visible!important;touch-action:pan-y pinch-zoom!important;overscroll-behavior-y:auto!important}
