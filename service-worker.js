@@ -1,4 +1,4 @@
-const CACHE_NAME = "mcm-shell-v9-auto-refresh";
+const CACHE_NAME = "mcm-shell-v10-auto-refresh";
 const SHELL = [
   "./manifest.webmanifest",
   "./mcm-icon.svg"

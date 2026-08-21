@@ -192,7 +192,7 @@
               location.reload();
             });
             navigator.serviceWorker
-              .register("./service-worker.js?v=9", { updateViaCache: "none" })
+              .register("./service-worker.js?v=10", { updateViaCache: "none" })
               .then(registration => registration.update())
               .catch(() => {});
           }
@@ -231,7 +231,10 @@
               Number(values.day) - 1
             )).toISOString().slice(0, 10);
           };
+          let refreshInFlight = false;
           const refreshIfUpdated = async () => {
+            if (refreshInFlight) return;
+            refreshInFlight = true;
             const liveDate = reportDateNow();
             if (liveDate !== loadedDate) {
               location.reload();
@@ -252,12 +255,20 @@
               const registration = await navigator.serviceWorker?.getRegistration();
               await registration?.update();
             } catch {}
+            finally { refreshInFlight = false; }
           };
-          setInterval(refreshIfUpdated, 60000);
+          setTimeout(refreshIfUpdated, 1000);
+          setInterval(refreshIfUpdated, 15000);
+          window.addEventListener("focus", refreshIfUpdated);
+          window.addEventListener("pageshow", refreshIfUpdated);
+          document.addEventListener("visibilitychange", () => {
+            if (!document.hidden) refreshIfUpdated();
+          });
         })();
       <\/script>`;
+      const revisionMeta = `<meta name="mcm-revision" content="${String(encrypted.generated_at || "").replace(/[&"<>]/g, "")}">`;
       const installableReport = reportHtml
-        .replace("</head>", `<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="mcm-icon.svg" type="image/png"><link rel="apple-touch-icon" href="mcm-icon.svg">${mobileScrollFix}</head>`)
+        .replace("</head>", `${revisionMeta}<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="mcm-icon.svg" type="image/png"><link rel="apple-touch-icon" href="mcm-icon.svg">${mobileScrollFix}</head>`)
         .replace(/<body([^>]*)>/i, `<body$1>${installControl}`)
         .replace("</body>", `${installScript}</body>`);
       document.open();
