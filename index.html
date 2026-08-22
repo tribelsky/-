@@ -248,8 +248,17 @@
               if (versionResponse.ok) {
                 const latestVersion = await versionResponse.json();
                 if (latestVersion.generated_at && latestVersion.generated_at !== loadedRevision) {
-                  location.reload();
-                  return;
+                  const payloadResponse = await fetch(
+                    "reports/" + encodeURIComponent(activeReportId) + ".json?v=" + Date.now(),
+                    { cache: "no-store" }
+                  );
+                  if (payloadResponse.ok) {
+                    const livePayload = await payloadResponse.json();
+                    if (livePayload.generated_at === latestVersion.generated_at) {
+                      location.reload();
+                      return;
+                    }
+                  }
                 }
               }
               const registration = await navigator.serviceWorker?.getRegistration();
