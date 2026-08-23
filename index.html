@@ -161,7 +161,7 @@
         }
         @media(display-mode:standalone){#mcm-install{display:none!important}}
       </style>`;
-      const installControl = `<button id="mcm-install" type="button" aria-label="הוספת האפליקציה למסך הבית">הוספת האפליקציה למסך הבית</button>`;
+      const installControl = `<button id="mcm-install" type="button" aria-label="הוראות התקנת האפליקציה">הוראות התקנה</button>`;
       const installScript = `<script>
         (() => {
           const button = document.getElementById("mcm-install");
@@ -183,7 +183,7 @@
             }
             const isApplePhone = /iPhone|iPad|iPod/i.test(navigator.userAgent);
             if (isApplePhone) {
-              alert("לחצי על סמל השיתוף בתחתית המסך, ואז בחרי: הוספה למסך הבית.");
+              alert("זהו חלון הסבר בלבד. לחצי על ⋯ בתחתית Safari, בחרי שיתוף, אחר כך הוספה למסך הבית ולבסוף הוסף. אם אינך רואה את תפריט Safari, פתחי תחילה את הקישור ב-Safari.");
               return;
             }
             alert("לחצי על שלוש הנקודות בדפדפן, ואז בחרי: התקנת אפליקציה או הוספה למסך הבית.");
@@ -236,6 +236,16 @@
             )).toISOString().slice(0, 10);
           };
           let refreshInFlight = false;
+          const reloadMarkerKey = "mcm-reload-marker:" + activeReportId;
+          const reloadOnce = (revision) => {
+            const marker = revision || "date:" + reportDateNow();
+            try {
+              if (sessionStorage.getItem(reloadMarkerKey) === marker) return false;
+              sessionStorage.setItem(reloadMarkerKey, marker);
+            } catch {}
+            location.reload();
+            return true;
+          };
           const refreshIfUpdated = async () => {
             if (refreshInFlight) return;
             refreshInFlight = true;
@@ -243,7 +253,7 @@
             // A release may be preloaded before 07:00. Keep that newer release
             // stable; reload only when the installed page is genuinely behind.
             if (liveDate > loadedDate) {
-              location.reload();
+              reloadOnce("date:" + liveDate);
               return;
             }
             try {
@@ -261,7 +271,7 @@
                   if (payloadResponse.ok) {
                     const livePayload = await payloadResponse.json();
                     if (livePayload.generated_at === latestVersion.generated_at) {
-                      location.reload();
+                      reloadOnce(latestVersion.generated_at);
                       return;
                     }
                   }
