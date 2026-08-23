@@ -109,7 +109,11 @@
       if (!response.ok) throw new Error("not-found");
       const encrypted = await response.json();
       if (encrypted.algorithm !== "chacha20") throw new Error("unsupported");
-      const currentDate = israelReportDate();
+      let currentDate = israelReportDate();
+      if (encrypted.days && !encrypted.days[currentDate]) {
+        const availableDays = Object.keys(encrypted.days).sort();
+        currentDate = availableDays.find(day => day > currentDate) || availableDays.at(-1) || currentDate;
+      }
       const encryptedDay = encrypted.days ? encrypted.days[currentDate] : encrypted;
       if (!encryptedDay?.data || !encryptedDay?.nonce) throw new Error("date-not-ready");
       const plaintext = chacha20(
