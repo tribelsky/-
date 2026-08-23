@@ -236,7 +236,9 @@
             if (refreshInFlight) return;
             refreshInFlight = true;
             const liveDate = reportDateNow();
-            if (liveDate !== loadedDate) {
+            // A release may be preloaded before 07:00. Keep that newer release
+            // stable; reload only when the installed page is genuinely behind.
+            if (liveDate > loadedDate) {
               location.reload();
               return;
             }
