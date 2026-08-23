@@ -164,6 +164,9 @@
       const installControl = `<button id="mcm-install" type="button" aria-label="הוראות התקנת האפליקציה">הוראות התקנה</button>`;
       const installScript = `<script>
         (() => {
+          // The encrypted report may contain its own legacy install control.
+          // Keep one deterministic control owned by the live shell.
+          document.querySelectorAll(".app-install-button,.install-sheet").forEach(element => element.remove());
           const button = document.getElementById("mcm-install");
           let installPrompt = null;
           const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
