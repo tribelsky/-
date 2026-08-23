@@ -199,7 +199,7 @@
               location.reload();
             });
             navigator.serviceWorker
-              .register("./service-worker.js?v=11", { updateViaCache: "none" })
+              .register("./service-worker.js?v=12", { updateViaCache: "none" })
               .then(registration => registration.update())
               .catch(() => {});
           }
