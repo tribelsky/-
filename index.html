@@ -99,7 +99,10 @@
       const reportId = queryParams.get("r");
       const keyText = location.hash.slice(1);
       const savedPersonalUrl = localStorage.getItem("mcmPersonalUrl");
-      if (!reportId && savedPersonalUrl && new URLSearchParams(location.search).has("installed")) {
+      // Installed PWAs start from the shared manifest URL, which deliberately
+      // has no personal key in it. Restore the encrypted personal URL already
+      // saved on this device instead of treating the launch as an invalid link.
+      if (!reportId && savedPersonalUrl) {
         location.replace(savedPersonalUrl);
         return;
       }
