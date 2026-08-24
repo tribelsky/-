@@ -192,15 +192,10 @@
             alert("לחצי על שלוש הנקודות בדפדפן, ואז בחרי: התקנת אפליקציה או הוספה למסך הבית.");
           });
           if ("serviceWorker" in navigator) {
-            let reloadingForFreshShell = false;
-            navigator.serviceWorker.addEventListener("controllerchange", () => {
-              if (reloadingForFreshShell) return;
-              reloadingForFreshShell = true;
-              location.reload();
-            });
             navigator.serviceWorker
-              .register("./service-worker.js?v=12", { updateViaCache: "none" })
-              .then(registration => registration.update())
+              // A controller change must never reload the document: desktop
+              // browsers can repeatedly activate the worker and create a loop.
+              .register("./service-worker.js?v=13", { updateViaCache: "none" })
               .catch(() => {});
           }
           const loadedDate = "${currentDate}";
@@ -280,8 +275,6 @@
                   }
                 }
               }
-              const registration = await navigator.serviceWorker?.getRegistration();
-              await registration?.update();
             } catch {}
             finally { refreshInFlight = false; }
           };
