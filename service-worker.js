@@ -1,4 +1,4 @@
-const CACHE_NAME = "mcm-shell-v21-branded-app-icon";
+const CACHE_NAME = "mcm-shell-v22-awaited-install-prompt";
 const SHELL = [
   "./manifest.webmanifest",
   "./mcm-icon.svg",
