@@ -22,6 +22,17 @@
     <p id="status">הדוח האישי שלך נטען…</p>
   </main>
   <script>
+    // Capture Chrome's one-shot install event before the encrypted personal
+    // report finishes loading. Otherwise a fast phone can fire it while the
+    // loading shell is still visible and the install button will wait forever.
+    window.__mcmInstallPrompt = null;
+    window.addEventListener("beforeinstallprompt", event => {
+      event.preventDefault();
+      window.__mcmInstallPrompt = event;
+    });
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./service-worker.js?v=18", { updateViaCache: "none" }).catch(() => {});
+    }
     const fromBase64Url = (value) => {
       const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
       const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
@@ -146,7 +157,7 @@
       // The weekly mentor portrait belongs inside the encrypted report and must
       // never be published as an unencrypted shared asset. Use the public Mao
       // illustration in the live shell until encrypted asset bundling is active.
-      reportHtml = reportHtml.replaceAll("assets/yair-cosmic-portrait-v2.png", "assets/09_MAO_PROCESS.png");
+      reportHtml = reportHtml.replaceAll("assets/yair-cosmic-portrait-v2.png", "assets/10_MAO_MENTOR_YOGA.png");
       if (reportPackage) {
         const pageUrl = page => `?r=${encodeURIComponent(reportId)}&page=${page}#${encodeURIComponent(keyText)}`;
         reportHtml = reportHtml.replace(
@@ -169,6 +180,7 @@
         .list-panel.recommended .list-head h2{color:#79e4a7!important}
         .list-panel.not-recommended .list-head h2{color:#ff9b9b!important}
         .hero-focus .focus-label{color:#7fddff!important}
+        .mentor-portrait{background-image:url("assets/10_MAO_MENTOR_YOGA.png")!important;background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important;background-color:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
         #mcm-install{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9999;width:min(92vw,420px);border:1px solid #ffe08a;border-radius:18px;padding:15px 20px;background:linear-gradient(135deg,#f2c46d,#ffe292);color:#16110a;font:800 17px Arial,"Noto Sans Hebrew",sans-serif;box-shadow:0 14px 42px #000b,0 0 0 4px #f2c46d22;cursor:pointer;text-align:center}
         #mcm-install:focus-visible{outline:3px solid #63ddff;outline-offset:3px}
         #mcm-install-sheet[hidden]{display:none!important}
@@ -228,7 +240,7 @@
           const copyButton = document.getElementById("mcm-copy-link");
           const closeButton = document.getElementById("mcm-close-install");
           const copyStatus = document.getElementById("mcm-copy-status");
-          let installPrompt = null;
+          let installPrompt = window.__mcmInstallPrompt || null;
           const userAgent = navigator.userAgent || "";
           const isApplePhone = /iPhone|iPad|iPod/i.test(userAgent);
           const isAndroid = /Android/i.test(userAgent);
@@ -247,10 +259,10 @@
           const showInstallInstructions = () => {
             if (!sheet || !sheetTitle || !sheetMessage) return;
             copyStatus.textContent = "";
-            const waitingForChromePrompt = isAndroid && !isEmbeddedBrowser && !installPrompt;
-            installNowButton.hidden = !installPrompt && !waitingForChromePrompt;
-            installNowButton.disabled = waitingForChromePrompt;
-            installNowButton.textContent = waitingForChromePrompt ? "מכין את ההתקנה…" : "התקנה עכשיו";
+            const chromePromptUnavailable = isAndroid && !isEmbeddedBrowser && !installPrompt;
+            installNowButton.hidden = !installPrompt && !chromePromptUnavailable;
+            installNowButton.disabled = false;
+            installNowButton.textContent = chromePromptUnavailable ? "בדיקה והפעלת ההתקנה" : "התקנה עכשיו";
             openChromeButton.hidden = Boolean(installPrompt) || !(isAndroid && isEmbeddedBrowser);
             copyButton.hidden = !isEmbeddedBrowser;
             if (installPrompt) {
@@ -265,7 +277,7 @@
               sheetTitle.textContent = isEmbeddedBrowser ? "פתיחה ב-Chrome והתקנה" : "התקנה ב-Chrome";
               sheetMessage.textContent = isEmbeddedBrowser
                 ? "הקישור פתוח כעת בתוך WhatsApp, שאינו מאפשר התקנת אפליקציות. לחצו כאן על ‘פתיחה ב-Chrome’. Chrome ייפתח מעצמו וימשיך אתכם להתקנה."
-                : "הישארו באפליקציה כחצי דקה. ברגע ש-Chrome יסיים להכין את ההתקנה, הכפתור שמתחת יתחלף אוטומטית ל‘התקנה עכשיו’ — בלי לחפש דבר בתפריט.";
+                : "לחצו על ‘בדיקה והפעלת ההתקנה’. אם Chrome עדיין לא הציג את חלון ההתקנה, האפליקציה תרענן את החיבור פעם אחת ותנסה שוב — בלי המתנה אינסופית.";
             } else {
               sheetTitle.textContent = "התקנה בדפדפן";
               sheetMessage.textContent = "ב-Chrome או ב-Edge לחצו על סמל ההתקנה שבשורת הכתובת. אפשר גם לפתוח את תפריט הדפדפן ולבחור ‘התקנת האפליקציה’.";
@@ -276,6 +288,24 @@
           };
           const requestNativeInstall = async () => {
             if (!installPrompt) {
+              if (isAndroid && !isEmbeddedBrowser) {
+                copyStatus.textContent = "מרענן את חיבור ההתקנה…";
+                try {
+                  const registration = await navigator.serviceWorker?.register("./service-worker.js?v=18", { updateViaCache: "none" });
+                  await registration?.update();
+                  await navigator.serviceWorker?.ready;
+                } catch {}
+                const refreshedOnce = sessionStorage.getItem("mcm-install-refreshed") === "yes";
+                if (!refreshedOnce) {
+                  sessionStorage.setItem("mcm-install-refreshed", "yes");
+                  location.reload();
+                  return;
+                }
+                installNowButton.hidden = true;
+                sheetMessage.textContent = "Chrome לא מסר עדיין חלון התקנה. סגרו את החלון הזה, רעננו פעם אחת את הדף ולחצו שוב על ‘שמירת האפליקציה בטלפון’.";
+                copyStatus.textContent = "אין עוד המתנה: אפשר לסגור, לרענן ולנסות שוב.";
+                return;
+              }
               showInstallInstructions();
               return;
             }
@@ -323,6 +353,7 @@
           };
           window.addEventListener("beforeinstallprompt", event => {
             event.preventDefault();
+            window.__mcmInstallPrompt = event;
             installPrompt = event;
             if (button) {
               button.hidden = false;
@@ -331,6 +362,7 @@
             if (isMobile && sheet && !sheet.hidden) showInstallInstructions();
           });
           window.addEventListener("appinstalled", () => {
+            window.__mcmInstallPrompt = null;
             installPrompt = null;
             button?.remove();
             closeInstallSheet();
@@ -374,7 +406,7 @@
             navigator.serviceWorker
               // A controller change must never reload the document: desktop
               // browsers can repeatedly activate the worker and create a loop.
-              .register("./service-worker.js?v=17", { updateViaCache: "none" })
+              .register("./service-worker.js?v=18", { updateViaCache: "none" })
               .catch(() => {});
           }
           const loadedDate = "${currentDate}";

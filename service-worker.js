@@ -1,4 +1,4 @@
-const CACHE_NAME = "mcm-shell-v17-chrome-install-flow";
+const CACHE_NAME = "mcm-shell-v18-install-event-capture";
 const SHELL = [
   "./manifest.webmanifest",
   "./mcm-icon.svg",
