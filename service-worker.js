@@ -1,4 +1,4 @@
-const CACHE_NAME = "mcm-shell-v14-install-guide";
+const CACHE_NAME = "mcm-shell-v15-auto-install-invitation";
 const SHELL = [
   "./manifest.webmanifest",
   "./mcm-icon.svg"

@@ -163,6 +163,8 @@
         #mcm-install-panel p{margin:0 0 18px;color:#f8f1e4!important;font-size:17px!important;line-height:1.65!important;white-space:pre-line}
         #mcm-install-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         #mcm-install-actions button{min-height:48px;border-radius:14px;padding:10px 14px;font:700 16px Arial,"Noto Sans Hebrew",sans-serif;cursor:pointer}
+        #mcm-install-now{grid-column:1/-1;border:1px solid #ffe08a;background:linear-gradient(135deg,#f2c46d,#ffe292);color:#16110a;font-size:18px!important}
+        #mcm-install-now[hidden],#mcm-copy-link[hidden]{display:none!important}
         #mcm-copy-link{border:1px solid #ffe08a;background:linear-gradient(135deg,#f2c46d,#ffe292);color:#16110a}
         #mcm-close-install{border:1px solid #8090a8;background:#172338;color:#fff}
         #mcm-copy-status{min-height:24px;margin:12px 0 0!important;color:#9ce8b6!important;font-size:14px!important;text-align:center}
@@ -174,12 +176,13 @@
         }
         @media(display-mode:standalone){#mcm-install{display:none!important}}
       </style>`;
-      const installControl = `<button id="mcm-install" type="button" aria-label="התקנת האפליקציה">התקנת האפליקציה</button>
+      const installControl = `<button id="mcm-install" type="button" aria-label="שמירת האפליקציה בטלפון">שמירת האפליקציה בטלפון</button>
         <section id="mcm-install-sheet" role="dialog" aria-modal="true" aria-labelledby="mcm-install-title" hidden>
           <div id="mcm-install-panel">
-            <h2 id="mcm-install-title">התקנת האפליקציה</h2>
+            <h2 id="mcm-install-title">שמירת האפליקציה בטלפון</h2>
             <p id="mcm-install-message"></p>
             <div id="mcm-install-actions">
+              <button id="mcm-install-now" type="button" hidden>התקנה עכשיו</button>
               <button id="mcm-copy-link" type="button">העתקת הקישור האישי</button>
               <button id="mcm-close-install" type="button">סגירה</button>
             </div>
@@ -195,6 +198,7 @@
           const sheet = document.getElementById("mcm-install-sheet");
           const sheetTitle = document.getElementById("mcm-install-title");
           const sheetMessage = document.getElementById("mcm-install-message");
+          const installNowButton = document.getElementById("mcm-install-now");
           const copyButton = document.getElementById("mcm-copy-link");
           const closeButton = document.getElementById("mcm-close-install");
           const copyStatus = document.getElementById("mcm-copy-status");
@@ -202,11 +206,12 @@
           const userAgent = navigator.userAgent || "";
           const isApplePhone = /iPhone|iPad|iPod/i.test(userAgent);
           const isAndroid = /Android/i.test(userAgent);
+          const isMobile = isApplePhone || isAndroid;
           const isSafari = /Safari/i.test(userAgent) && !/CriOS|FxiOS|EdgiOS|OPiOS/i.test(userAgent);
           const isEmbeddedBrowser = /WhatsApp|FBAN|FBAV|Instagram|; wv[)]|[ ;]wv[ ;/)]/i.test(userAgent);
           const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
           if (isStandalone) button?.remove();
-          if (isEmbeddedBrowser && button) button.textContent = "פתיחה בדפדפן והתקנה";
+          if (isEmbeddedBrowser && button) button.textContent = "שמירת האפליקציה בטלפון";
           const closeInstallSheet = () => {
             if (!sheet) return;
             sheet.hidden = true;
@@ -216,7 +221,12 @@
           const showInstallInstructions = () => {
             if (!sheet || !sheetTitle || !sheetMessage) return;
             copyStatus.textContent = "";
-            if (isApplePhone) {
+            installNowButton.hidden = !installPrompt;
+            copyButton.hidden = !isEmbeddedBrowser;
+            if (installPrompt) {
+              sheetTitle.textContent = "שמירת האפליקציה בטלפון";
+              sheetMessage.textContent = "לחצו על ‘התקנה עכשיו’. לאחר האישור האפליקציה תישמר בטלפון ותופיע כמו אפליקציה רגילה.";
+            } else if (isApplePhone) {
               sheetTitle.textContent = isSafari && !isEmbeddedBrowser ? "התקנה ב-Safari" : "פתיחה ב-Safari והתקנה";
               sheetMessage.textContent = isSafari && !isEmbeddedBrowser
                 ? "לחצו על כפתור השיתוף של Safari, בחרו ‘הוספה למסך הבית’ ואז ‘הוספה’."
@@ -232,7 +242,20 @@
             }
             sheet.hidden = false;
             document.body.style.overflow = "hidden";
-            closeButton?.focus();
+            (installPrompt ? installNowButton : isEmbeddedBrowser ? copyButton : closeButton)?.focus();
+          };
+          const requestNativeInstall = async () => {
+            if (!installPrompt) {
+              showInstallInstructions();
+              return;
+            }
+            installPrompt.prompt();
+            const result = await installPrompt.userChoice;
+            if (result.outcome === "accepted") {
+              button?.remove();
+              closeInstallSheet();
+            }
+            installPrompt = null;
           };
           const copyPersonalLink = async () => {
             let copied = false;
@@ -259,8 +282,9 @@
             installPrompt = event;
             if (button) {
               button.hidden = false;
-              button.textContent = "התקנת האפליקציה";
+              button.textContent = "שמירת האפליקציה בטלפון";
             }
+            if (isMobile && sheet && !sheet.hidden) showInstallInstructions();
           });
           window.addEventListener("appinstalled", () => {
             installPrompt = null;
@@ -269,14 +293,12 @@
           });
           button?.addEventListener("click", async () => {
             if (installPrompt) {
-              installPrompt.prompt();
-              const result = await installPrompt.userChoice;
-              if (result.outcome === "accepted") button.remove();
-              installPrompt = null;
+              await requestNativeInstall();
               return;
             }
             showInstallInstructions();
           });
+          installNowButton?.addEventListener("click", requestNativeInstall);
           copyButton?.addEventListener("click", copyPersonalLink);
           closeButton?.addEventListener("click", closeInstallSheet);
           sheet?.addEventListener("click", event => {
@@ -285,11 +307,21 @@
           document.addEventListener("keydown", event => {
             if (event.key === "Escape" && sheet && !sheet.hidden) closeInstallSheet();
           });
+          if (isMobile && !isStandalone) {
+            setTimeout(() => {
+              const marker = "mcm-install-invitation-shown";
+              let alreadyShown = false;
+              try { alreadyShown = sessionStorage.getItem(marker) === "yes"; } catch {}
+              if (alreadyShown) return;
+              try { sessionStorage.setItem(marker, "yes"); } catch {}
+              showInstallInstructions();
+            }, 900);
+          }
           if ("serviceWorker" in navigator) {
             navigator.serviceWorker
               // A controller change must never reload the document: desktop
               // browsers can repeatedly activate the worker and create a loop.
-              .register("./service-worker.js?v=14", { updateViaCache: "none" })
+              .register("./service-worker.js?v=15", { updateViaCache: "none" })
               .catch(() => {});
           }
           const loadedDate = "${currentDate}";
