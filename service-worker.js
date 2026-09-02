@@ -1,4 +1,4 @@
-const CACHE_NAME = "mcm-shell-v19-refresh-stale-install-page";
+const CACHE_NAME = "mcm-shell-v20-transparent-mao";
 const SHELL = [
   "./manifest.webmanifest",
   "./mcm-icon.svg",

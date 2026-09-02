@@ -31,7 +31,7 @@
       window.__mcmInstallPrompt = event;
     });
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=19", { updateViaCache: "none" }).catch(() => {});
+      navigator.serviceWorker.register("./service-worker.js?v=20", { updateViaCache: "none" }).catch(() => {});
     }
     const fromBase64Url = (value) => {
       const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
@@ -157,7 +157,7 @@
       // The weekly mentor portrait belongs inside the encrypted report and must
       // never be published as an unencrypted shared asset. Use the public Mao
       // illustration in the live shell until encrypted asset bundling is active.
-      reportHtml = reportHtml.replaceAll("assets/yair-cosmic-portrait-v2.png", "assets/10_MAO_MENTOR_YOGA.png");
+      reportHtml = reportHtml.replaceAll("assets/yair-cosmic-portrait-v2.png", "assets/11_MAO_MENTOR_YOGA_TRANSPARENT.png");
       if (reportPackage) {
         const pageUrl = page => `?r=${encodeURIComponent(reportId)}&page=${page}#${encodeURIComponent(keyText)}`;
         reportHtml = reportHtml.replace(
@@ -180,7 +180,7 @@
         .list-panel.recommended .list-head h2{color:#79e4a7!important}
         .list-panel.not-recommended .list-head h2{color:#ff9b9b!important}
         .hero-focus .focus-label{color:#7fddff!important}
-        .mentor-portrait{background-image:url("assets/10_MAO_MENTOR_YOGA.png")!important;background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important;background-color:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+        .mentor-portrait{background-image:url("assets/11_MAO_MENTOR_YOGA_TRANSPARENT.png")!important;background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important;background-color:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
         #mcm-install{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9999;width:min(92vw,420px);border:1px solid #ffe08a;border-radius:18px;padding:15px 20px;background:linear-gradient(135deg,#f2c46d,#ffe292);color:#16110a;font:800 17px Arial,"Noto Sans Hebrew",sans-serif;box-shadow:0 14px 42px #000b,0 0 0 4px #f2c46d22;cursor:pointer;text-align:center}
         #mcm-install:focus-visible{outline:3px solid #63ddff;outline-offset:3px}
         #mcm-install-sheet[hidden]{display:none!important}
@@ -291,7 +291,7 @@
               if (isAndroid && !isEmbeddedBrowser) {
                 copyStatus.textContent = "מרענן את חיבור ההתקנה…";
                 try {
-                  const registration = await navigator.serviceWorker?.register("./service-worker.js?v=19", { updateViaCache: "none" });
+                  const registration = await navigator.serviceWorker?.register("./service-worker.js?v=20", { updateViaCache: "none" });
                   await registration?.update();
                   await navigator.serviceWorker?.ready;
                 } catch {}
@@ -406,7 +406,7 @@
             navigator.serviceWorker
               // A controller change must never reload the document: desktop
               // browsers can repeatedly activate the worker and create a loop.
-              .register("./service-worker.js?v=19", { updateViaCache: "none" })
+              .register("./service-worker.js?v=20", { updateViaCache: "none" })
               .catch(() => {});
           }
           const loadedDate = "${currentDate}";
