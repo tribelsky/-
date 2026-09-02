@@ -1,4 +1,4 @@
-const CACHE_NAME = "mcm-shell-v20-transparent-mao";
+const CACHE_NAME = "mcm-shell-v21-branded-app-icon";
 const SHELL = [
   "./manifest.webmanifest",
   "./mcm-icon.svg",

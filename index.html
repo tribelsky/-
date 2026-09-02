@@ -31,7 +31,7 @@
       window.__mcmInstallPrompt = event;
     });
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=20", { updateViaCache: "none" }).catch(() => {});
+      navigator.serviceWorker.register("./service-worker.js?v=21", { updateViaCache: "none" }).catch(() => {});
     }
     const fromBase64Url = (value) => {
       const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
@@ -291,7 +291,7 @@
               if (isAndroid && !isEmbeddedBrowser) {
                 copyStatus.textContent = "מרענן את חיבור ההתקנה…";
                 try {
-                  const registration = await navigator.serviceWorker?.register("./service-worker.js?v=20", { updateViaCache: "none" });
+                  const registration = await navigator.serviceWorker?.register("./service-worker.js?v=21", { updateViaCache: "none" });
                   await registration?.update();
                   await navigator.serviceWorker?.ready;
                 } catch {}
@@ -365,7 +365,17 @@
             window.__mcmInstallPrompt = null;
             installPrompt = null;
             button?.remove();
-            closeInstallSheet();
+            if (sheet && sheetTitle && sheetMessage) {
+              sheetTitle.textContent = "My Cosmic Mentor הותקן";
+              sheetMessage.textContent = "האפליקציה נמצאת כעת ברשימת כל האפליקציות תחת השם My Cosmic Mentor ועם סמל המצפן הקוסמי. כדי להצמיד אותה למסך הבית: החליקו למעלה, לחצו לחיצה ארוכה על הסמל וגררו אותו למסך הבית.";
+              installNowButton.hidden = true;
+              openChromeButton.hidden = true;
+              copyButton.hidden = true;
+              closeButton.textContent = "הבנתי";
+              sheet.hidden = false;
+              document.body.style.overflow = "hidden";
+              closeButton.focus();
+            }
           });
           button?.addEventListener("click", async () => {
             if (installPrompt) {
@@ -406,7 +416,7 @@
             navigator.serviceWorker
               // A controller change must never reload the document: desktop
               // browsers can repeatedly activate the worker and create a loop.
-              .register("./service-worker.js?v=20", { updateViaCache: "none" })
+              .register("./service-worker.js?v=21", { updateViaCache: "none" })
               .catch(() => {});
           }
           const loadedDate = "${currentDate}";
