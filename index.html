@@ -156,6 +156,16 @@
         .chart-wrap,.chart{touch-action:pan-y pinch-zoom!important}
         #mcm-install{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9999;width:min(92vw,420px);border:1px solid #ffe08a;border-radius:18px;padding:15px 20px;background:linear-gradient(135deg,#f2c46d,#ffe292);color:#16110a;font:800 17px Arial,"Noto Sans Hebrew",sans-serif;box-shadow:0 14px 42px #000b,0 0 0 4px #f2c46d22;cursor:pointer;text-align:center}
         #mcm-install:focus-visible{outline:3px solid #63ddff;outline-offset:3px}
+        #mcm-install-sheet[hidden]{display:none!important}
+        #mcm-install-sheet{position:fixed;inset:0;z-index:10000;display:grid;place-items:end center;padding:18px;background:#02050dbb;backdrop-filter:blur(5px);font-family:Arial,"Noto Sans Hebrew",sans-serif;direction:rtl;text-align:right}
+        #mcm-install-panel{width:min(100%,480px);border:1px solid #d7b76a;border-radius:24px;padding:24px;background:linear-gradient(155deg,#111a2b,#070d18);color:#f8f1e4;box-shadow:0 24px 70px #000c}
+        #mcm-install-panel h2{margin:0 0 12px;color:#f2c46d;font-size:23px;line-height:1.25}
+        #mcm-install-panel p{margin:0 0 18px;color:#f8f1e4!important;font-size:17px!important;line-height:1.65!important;white-space:pre-line}
+        #mcm-install-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        #mcm-install-actions button{min-height:48px;border-radius:14px;padding:10px 14px;font:700 16px Arial,"Noto Sans Hebrew",sans-serif;cursor:pointer}
+        #mcm-copy-link{border:1px solid #ffe08a;background:linear-gradient(135deg,#f2c46d,#ffe292);color:#16110a}
+        #mcm-close-install{border:1px solid #8090a8;background:#172338;color:#fff}
+        #mcm-copy-status{min-height:24px;margin:12px 0 0!important;color:#9ce8b6!important;font-size:14px!important;text-align:center}
         @media(max-width:820px){
           body{font-size:17px!important}
           p,.short-text,.source-row,.timeline-card p,.meeting-card p,.process-meta,.process-house,.process-time{font-size:17px!important;line-height:1.65!important}
@@ -164,20 +174,98 @@
         }
         @media(display-mode:standalone){#mcm-install{display:none!important}}
       </style>`;
-      const installControl = `<button id="mcm-install" type="button" aria-label="הוראות התקנת האפליקציה">הוראות התקנה</button>`;
+      const installControl = `<button id="mcm-install" type="button" aria-label="התקנת האפליקציה">התקנת האפליקציה</button>
+        <section id="mcm-install-sheet" role="dialog" aria-modal="true" aria-labelledby="mcm-install-title" hidden>
+          <div id="mcm-install-panel">
+            <h2 id="mcm-install-title">התקנת האפליקציה</h2>
+            <p id="mcm-install-message"></p>
+            <div id="mcm-install-actions">
+              <button id="mcm-copy-link" type="button">העתקת הקישור האישי</button>
+              <button id="mcm-close-install" type="button">סגירה</button>
+            </div>
+            <p id="mcm-copy-status" role="status" aria-live="polite"></p>
+          </div>
+        </section>`;
       const installScript = `<script>
         (() => {
           // The encrypted report may contain its own legacy install control.
           // Keep one deterministic control owned by the live shell.
           document.querySelectorAll(".app-install-button,.install-sheet").forEach(element => element.remove());
           const button = document.getElementById("mcm-install");
+          const sheet = document.getElementById("mcm-install-sheet");
+          const sheetTitle = document.getElementById("mcm-install-title");
+          const sheetMessage = document.getElementById("mcm-install-message");
+          const copyButton = document.getElementById("mcm-copy-link");
+          const closeButton = document.getElementById("mcm-close-install");
+          const copyStatus = document.getElementById("mcm-copy-status");
           let installPrompt = null;
+          const userAgent = navigator.userAgent || "";
+          const isApplePhone = /iPhone|iPad|iPod/i.test(userAgent);
+          const isAndroid = /Android/i.test(userAgent);
+          const isSafari = /Safari/i.test(userAgent) && !/CriOS|FxiOS|EdgiOS|OPiOS/i.test(userAgent);
+          const isEmbeddedBrowser = /WhatsApp|FBAN|FBAV|Instagram|; wv[)]|[ ;]wv[ ;/)]/i.test(userAgent);
           const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
           if (isStandalone) button?.remove();
+          if (isEmbeddedBrowser && button) button.textContent = "פתיחה בדפדפן והתקנה";
+          const closeInstallSheet = () => {
+            if (!sheet) return;
+            sheet.hidden = true;
+            document.body.style.overflow = "";
+            button?.focus();
+          };
+          const showInstallInstructions = () => {
+            if (!sheet || !sheetTitle || !sheetMessage) return;
+            copyStatus.textContent = "";
+            if (isApplePhone) {
+              sheetTitle.textContent = isSafari && !isEmbeddedBrowser ? "התקנה ב-Safari" : "פתיחה ב-Safari והתקנה";
+              sheetMessage.textContent = isSafari && !isEmbeddedBrowser
+                ? "לחצו על כפתור השיתוף של Safari, בחרו ‘הוספה למסך הבית’ ואז ‘הוספה’."
+                : "הקישור פתוח כעת בתוך WhatsApp או בדפדפן שאינו מאפשר התקנה. לחצו על ‘העתקת הקישור האישי’, פתחו את Safari והדביקו אותו בשורת הכתובת. לאחר שהדוח נפתח, לחצו על שיתוף ובחרו ‘הוספה למסך הבית’.";
+            } else if (isAndroid) {
+              sheetTitle.textContent = isEmbeddedBrowser ? "פתיחה ב-Chrome והתקנה" : "התקנה ב-Chrome";
+              sheetMessage.textContent = isEmbeddedBrowser
+                ? "הקישור פתוח כעת בתוך WhatsApp, שאינו מאפשר התקנת אפליקציות. אם בתפריט של WhatsApp מופיעה ‘פתיחה ב-Chrome’ — בחרו בה. אם לא, לחצו כאן על ‘העתקת הקישור האישי’, פתחו את Chrome והדביקו אותו בשורת הכתובת. בדוח שייפתח לחצו שוב על ‘התקנת האפליקציה’."
+                : "פתחו את תפריט Chrome ובחרו ‘התקנת אפליקציה’ או ‘הוספה למסך הבית’. אם האפשרות אינה מופיעה, רעננו את העמוד ולחצו שוב על כפתור ההתקנה.";
+            } else {
+              sheetTitle.textContent = "התקנה בדפדפן";
+              sheetMessage.textContent = "ב-Chrome או ב-Edge לחצו על סמל ההתקנה שבשורת הכתובת. אפשר גם לפתוח את תפריט הדפדפן ולבחור ‘התקנת האפליקציה’.";
+            }
+            sheet.hidden = false;
+            document.body.style.overflow = "hidden";
+            closeButton?.focus();
+          };
+          const copyPersonalLink = async () => {
+            let copied = false;
+            try {
+              await navigator.clipboard.writeText(location.href);
+              copied = true;
+            } catch {
+              const field = document.createElement("textarea");
+              field.value = location.href;
+              field.setAttribute("readonly", "");
+              field.style.position = "fixed";
+              field.style.opacity = "0";
+              document.body.appendChild(field);
+              field.select();
+              copied = document.execCommand("copy");
+              field.remove();
+            }
+            copyStatus.textContent = copied
+              ? "הקישור האישי הועתק. כעת פתחו את הדפדפן והדביקו אותו בשורת הכתובת."
+              : "ההעתקה לא הצליחה. לחצו לחיצה ארוכה על כתובת הדף והעתיקו אותה.";
+          };
           window.addEventListener("beforeinstallprompt", event => {
             event.preventDefault();
             installPrompt = event;
-            if (button) button.hidden = false;
+            if (button) {
+              button.hidden = false;
+              button.textContent = "התקנת האפליקציה";
+            }
+          });
+          window.addEventListener("appinstalled", () => {
+            installPrompt = null;
+            button?.remove();
+            closeInstallSheet();
           });
           button?.addEventListener("click", async () => {
             if (installPrompt) {
@@ -187,18 +275,21 @@
               installPrompt = null;
               return;
             }
-            const isApplePhone = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-            if (isApplePhone) {
-              alert("זהו חלון הסבר בלבד. לחצי על ⋯ בתחתית Safari, בחרי שיתוף, אחר כך הוספה למסך הבית ולבסוף הוסף. אם אינך רואה את תפריט Safari, פתחי תחילה את הקישור ב-Safari.");
-              return;
-            }
-            alert("לחצי על שלוש הנקודות בדפדפן, ואז בחרי: התקנת אפליקציה או הוספה למסך הבית.");
+            showInstallInstructions();
+          });
+          copyButton?.addEventListener("click", copyPersonalLink);
+          closeButton?.addEventListener("click", closeInstallSheet);
+          sheet?.addEventListener("click", event => {
+            if (event.target === sheet) closeInstallSheet();
+          });
+          document.addEventListener("keydown", event => {
+            if (event.key === "Escape" && sheet && !sheet.hidden) closeInstallSheet();
           });
           if ("serviceWorker" in navigator) {
             navigator.serviceWorker
               // A controller change must never reload the document: desktop
               // browsers can repeatedly activate the worker and create a loop.
-              .register("./service-worker.js?v=13", { updateViaCache: "none" })
+              .register("./service-worker.js?v=14", { updateViaCache: "none" })
               .catch(() => {});
           }
           const loadedDate = "${currentDate}";

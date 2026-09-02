@@ -1,4 +1,4 @@
-const CACHE_NAME = "mcm-shell-v13-no-reload-loop";
+const CACHE_NAME = "mcm-shell-v14-install-guide";
 const SHELL = [
   "./manifest.webmanifest",
   "./mcm-icon.svg"
