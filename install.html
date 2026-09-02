@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#050a13">
+  <title>התקנת My Cosmic Mentor</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 5%,#1a2943 0,#09101d 45%,#03070e 100%);color:#f8f1e4;font-family:Arial,"Noto Sans Hebrew",sans-serif;text-align:right}
+    main{width:min(100%,480px);padding:30px 24px;border:1px solid #d7b76a;border-radius:26px;background:linear-gradient(155deg,#111a2b,#070d18);box-shadow:0 24px 70px #000c}
+    .mark{width:58px;height:58px;display:grid;place-items:center;margin:0 auto 18px;border:1px solid #f2c46d;border-radius:18px;background:#f2c46d18;color:#f2c46d;font-size:29px}
+    h1{margin:0 0 12px;color:#f2c46d;font-size:27px;line-height:1.25;text-align:center}
+    p{margin:0 0 20px;font-size:18px;line-height:1.65;text-align:center}
+    button{width:100%;min-height:56px;border:1px solid #ffe08a;border-radius:16px;padding:12px 18px;background:linear-gradient(135deg,#f2c46d,#ffe292);color:#16110a;font:800 18px Arial,"Noto Sans Hebrew",sans-serif;cursor:pointer}
+    #fallback[hidden]{display:none}
+    #fallback{margin-top:18px;padding-top:18px;border-top:1px solid #ffffff20}
+    label{display:block;margin-bottom:8px;font-weight:700}
+    textarea{width:100%;min-height:82px;border:1px solid #8898b0;border-radius:12px;padding:12px;background:#0c1524;color:#fff;font:15px Arial,sans-serif;direction:ltr;text-align:left}
+    #fallback button{margin-top:10px;background:#172338;color:#fff;border-color:#8090a8}
+    #status{min-height:26px;margin:14px 0 0;color:#9ce8b6;font-size:15px}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="mark" aria-hidden="true">✓</div>
+    <h1>Chrome נפתח בהצלחה</h1>
+    <p>לחצו על הכפתור — האפליקציה האישית תיפתח כאן, ואז תוכלו להתקין אותה בטלפון.</p>
+    <button id="continue" type="button">המשך לאפליקציה שלי</button>
+    <div id="fallback" hidden>
+      <label for="personal-link">אם Chrome מבקש הרשאת הדבקה, אשרו אותה. אם לא הצליח, הדביקו כאן את הקישור:</label>
+      <textarea id="personal-link" inputmode="url" autocomplete="off" spellcheck="false"></textarea>
+      <button id="open-pasted" type="button">פתיחת האפליקציה</button>
+    </div>
+    <p id="status" role="status" aria-live="polite"></p>
+  </main>
+  <script>
+    (() => {
+      const continueButton = document.getElementById("continue");
+      const fallback = document.getElementById("fallback");
+      const personalLink = document.getElementById("personal-link");
+      const openPastedButton = document.getElementById("open-pasted");
+      const status = document.getElementById("status");
+
+      const validPersonalUrl = value => {
+        try {
+          const url = new URL(value.trim());
+          const correctOrigin = url.protocol === "https:" && url.hostname === "tribelsky.github.io" && url.pathname === "/-/";
+          const validReport = /^[a-z0-9]{8}$/.test(url.searchParams.get("r") || "");
+          const validKey = /^#[A-Za-z0-9_-]{32,64}$/.test(url.hash);
+          return correctOrigin && validReport && validKey ? url.href : null;
+        } catch {
+          return null;
+        }
+      };
+
+      const openPersonalUrl = value => {
+        const url = validPersonalUrl(value);
+        if (!url) {
+          fallback.hidden = false;
+          status.textContent = "לא נמצא קישור אישי תקין. הדביקו את הקישור שקיבלתם ב-WhatsApp.";
+          personalLink.focus();
+          return;
+        }
+        status.textContent = "פותח את האפליקציה האישית…";
+        location.replace(url);
+      };
+
+      continueButton.addEventListener("click", async () => {
+        continueButton.disabled = true;
+        status.textContent = "מעביר את הקישור האישי…";
+        try {
+          const value = await navigator.clipboard.readText();
+          openPersonalUrl(value);
+        } catch {
+          fallback.hidden = false;
+          status.textContent = "אשרו ל-Chrome להדביק את הקישור, או הדביקו אותו בשדה שמתחת.";
+          personalLink.focus();
+        } finally {
+          continueButton.disabled = false;
+        }
+      });
+
+      openPastedButton.addEventListener("click", () => openPersonalUrl(personalLink.value));
+    })();
+  </script>
+</body>
+</html>

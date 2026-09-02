@@ -6,8 +6,8 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="theme-color" content="#050a13">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="mcm-icon.svg" type="image/png">
-  <link rel="apple-touch-icon" href="mcm-icon.svg">
+  <link rel="icon" href="mcm-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="mcm-icon-192.png">
   <title>My Cosmic Mentor</title>
   <style>
     *{box-sizing:border-box}
@@ -177,9 +177,11 @@
         #mcm-install-panel h2{margin:0 0 12px;color:#f2c46d;font-size:23px;line-height:1.25}
         #mcm-install-panel p{margin:0 0 18px;color:#f8f1e4!important;font-size:17px!important;line-height:1.65!important;white-space:pre-line}
         #mcm-install-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-        #mcm-install-actions button{min-height:48px;border-radius:14px;padding:10px 14px;font:700 16px Arial,"Noto Sans Hebrew",sans-serif;cursor:pointer}
+        #mcm-install-actions button,#mcm-install-actions a{min-height:48px;border-radius:14px;padding:10px 14px;font:700 16px Arial,"Noto Sans Hebrew",sans-serif;cursor:pointer;text-decoration:none;display:grid;place-items:center;text-align:center}
         #mcm-install-now{grid-column:1/-1;border:1px solid #ffe08a;background:linear-gradient(135deg,#f2c46d,#ffe292);color:#16110a;font-size:18px!important}
-        #mcm-install-now[hidden],#mcm-copy-link[hidden]{display:none!important}
+        #mcm-install-now:disabled{opacity:.72;cursor:wait}
+        #mcm-open-chrome{grid-column:1/-1;border:1px solid #ffe08a;background:linear-gradient(135deg,#f2c46d,#ffe292);color:#16110a;font-size:18px!important}
+        #mcm-install-now[hidden],#mcm-open-chrome[hidden],#mcm-copy-link[hidden]{display:none!important}
         #mcm-copy-link{border:1px solid #ffe08a;background:linear-gradient(135deg,#f2c46d,#ffe292);color:#16110a}
         #mcm-close-install{border:1px solid #8090a8;background:#172338;color:#fff}
         #mcm-copy-status{min-height:24px;margin:12px 0 0!important;color:#9ce8b6!important;font-size:14px!important;text-align:center}
@@ -205,6 +207,7 @@
             <p id="mcm-install-message"></p>
             <div id="mcm-install-actions">
               <button id="mcm-install-now" type="button" hidden>התקנה עכשיו</button>
+              <a id="mcm-open-chrome" href="intent://tribelsky.github.io/-/install.html#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=https%3A%2F%2Ftribelsky.github.io%2F-%2Finstall.html;end" hidden>פתיחה ב-Chrome</a>
               <button id="mcm-copy-link" type="button">העתקת הקישור האישי</button>
               <button id="mcm-close-install" type="button">סגירה</button>
             </div>
@@ -221,6 +224,7 @@
           const sheetTitle = document.getElementById("mcm-install-title");
           const sheetMessage = document.getElementById("mcm-install-message");
           const installNowButton = document.getElementById("mcm-install-now");
+          const openChromeButton = document.getElementById("mcm-open-chrome");
           const copyButton = document.getElementById("mcm-copy-link");
           const closeButton = document.getElementById("mcm-close-install");
           const copyStatus = document.getElementById("mcm-copy-status");
@@ -243,7 +247,11 @@
           const showInstallInstructions = () => {
             if (!sheet || !sheetTitle || !sheetMessage) return;
             copyStatus.textContent = "";
-            installNowButton.hidden = !installPrompt;
+            const waitingForChromePrompt = isAndroid && !isEmbeddedBrowser && !installPrompt;
+            installNowButton.hidden = !installPrompt && !waitingForChromePrompt;
+            installNowButton.disabled = waitingForChromePrompt;
+            installNowButton.textContent = waitingForChromePrompt ? "מכין את ההתקנה…" : "התקנה עכשיו";
+            openChromeButton.hidden = Boolean(installPrompt) || !(isAndroid && isEmbeddedBrowser);
             copyButton.hidden = !isEmbeddedBrowser;
             if (installPrompt) {
               sheetTitle.textContent = "שמירת האפליקציה בטלפון";
@@ -256,15 +264,15 @@
             } else if (isAndroid) {
               sheetTitle.textContent = isEmbeddedBrowser ? "פתיחה ב-Chrome והתקנה" : "התקנה ב-Chrome";
               sheetMessage.textContent = isEmbeddedBrowser
-                ? "הקישור פתוח כעת בתוך WhatsApp, שאינו מאפשר התקנת אפליקציות. אם בתפריט של WhatsApp מופיעה ‘פתיחה ב-Chrome’ — בחרו בה. אם לא, לחצו כאן על ‘העתקת הקישור האישי’, פתחו את Chrome והדביקו אותו בשורת הכתובת. בדוח שייפתח לחצו שוב על ‘התקנת האפליקציה’."
-                : "פתחו את תפריט Chrome ובחרו ‘התקנת אפליקציה’ או ‘הוספה למסך הבית’. אם האפשרות אינה מופיעה, רעננו את העמוד ולחצו שוב על כפתור ההתקנה.";
+                ? "הקישור פתוח כעת בתוך WhatsApp, שאינו מאפשר התקנת אפליקציות. לחצו כאן על ‘פתיחה ב-Chrome’. Chrome ייפתח מעצמו וימשיך אתכם להתקנה."
+                : "הישארו באפליקציה כחצי דקה. ברגע ש-Chrome יסיים להכין את ההתקנה, הכפתור שמתחת יתחלף אוטומטית ל‘התקנה עכשיו’ — בלי לחפש דבר בתפריט.";
             } else {
               sheetTitle.textContent = "התקנה בדפדפן";
               sheetMessage.textContent = "ב-Chrome או ב-Edge לחצו על סמל ההתקנה שבשורת הכתובת. אפשר גם לפתוח את תפריט הדפדפן ולבחור ‘התקנת האפליקציה’.";
             }
             sheet.hidden = false;
             document.body.style.overflow = "hidden";
-            (installPrompt ? installNowButton : isEmbeddedBrowser ? copyButton : closeButton)?.focus();
+            (installPrompt ? installNowButton : isAndroid && isEmbeddedBrowser ? openChromeButton : isEmbeddedBrowser ? copyButton : closeButton)?.focus();
           };
           const requestNativeInstall = async () => {
             if (!installPrompt) {
@@ -299,6 +307,20 @@
               ? "הקישור האישי הועתק. כעת פתחו את הדפדפן והדביקו אותו בשורת הכתובת."
               : "ההעתקה לא הצליחה. לחצו לחיצה ארוכה על כתובת הדף והעתיקו אותה.";
           };
+          const copyPersonalLinkSynchronously = () => {
+            const field = document.createElement("textarea");
+            field.value = location.href;
+            field.setAttribute("readonly", "");
+            field.style.position = "fixed";
+            field.style.inset = "0 auto auto -9999px";
+            document.body.appendChild(field);
+            field.select();
+            field.setSelectionRange(0, field.value.length);
+            let copied = false;
+            try { copied = document.execCommand("copy"); } catch {}
+            field.remove();
+            return copied;
+          };
           window.addEventListener("beforeinstallprompt", event => {
             event.preventDefault();
             installPrompt = event;
@@ -321,6 +343,15 @@
             showInstallInstructions();
           });
           installNowButton?.addEventListener("click", requestNativeInstall);
+          openChromeButton?.addEventListener("click", event => {
+            // Keep the navigation as the direct result of the tap so Android
+            // permits opening Chrome. The personal decryption key stays in the
+            // clipboard; it is never placed in a server-visible query string.
+            if (copyPersonalLinkSynchronously()) return;
+            event.preventDefault();
+            copyPersonalLink();
+            copyStatus.textContent = "לא הצלחנו להעביר את הקישור אוטומטית. לחצו על ‘העתקת הקישור האישי’ ונסו שוב.";
+          });
           copyButton?.addEventListener("click", copyPersonalLink);
           closeButton?.addEventListener("click", closeInstallSheet);
           sheet?.addEventListener("click", event => {
@@ -343,7 +374,7 @@
             navigator.serviceWorker
               // A controller change must never reload the document: desktop
               // browsers can repeatedly activate the worker and create a loop.
-              .register("./service-worker.js?v=16", { updateViaCache: "none" })
+              .register("./service-worker.js?v=17", { updateViaCache: "none" })
               .catch(() => {});
           }
           const loadedDate = "${currentDate}";

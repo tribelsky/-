@@ -1,7 +1,10 @@
-const CACHE_NAME = "mcm-shell-v16-visual-asset-repair";
+const CACHE_NAME = "mcm-shell-v17-chrome-install-flow";
 const SHELL = [
   "./manifest.webmanifest",
-  "./mcm-icon.svg"
+  "./mcm-icon.svg",
+  "./mcm-icon-192.png",
+  "./mcm-icon-512.png",
+  "./install.html"
 ];
 
 self.addEventListener("install", event => {

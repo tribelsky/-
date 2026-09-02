@@ -11,7 +11,7 @@
       <stop offset="1" stop-color="#b97816"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#space)"/>
+  <rect width="512" height="512" fill="url(#space)"/>
   <circle cx="256" cy="256" r="188" fill="none" stroke="#47bfff" stroke-width="9" opacity=".8"/>
   <circle cx="256" cy="256" r="142" fill="none" stroke="#f4c44f" stroke-width="7" opacity=".88"/>
   <path d="M256 88l24 112 106-44-84 76 92 68-114-24-24 118-24-118-114 24 92-68-84-76 106 44z" fill="url(#gold)"/>
