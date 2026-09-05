@@ -1,10 +1,10 @@
-const CACHE_NAME = "mcm-shell-v27-official-logo";
+const CACHE_NAME = "mcm-shell-v28-launcher-logo";
 const SHELL = [
   "./manifest.webmanifest",
-  "./mcm-logo-192.png",
-  "./mcm-logo-512.png",
-  "./mcm-logo-maskable-192.png",
-  "./mcm-logo-maskable-512.png",
+  "./mcm-launcher-v2-192.png",
+  "./mcm-launcher-v2-512.png",
+  "./mcm-launcher-v2-maskable-192.png",
+  "./mcm-launcher-v2-maskable-512.png",
   "./install.html",
   "./setup.html"
 ];
