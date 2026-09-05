@@ -31,7 +31,7 @@
       window.__mcmInstallPrompt = event;
     });
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js?v=22", { updateViaCache: "none" }).catch(() => {});
+      navigator.serviceWorker.register("./service-worker.js", { updateViaCache: "none" }).catch(() => {});
     }
     const fromBase64Url = (value) => {
       const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
@@ -293,7 +293,7 @@
               if (isAndroid && !isEmbeddedBrowser) {
                 copyStatus.textContent = "מרענן את חיבור ההתקנה…";
                 try {
-                  const registration = await navigator.serviceWorker?.register("./service-worker.js?v=23", { updateViaCache: "none" });
+                  const registration = await navigator.serviceWorker?.register("./service-worker.js", { updateViaCache: "none" });
                   await registration?.update();
                   await navigator.serviceWorker?.ready;
                 } catch {}
@@ -460,7 +460,7 @@
             navigator.serviceWorker
               // A controller change must never reload the document: desktop
               // browsers can repeatedly activate the worker and create a loop.
-              .register("./service-worker.js?v=23", { updateViaCache: "none" })
+              .register("./service-worker.js", { updateViaCache: "none" })
               .catch(() => {});
           }
           const loadedDate = "${currentDate}";
