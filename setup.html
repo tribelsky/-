@@ -27,7 +27,7 @@
   <main>
     <img src="mcm-icon-192.png" alt="My Cosmic Mentor">
     <h1 id="title">שמירת My Cosmic Mentor בטלפון</h1>
-    <p id="message">מכינים את חלון ההתקנה של Chrome. הכפתור יופעל מיד כשהדפדפן יהיה מוכן.</p>
+    <p id="message">מכינים את חלון ההתקנה של הדפדפן. הכפתור יופעל מיד כשהדפדפן יהיה מוכן.</p>
     <button id="install" type="button" disabled>מכין את ההתקנה…</button>
     <button id="retry" type="button" hidden>בדיקה מחדש</button>
     <a id="open-app" href="./?installed" hidden>פתיחת האפליקציה שלי</a>
@@ -50,7 +50,7 @@
         installButton.hidden = true;
         retryButton.hidden = false;
         openApp.hidden = false;
-        title.textContent = "Chrome עדיין לא מסר חלון התקנה";
+        title.textContent = "הדפדפן עדיין לא מסר חלון התקנה";
         message.textContent = "אין כאן המתנה אינסופית. לחצו על ‘בדיקה מחדש’. אם My Cosmic Mentor כבר מותקן, פתחו אותו מרשימת האפליקציות או בכפתור שמתחת.";
         status.textContent = "לא התקבל אירוע התקנה מהדפדפן.";
       };
@@ -109,7 +109,7 @@
             retryButton.hidden = false;
           }
         } catch {
-          title.textContent = "Chrome לא פתח את חלון Android";
+          title.textContent = "הדפדפן לא פתח את חלון Android";
           message.textContent = "הפעולה נעצרה לאחר 12 שניות ולא תישאר תקועה. לחצו על ‘בדיקה מחדש’ לקבלת אירוע התקנה חדש.";
           status.textContent = "ההתקנה לא בוצעה.";
           installButton.hidden = true;
@@ -130,7 +130,7 @@
 
       retryButton.addEventListener("click", () => location.reload());
       navigator.serviceWorker?.register("./service-worker.js", { updateViaCache: "none" }).catch(() => {
-        status.textContent = "Chrome לא הצליח להפעיל את רכיב ההתקנה. בדקו חיבור לאינטרנט ולחצו על ‘בדיקה מחדש’.";
+        status.textContent = "הדפדפן לא הצליח להפעיל את רכיב ההתקנה. בדקו חיבור לאינטרנט ולחצו על ‘בדיקה מחדש’.";
       });
     })();
   </script>

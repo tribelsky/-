@@ -219,7 +219,7 @@
             <p id="mcm-install-message"></p>
             <div id="mcm-install-actions">
               <button id="mcm-install-now" type="button" hidden>התקנה עכשיו</button>
-              <a id="mcm-open-chrome" href="intent://tribelsky.github.io/-/install.html#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=https%3A%2F%2Ftribelsky.github.io%2F-%2Finstall.html;end" hidden>פתיחה ב-Chrome</a>
+              <a id="mcm-open-chrome" href="intent://tribelsky.github.io/-/install.html#Intent;scheme=https;action=android.intent.action.VIEW;S.browser_fallback_url=https%3A%2F%2Ftribelsky.github.io%2F-%2Finstall.html;end" hidden>פתיחה בדפדפן בטלפון</a>
               <button id="mcm-copy-link" type="button">העתקת הקישור האישי</button>
               <button id="mcm-close-install" type="button">סגירה</button>
             </div>
@@ -278,10 +278,10 @@
                 ? "לחצו על כפתור השיתוף של Safari, בחרו ‘הוספה למסך הבית’ ואז ‘הוספה’."
                 : "הקישור פתוח כעת בתוך WhatsApp או בדפדפן שאינו מאפשר התקנה. לחצו על ‘העתקת הקישור האישי’, פתחו את Safari והדביקו אותו בשורת הכתובת. לאחר שהדוח נפתח, לחצו על שיתוף ובחרו ‘הוספה למסך הבית’.";
             } else if (isAndroid) {
-              sheetTitle.textContent = isEmbeddedBrowser ? "פתיחה ב-Chrome והתקנה" : "התקנה ב-Chrome";
+              sheetTitle.textContent = isEmbeddedBrowser ? "פתיחה בדפדפן והתקנה" : "התקנה בדפדפן";
               sheetMessage.textContent = isEmbeddedBrowser
-                ? "הקישור פתוח כעת בתוך WhatsApp, שאינו מאפשר התקנת אפליקציות. לחצו כאן על ‘פתיחה ב-Chrome’. Chrome ייפתח מעצמו וימשיך אתכם להתקנה."
-                : "לחצו על ‘מעבר למסך ההתקנה’. ייפתח מסך יציב ונפרד שמתקשר ישירות עם Chrome ואינו יכול להישאר בהמתנה אינסופית.";
+                ? "הקישור פתוח כעת בתוך WhatsApp, שאינו מאפשר התקנת אפליקציות. לחצו על ‘פתיחה בדפדפן בטלפון’. Android יפתח דפדפן מותקן וימשיך אתכם להתקנה."
+                : "לחצו על ‘מעבר למסך ההתקנה’. ייפתח מסך יציב ונפרד שמתקשר ישירות עם הדפדפן ואינו יכול להישאר בהמתנה אינסופית.";
             } else {
               sheetTitle.textContent = "התקנה בדפדפן";
               sheetMessage.textContent = "ב-Chrome או ב-Edge לחצו על סמל ההתקנה שבשורת הכתובת. אפשר גם לפתוח את תפריט הדפדפן ולבחור ‘התקנת האפליקציה’.";
@@ -306,7 +306,7 @@
                   return;
                 }
                 installNowButton.hidden = true;
-                sheetMessage.textContent = "Chrome לא מסר עדיין חלון התקנה. סגרו את החלון הזה, רעננו פעם אחת את הדף ולחצו שוב על ‘שמירת האפליקציה בטלפון’.";
+                sheetMessage.textContent = "הדפדפן לא מסר עדיין חלון התקנה. סגרו את החלון הזה, רעננו פעם אחת את הדף ולחצו שוב על ‘שמירת האפליקציה בטלפון’.";
                 copyStatus.textContent = "אין עוד המתנה: אפשר לסגור, לרענן ולנסות שוב.";
                 return;
               }
@@ -324,14 +324,14 @@
               const result = await promptEvent.userChoice;
               if (result?.outcome === "accepted") {
                 sheetTitle.textContent = "בקשת ההתקנה אושרה";
-                sheetMessage.textContent = "Chrome קיבל את האישור. ההתקנה תיחשב שהושלמה רק לאחר שהטלפון יאשר זאת ויופיע כאן מסך ‘My Cosmic Mentor הותקן’.";
+                sheetMessage.textContent = "הדפדפן קיבל את האישור. ההתקנה תיחשב שהושלמה רק לאחר שהטלפון יאשר זאת ויופיע כאן מסך ‘My Cosmic Mentor הותקן’.";
                 copyStatus.textContent = "ממתינים לאישור סיום מ-Android…";
                 installNowButton.hidden = true;
                 clearTimeout(installConfirmationTimer);
                 installConfirmationTimer = setTimeout(() => {
                   if (installConfirmed) return;
                   sheetTitle.textContent = "ההתקנה עדיין לא הושלמה";
-                  sheetMessage.textContent = "הטלפון לא אישר שנוצרה אפליקציה. לא נטען שהיא הותקנה: סגרו את החלון, סגרו את לשונית Chrome, פתחו מחדש את הקישור האישי ב-Chrome ונסו פעם נוספת.";
+                  sheetMessage.textContent = "הטלפון לא אישר שנוצרה אפליקציה. לא נטען שהיא הותקנה: סגרו את החלון, סגרו את לשונית הדפדפן, פתחו מחדש את הקישור האישי בדפדפן ונסו פעם נוספת.";
                   copyStatus.textContent = "לא התקבל אישור appinstalled מהמכשיר.";
                   closeButton.textContent = "סגירה וניסיון מחדש";
                   closeButton.focus();
@@ -343,16 +343,16 @@
               copyStatus.textContent = "לא בוצעה התקנה במכשיר.";
               installNowButton.hidden = true;
             } catch (error) {
-              sheetTitle.textContent = "Chrome לא פתח את חלון ההתקנה";
+              sheetTitle.textContent = "הדפדפן לא פתח את חלון ההתקנה";
               const errorRefreshKey = "mcm-install-prompt-error-refreshed";
               const alreadyRefreshed = sessionStorage.getItem(errorRefreshKey) === "yes";
               if (!alreadyRefreshed) {
                 sessionStorage.setItem(errorRefreshKey, "yes");
-                sheetMessage.textContent = "הקריאה הישנה של Chrome כבר אינה תקפה. הדף יתרענן פעם אחת כדי לקבל קריאת התקנה חדשה.";
+                sheetMessage.textContent = "קריאת ההתקנה הישנה כבר אינה תקפה. הדף יתרענן פעם אחת כדי לקבל קריאה חדשה.";
                 copyStatus.textContent = "מרענן את מנגנון ההתקנה…";
                 setTimeout(() => location.reload(), 700);
               } else {
-                sheetMessage.textContent = "Chrome חסם את חלון ההתקנה גם לאחר הרענון. סגרו את הלשונית, פתחו מחדש את הקישור האישי ב-Chrome ולחצו פעם אחת על ‘שמירת האפליקציה בטלפון’.";
+                sheetMessage.textContent = "הדפדפן חסם את חלון ההתקנה גם לאחר הרענון. סגרו את הלשונית, פתחו מחדש את הקישור האישי בדפדפן ולחצו פעם אחת על ‘שמירת האפליקציה בטלפון’.";
                 copyStatus.textContent = "ההתקנה לא בוצעה; אין עוד המתנה או רענון אוטומטי.";
                 installNowButton.hidden = true;
               }

@@ -25,11 +25,11 @@
 <body>
   <main>
     <div class="mark" aria-hidden="true">✓</div>
-    <h1>Chrome נפתח בהצלחה</h1>
+    <h1>הדפדפן נפתח בהצלחה</h1>
     <p>לחצו על הכפתור — האפליקציה האישית תיפתח כאן, ואז תוכלו להתקין אותה בטלפון.</p>
     <button id="continue" type="button">המשך לאפליקציה שלי</button>
     <div id="fallback" hidden>
-      <label for="personal-link">אם Chrome מבקש הרשאת הדבקה, אשרו אותה. אם לא הצליח, הדביקו כאן את הקישור:</label>
+      <label for="personal-link">אם הדפדפן מבקש הרשאת הדבקה, אשרו אותה. אם לא הצליח, הדביקו כאן את הקישור:</label>
       <textarea id="personal-link" inputmode="url" autocomplete="off" spellcheck="false"></textarea>
       <button id="open-pasted" type="button">פתיחת האפליקציה</button>
     </div>
@@ -75,7 +75,7 @@
           openPersonalUrl(value);
         } catch {
           fallback.hidden = false;
-          status.textContent = "אשרו ל-Chrome להדביק את הקישור, או הדביקו אותו בשדה שמתחת.";
+          status.textContent = "אשרו לדפדפן להדביק את הקישור, או הדביקו אותו בשדה שמתחת.";
           personalLink.focus();
         } finally {
           continueButton.disabled = false;

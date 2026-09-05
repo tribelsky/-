@@ -1,4 +1,4 @@
-const CACHE_NAME = "mcm-shell-v25-dedicated-install-page";
+const CACHE_NAME = "mcm-shell-v26-any-android-browser";
 const SHELL = [
   "./manifest.webmanifest",
   "./mcm-icon.svg",
