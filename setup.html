@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#050a13">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="mcm-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="mcm-icon-192.png">
+  <title>התקנת My Cosmic Mentor</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 5%,#1a2943 0,#09101d 45%,#03070e 100%);color:#f8f1e4;font-family:Arial,"Noto Sans Hebrew",sans-serif;text-align:center}
+    main{width:min(100%,480px);padding:30px 24px;border:1px solid #d7b76a;border-radius:26px;background:linear-gradient(155deg,#111a2b,#070d18);box-shadow:0 24px 70px #000c}
+    img{width:96px;height:96px;margin:0 auto 18px;display:block}
+    h1{margin:0 0 12px;color:#f2c46d;font-size:28px;line-height:1.25}
+    p{margin:0 0 20px;font-size:18px;line-height:1.65}
+    button,a{width:100%;min-height:56px;border:1px solid #ffe08a;border-radius:16px;padding:12px 18px;background:linear-gradient(135deg,#f2c46d,#ffe292);color:#16110a;font:800 18px Arial,"Noto Sans Hebrew",sans-serif;cursor:pointer;text-decoration:none;display:grid;place-items:center}
+    button:disabled{opacity:.7;cursor:wait}
+    #retry,#open-app{margin-top:12px;background:#172338;color:#fff;border-color:#8090a8}
+    [hidden]{display:none!important}
+    #status{min-height:52px;margin:16px 0 0;color:#9ce8b6;font-size:16px}
+  </style>
+</head>
+<body>
+  <main>
+    <img src="mcm-icon-192.png" alt="My Cosmic Mentor">
+    <h1 id="title">שמירת My Cosmic Mentor בטלפון</h1>
+    <p id="message">מכינים את חלון ההתקנה של Chrome. הכפתור יופעל מיד כשהדפדפן יהיה מוכן.</p>
+    <button id="install" type="button" disabled>מכין את ההתקנה…</button>
+    <button id="retry" type="button" hidden>בדיקה מחדש</button>
+    <a id="open-app" href="./?installed" hidden>פתיחת האפליקציה שלי</a>
+    <p id="status" role="status" aria-live="polite"></p>
+  </main>
+  <script>
+    (() => {
+      const installButton = document.getElementById("install");
+      const retryButton = document.getElementById("retry");
+      const openApp = document.getElementById("open-app");
+      const title = document.getElementById("title");
+      const message = document.getElementById("message");
+      const status = document.getElementById("status");
+      const isStandalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+      let deferredPrompt = null;
+      let promptFinished = false;
+
+      const showNoPrompt = () => {
+        if (deferredPrompt || promptFinished || isStandalone) return;
+        installButton.hidden = true;
+        retryButton.hidden = false;
+        openApp.hidden = false;
+        title.textContent = "Chrome עדיין לא מסר חלון התקנה";
+        message.textContent = "אין כאן המתנה אינסופית. לחצו על ‘בדיקה מחדש’. אם My Cosmic Mentor כבר מותקן, פתחו אותו מרשימת האפליקציות או בכפתור שמתחת.";
+        status.textContent = "לא התקבל אירוע התקנה מהדפדפן.";
+      };
+
+      if (isStandalone) {
+        title.textContent = "My Cosmic Mentor כבר מותקן";
+        message.textContent = "האפליקציה פתוחה כעת במצב עצמאי ונשמרה בטלפון.";
+        installButton.hidden = true;
+        openApp.hidden = false;
+      } else {
+        setTimeout(showNoPrompt, 8000);
+      }
+
+      window.addEventListener("beforeinstallprompt", event => {
+        event.preventDefault();
+        deferredPrompt = event;
+        installButton.hidden = false;
+        installButton.disabled = false;
+        installButton.textContent = "התקנה עכשיו";
+        retryButton.hidden = true;
+        openApp.hidden = true;
+        title.textContent = "האפליקציה מוכנה להתקנה";
+        message.textContent = "לחצו פעם אחת על ‘התקנה עכשיו’, ואז אשרו בחלון של Android.";
+        status.textContent = "";
+      });
+
+      installButton.addEventListener("click", async () => {
+        if (!deferredPrompt) {
+          showNoPrompt();
+          return;
+        }
+        const promptEvent = deferredPrompt;
+        deferredPrompt = null;
+        installButton.disabled = true;
+        installButton.textContent = "פותח את חלון Android…";
+        status.textContent = "אם חלון האישור אינו מופיע בתוך כמה שניות, ההמתנה תיעצר מעצמה.";
+
+        try {
+          promptEvent.prompt();
+          const result = await Promise.race([
+            promptEvent.userChoice,
+            new Promise((_, reject) => setTimeout(() => reject(new Error("prompt-timeout")), 12000))
+          ]);
+          promptFinished = true;
+          if (result?.outcome === "accepted") {
+            title.textContent = "Android קיבל את בקשת ההתקנה";
+            message.textContent = "ממתינים לאישור הסופי שהאפליקציה נוצרה בטלפון.";
+            status.textContent = "ההתקנה לא תסומן כהושלמה לפני אישור המכשיר.";
+            installButton.hidden = true;
+            openApp.hidden = false;
+          } else {
+            title.textContent = "ההתקנה לא אושרה";
+            message.textContent = "חלון Android נסגר בלי אישור. אפשר לבדוק מחדש.";
+            status.textContent = "לא בוצעה התקנה.";
+            installButton.hidden = true;
+            retryButton.hidden = false;
+          }
+        } catch {
+          title.textContent = "Chrome לא פתח את חלון Android";
+          message.textContent = "הפעולה נעצרה לאחר 12 שניות ולא תישאר תקועה. לחצו על ‘בדיקה מחדש’ לקבלת אירוע התקנה חדש.";
+          status.textContent = "ההתקנה לא בוצעה.";
+          installButton.hidden = true;
+          retryButton.hidden = false;
+          openApp.hidden = false;
+        }
+      });
+
+      window.addEventListener("appinstalled", () => {
+        promptFinished = true;
+        title.textContent = "My Cosmic Mentor הותקן";
+        message.textContent = "האפליקציה נוצרה בטלפון. חפשו אותה ברשימת כל האפליקציות בשם My Cosmic Mentor.";
+        status.textContent = "ההתקנה הושלמה ואושרה על ידי המכשיר.";
+        installButton.hidden = true;
+        retryButton.hidden = true;
+        openApp.hidden = false;
+      });
+
+      retryButton.addEventListener("click", () => location.reload());
+      navigator.serviceWorker?.register("./service-worker.js", { updateViaCache: "none" }).catch(() => {
+        status.textContent = "Chrome לא הצליח להפעיל את רכיב ההתקנה. בדקו חיבור לאינטרנט ולחצו על ‘בדיקה מחדש’.";
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -264,7 +264,9 @@
             const chromePromptUnavailable = isAndroid && !isEmbeddedBrowser && !installPrompt;
             installNowButton.hidden = !installPrompt && !chromePromptUnavailable;
             installNowButton.disabled = false;
-            installNowButton.textContent = chromePromptUnavailable ? "בדיקה והפעלת ההתקנה" : "התקנה עכשיו";
+            installNowButton.textContent = isAndroid && !isEmbeddedBrowser
+              ? "מעבר למסך ההתקנה"
+              : chromePromptUnavailable ? "בדיקה והפעלת ההתקנה" : "התקנה עכשיו";
             openChromeButton.hidden = Boolean(installPrompt) || !(isAndroid && isEmbeddedBrowser);
             copyButton.hidden = !isEmbeddedBrowser;
             if (installPrompt) {
@@ -279,7 +281,7 @@
               sheetTitle.textContent = isEmbeddedBrowser ? "פתיחה ב-Chrome והתקנה" : "התקנה ב-Chrome";
               sheetMessage.textContent = isEmbeddedBrowser
                 ? "הקישור פתוח כעת בתוך WhatsApp, שאינו מאפשר התקנת אפליקציות. לחצו כאן על ‘פתיחה ב-Chrome’. Chrome ייפתח מעצמו וימשיך אתכם להתקנה."
-                : "לחצו על ‘בדיקה והפעלת ההתקנה’. אם Chrome עדיין לא הציג את חלון ההתקנה, האפליקציה תרענן את החיבור פעם אחת ותנסה שוב — בלי המתנה אינסופית.";
+                : "לחצו על ‘מעבר למסך ההתקנה’. ייפתח מסך יציב ונפרד שמתקשר ישירות עם Chrome ואינו יכול להישאר בהמתנה אינסופית.";
             } else {
               sheetTitle.textContent = "התקנה בדפדפן";
               sheetMessage.textContent = "ב-Chrome או ב-Edge לחצו על סמל ההתקנה שבשורת הכתובת. אפשר גם לפתוח את תפריט הדפדפן ולבחור ‘התקנת האפליקציה’.";
@@ -422,13 +424,23 @@
             }
           });
           button?.addEventListener("click", async () => {
+            if (isAndroid && !isEmbeddedBrowser) {
+              location.assign("./setup.html");
+              return;
+            }
             if (installPrompt) {
               await requestNativeInstall();
               return;
             }
             showInstallInstructions();
           });
-          installNowButton?.addEventListener("click", requestNativeInstall);
+          installNowButton?.addEventListener("click", () => {
+            if (isAndroid && !isEmbeddedBrowser) {
+              location.assign("./setup.html");
+              return;
+            }
+            requestNativeInstall();
+          });
           openChromeButton?.addEventListener("click", event => {
             // Keep the navigation as the direct result of the tap so Android
             // permits opening Chrome. The personal decryption key stays in the

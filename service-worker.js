@@ -1,10 +1,11 @@
-const CACHE_NAME = "mcm-shell-v24-stable-install";
+const CACHE_NAME = "mcm-shell-v25-dedicated-install-page";
 const SHELL = [
   "./manifest.webmanifest",
   "./mcm-icon.svg",
   "./mcm-icon-192.png",
   "./mcm-icon-512.png",
-  "./install.html"
+  "./install.html",
+  "./setup.html"
 ];
 
 self.addEventListener("install", event => {
