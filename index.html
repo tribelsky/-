@@ -6,8 +6,8 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="theme-color" content="#050a13">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="mcm-icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="mcm-icon-192.png">
+  <link rel="icon" href="mcm-logo-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="mcm-logo-192.png">
   <title>My Cosmic Mentor</title>
   <style>
     *{box-sizing:border-box}
@@ -566,7 +566,7 @@
       <\/script>`;
       const revisionMeta = `<meta name="mcm-revision" content="${String(encrypted.generated_at || "").replace(/[&"<>]/g, "")}">`;
       const installableReport = reportHtml
-        .replace("</head>", `${revisionMeta}<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="mcm-icon.svg" type="image/png"><link rel="apple-touch-icon" href="mcm-icon.svg">${mobileScrollFix}</head>`)
+        .replace("</head>", `${revisionMeta}<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="mcm-logo-192.png" type="image/png"><link rel="apple-touch-icon" href="mcm-logo-192.png">${mobileScrollFix}</head>`)
         .replace(/<body([^>]*)>/i, `<body$1>${installControl}`)
         .replace("</body>", `${installScript}</body>`);
       document.open();
