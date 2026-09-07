@@ -191,6 +191,9 @@
         #map .center{fill:#071725!important;stroke:#63d9ff!important;stroke-width:3!important}
         #map .center-title{fill:#ffffff!important}
         #map .center-sub{fill:#b9e9ff!important;font-size:18px!important}
+        #map .mcm-map-more{display:inline-flex;align-items:center;justify-content:center;margin-top:8px;padding:10px 15px;border:1px solid #63d9ff;border-radius:999px;background:#0d2940;color:#ffffff;text-decoration:none;font-weight:800}
+        #map .mcm-map-more:hover,#map .mcm-map-more:focus{background:#17405f;outline:2px solid rgba(99,217,255,.35);outline-offset:2px}
+        #map .mcm-map-bridge{color:#c5d8e7!important}
         .short-group[data-rubric="Moon"]{--mcm-rubric-accent:#73d7ff}
         .short-group[data-rubric="Sun"]{--mcm-rubric-accent:#f1cf73}
         .short-group[data-rubric="Mercury"]{--mcm-rubric-accent:#b69cff}
@@ -586,11 +589,123 @@
           });
         })();
       <\/script>`;
+      const mapExplanationScript = `<script id="mcm-map-explanations-v2">
+        (() => {
+          const map = document.getElementById("map");
+          const tooltip = map?.querySelector("#tooltip");
+          if (!map || !tooltip) return;
+          const processList = typeof processes !== "undefined" && Array.isArray(processes) ? processes : [];
+          const planetInfo = {
+            Sun:{name:"שמש",title:"ביטוי אישי וחיוניות",meaning:"השמש מסמלת את הביטוי האישי, הרצון והצרכים הפיזיים.",action:"ממקדת חיוניות וביטוי אישי"},
+            Moon:{name:"ירח",title:"רגש, ביטחון וצרכים",meaning:"הירח מסמל חום, ביטחון וצרכים רגשיים בחיי היום־יום.",action:"מעורר צרכים רגשיים ומחפש ביטחון"},
+            Mercury:{name:"מרקורי",title:"חשיבה, תקשורת ודיאלוג",meaning:"מרקורי מסמל חשיבה, תקשורת, למידה ודיאלוג.",action:"מפעיל חשיבה, תקשורת ודיאלוג"},
+            Venus:{name:"ונוס",title:"רגשות, יחסים וערכים",meaning:"ונוס מסמלת ביטוי רגשי, יחסים קרובים, משיכה וערכים.",action:"מביאה קשר, משיכה וערכים"},
+            Mars:{name:"מרס",title:"יוזמה, פעולה וכוח רצון",meaning:"מרס מסמל יוזמה, פעילות, כוח רצון והדרך שבה פועלים.",action:"דוחף ליוזמה ולפעולה"},
+            Jupiter:{name:"יופיטר",title:"צמיחה, התרחבות והזדמנויות",meaning:"יופיטר מסמל צורך בצמיחה, בהתרחבות ובלמידה.",action:"מרחיב ומעודד צמיחה"},
+            Saturn:{name:"סטורן",title:"אחריות, גבולות ובנייה",meaning:"סטורן מסמל אחריות, גבולות, מחויבות ובנייה לאורך זמן.",action:"דורש אחריות, גבולות ובנייה"},
+            Uranus:{name:"אורנוס",title:"שינוי, עצמאות וחדשנות",meaning:"אורנוס מסמל צורך בשינוי, בעצמאות ובשבירת דפוסים.",action:"מחדש ומשנה דפוסים"},
+            Neptune:{name:"נפטון",title:"דמיון, רגישות והשראה",meaning:"נפטון מסמל יצירתיות, רגישות, השראה וטשטוש גבולות.",action:"מגביר רגישות, דמיון והשראה"},
+            Pluto:{name:"פלוטו",title:"עומק, עוצמה והתחדשות",meaning:"פלוטו מסמל עוצמה, עומק ויכולת התחדשות.",action:"מעמיק, משנה ומחדש"}
+          };
+          const signMeaning = {
+            "טלה":"יוזמה, פעולה והתחלה",
+            "שור":"יציבות, חומר וביטחון",
+            "תאומים":"תקשורת, סקרנות וגמישות",
+            "סרטן":"רגש, בית ושייכות",
+            "אריה":"ביטוי אישי, יצירתיות ונראות",
+            "בתולה":"סדר, דיוק ושיפור",
+            "מאזניים":"קשרים, איזון ושיתוף פעולה",
+            "עקרב":"עומק, שינוי וכוחות שפועלים מתחת לפני השטח",
+            "קשת":"התרחבות, משמעות וחופש",
+            "גדי":"אחריות, בנייה ומטרה",
+            "דלי":"פעילות חברתית, קבוצות וארגונים גדולים",
+            "דגים":"רגישות, דמיון ואינטואיציה"
+          };
+          const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[character]);
+          const houseContext = number => {
+            const node = map.querySelector('.house-hotspot[data-house="' + CSS.escape(String(number ?? "")) + '"]');
+            return {number:String(number ?? ""), title:node?.dataset.title || ""};
+          };
+          const processIndexesFor = planet => {
+            const raw = planet.dataset.processes || planet.dataset.process || "";
+            return raw.split(",").filter(value => /^\\d+$/.test(value)).map(Number);
+          };
+          const showPlanet = planet => {
+            map.querySelectorAll(".planet").forEach(node => node.classList.toggle("planet-inspected", node === planet));
+            const info = planetInfo[planet.dataset.body] || {name:planet.dataset.body || "כוכב",title:"מיקום אישי במפה",meaning:"",action:"פועל"};
+            const isTransit = planet.dataset.kind === "transit" || planet.classList.contains("transit");
+            const sign = planet.dataset.sign || "";
+            const signText = signMeaning[sign] || "סגנון ביטוי ייחודי";
+            const house = houseContext(planet.dataset.house);
+            const layer = isTransit ? "במעבר היום" : "במפת הלידה";
+            const positionSentence = info.name + " " + layer + (sign ? " נמצא במזל " + sign + ", שמדגיש " + signText + "." : ".");
+            const houseSentence = house.number
+              ? "הוא פועל בבית " + house.number + (house.title ? " — " + house.title : "") + "; במיקום הזה הוא " + info.action + " בתחום הזה."
+              : "";
+            const related = processIndexesFor(planet).map(index => processList[index]).filter(Boolean);
+            const relatedSentence = related.length
+              ? "<p class='mcm-map-bridge'><strong>קשור " + (isTransit ? "היום" : "במפה") + " לתהליך:</strong> " + related.map(item => "„" + escapeHtml(item.title) + "”").join(" וגם ") + ".</p>"
+              : "";
+            tooltip.innerHTML =
+              "<h3>" + escapeHtml(info.name) + " — " + escapeHtml(info.title) + "</h3>" +
+              "<p>" + escapeHtml(info.meaning) + "</p>" +
+              "<p>" + escapeHtml(positionSentence) + "</p>" +
+              (houseSentence ? "<p>" + escapeHtml(houseSentence) + "</p>" : "") +
+              relatedSentence +
+              (related.length ? "<a class='mcm-map-more' href='#timing'>לפירוש המלא בתהליכים הקצרים</a>" : "");
+          };
+          const showProcessSummary = node => {
+            const process = processList[Number(node.dataset.process)];
+            if (!process) return;
+            map.querySelectorAll("[data-process]").forEach(item => item.classList.toggle("active", Number(item.dataset.process) === Number(node.dataset.process)));
+            map.querySelectorAll(".planet").forEach(item => item.classList.remove("endpoint","planet-inspected"));
+            map.querySelector('.transit[data-body="' + CSS.escape(String(process.transit || "")) + '"]')?.classList.add("endpoint");
+            map.querySelector('.natal[data-body="' + CSS.escape(String(process.natal || "")) + '"]')?.classList.add("endpoint");
+            const house = houseContext(process.house);
+            const connection = (process.transitHe || process.transit || "כוכב מעבר") + " במעבר · " + (process.aspectHe || "זווית פעילה") + " · " + (process.natalHe || process.natal || "כוכב לידה") + " בלידה";
+            const effect = process.aspectNature || "הזווית מחברת בין שתי הפלנטות ומפעילה תהליך אישי";
+            const area = house.number ? " היא פועלת בבית " + house.number + (house.title ? " — " + house.title : "") + "." : "";
+            tooltip.innerHTML =
+              "<h3>" + escapeHtml(process.title) + "</h3>" +
+              "<p><strong>" + escapeHtml(connection) + "</strong></p>" +
+              "<p>" + escapeHtml(effect + "." + area) + "</p>" +
+              "<p class='mcm-map-bridge'>הפירוש המעשי המלא מופיע פעם אחת בלבד בתהליכים הקצרים.</p>" +
+              "<a class='mcm-map-more' href='#timing'>לקריאת הפירוש המלא</a>";
+          };
+          const activationTarget = event => {
+            const target = event.target instanceof Element ? event.target : null;
+            if (!target || !map.contains(target)) return null;
+            const planet = target.closest(".planet");
+            if (planet) return {type:"planet",node:planet};
+            const processNode = target.closest(".aspect-hit,[data-process]");
+            if (processNode && map.contains(processNode)) return {type:"process",node:processNode};
+            return null;
+          };
+          const activate = event => {
+            const target = activationTarget(event);
+            if (!target) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            if (target.type === "planet") showPlanet(target.node);
+            else showProcessSummary(target.node);
+          };
+          map.addEventListener("click", activate, true);
+          map.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") activate(event);
+          }, true);
+          map.addEventListener("focusin", event => {
+            const target = activationTarget(event);
+            if (!target) return;
+            if (target.type === "planet") showPlanet(target.node);
+            else showProcessSummary(target.node);
+          });
+        })();
+      <\/script>`;
       const revisionMeta = `<meta name="mcm-revision" content="${String(encrypted.generated_at || "").replace(/[&"<>]/g, "")}">`;
       const installableReport = reportHtml
         .replace("</head>", `${revisionMeta}<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="mcm-launcher-v2-192.png" type="image/png"><link rel="apple-touch-icon" href="mcm-launcher-v2-192.png">${mobileScrollFix}</head>`)
         .replace(/<body([^>]*)>/i, `<body$1>${installControl}`)
-        .replace("</body>", `${installScript}</body>`);
+        .replace("</body>", `${mapExplanationScript}${installScript}</body>`);
       document.open();
       document.write(installableReport);
       document.close();
