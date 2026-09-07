@@ -149,9 +149,9 @@
       const allowedPages = new Set(["home", "today", "tomorrow", "week"]);
       const requestedPage = allowedPages.has(queryParams.get("page"))
         ? queryParams.get("page")
-        : (reportPackage?.default_page || "today.html").replace(/\.html$/i, "");
+        : "home";
       let reportHtml = reportPackage
-        ? reportPackage.pages[`${requestedPage}.html`] || reportPackage.pages[reportPackage.default_page]
+        ? reportPackage.pages[`${requestedPage}.html`] || reportPackage.pages[reportPackage.default_page] || reportPackage.pages["home.html"]
         : decodedReport;
       if (!reportHtml) throw new Error("page-not-ready");
       // The weekly mentor portrait belongs inside the encrypted report and must
