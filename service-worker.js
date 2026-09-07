@@ -1,4 +1,4 @@
-const CACHE_NAME = "mcm-shell-v29-home-and-logo-refresh";
+const CACHE_NAME = "mcm-shell-v30-map-legibility";
 const SHELL = [
   "./manifest.webmanifest",
   "./mcm-launcher-v2-192.png?v=3",

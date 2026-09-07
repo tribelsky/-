@@ -169,6 +169,28 @@
         html{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important}
         body{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:visible!important;touch-action:pan-y pinch-zoom!important;overscroll-behavior-y:auto!important}
         .chart-wrap,.chart{touch-action:pan-y pinch-zoom!important}
+        /* Keep the complete astrological map legible after the 820px SVG is
+           reduced to a phone-width canvas. The report data was present, but
+           the old one-pixel dark strokes effectively disappeared on mobile. */
+        #map .chart{filter:drop-shadow(0 0 18px rgba(69,191,255,.11))}
+        #map .ring{stroke:#3f7fa8!important;stroke-width:3!important;opacity:1!important}
+        #map .ring.outer{stroke:#63d9ff!important;stroke-width:5!important}
+        #map .zodiac-inner{stroke:#55b9e8!important;stroke-width:3.5!important}
+        #map .transit-boundary{stroke:#f5fbff!important;stroke-width:3!important;opacity:.9!important}
+        #map .natal-boundary{stroke:#49cfff!important;stroke-width:3!important;opacity:.9!important}
+        #map .zodiac-line{stroke:#4c9dca!important;stroke-width:3!important;opacity:.95!important}
+        #map .zodiac{fill:#ffffff!important;font-family:"Segoe UI Symbol","Noto Sans Symbols 2",sans-serif!important;font-size:38px!important;font-weight:700!important;paint-order:stroke!important;stroke:#06111e!important;stroke-width:2px!important;filter:drop-shadow(0 0 5px #50cfff)}
+        #map .house-line{stroke:#5c9fc5!important;stroke-width:2.6!important;opacity:.9!important}
+        #map .house-hotspot circle{fill:#102b40!important;stroke:#7edcff!important;stroke-width:3.5!important}
+        #map .house-num{fill:#ffffff!important;font-size:20px!important;font-weight:800!important;paint-order:stroke!important;stroke:#071522!important;stroke-width:2px!important}
+        #map .planet circle{fill:#081725!important;stroke-width:4.5!important;filter:drop-shadow(0 0 7px currentColor)}
+        #map .planet.natal circle{stroke:#52d5ff!important}
+        #map .planet.transit circle{stroke:#ffffff!important}
+        #map .planet text{fill:#ffffff!important;font-family:"Segoe UI Symbol","Noto Sans Symbols 2",sans-serif!important;font-size:34px!important;font-weight:700!important;paint-order:stroke!important;stroke:#06101b!important;stroke-width:1.5px!important}
+        #map .aspect-line{stroke-width:8!important;opacity:1!important;filter:drop-shadow(0 0 5px var(--aspect))}
+        #map .center{fill:#071725!important;stroke:#63d9ff!important;stroke-width:3!important}
+        #map .center-title{fill:#ffffff!important}
+        #map .center-sub{fill:#b9e9ff!important;font-size:18px!important}
         .short-group[data-rubric="Moon"]{--mcm-rubric-accent:#73d7ff}
         .short-group[data-rubric="Sun"]{--mcm-rubric-accent:#f1cf73}
         .short-group[data-rubric="Mercury"]{--mcm-rubric-accent:#b69cff}
