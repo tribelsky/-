@@ -1,0 +1,461 @@
+{
+  "schema_version": 1,
+  "contract_id": "MCM_STATIC_TALKING_MAP_CONCEPTS_V1",
+  "generated_at": "2026-08-31T19:20:22.601224+00:00",
+  "engine": "matcha-he-en.onnx + renikud-model.onnx",
+  "voice_license": "MIT model metadata; retain source attribution in product notices",
+  "sample_rate": 16000,
+  "count": 45,
+  "items": [
+    {
+      "id": "planet-sun",
+      "kind": "planet",
+      "key": "Sun",
+      "label": "שמש",
+      "file": "talking-map-planet-sun.wav",
+      "seconds": 11.01,
+      "bytes": 352354,
+      "sha256": "523B8A0770D79FA706D2E8DFF808D0C49B0AED72C11E9C7C8EFDA69E15624693"
+    },
+    {
+      "id": "planet-moon",
+      "kind": "planet",
+      "key": "Moon",
+      "label": "ירח",
+      "file": "talking-map-planet-moon.wav",
+      "seconds": 9.675,
+      "bytes": 309632,
+      "sha256": "0716EFD23A8C79A9F01BF1F5C4CE3ACDBC27306EE19867162F9234CA69F8B212"
+    },
+    {
+      "id": "planet-mercury",
+      "kind": "planet",
+      "key": "Mercury",
+      "label": "מרקורי",
+      "file": "talking-map-planet-mercury.wav",
+      "seconds": 9.49,
+      "bytes": 303716,
+      "sha256": "7685CC3CF53D9BEED5C298A47F6ABD4CEA244934CEE80371B25B19E62E9823E8"
+    },
+    {
+      "id": "planet-venus",
+      "kind": "planet",
+      "key": "Venus",
+      "label": "ונוס",
+      "file": "talking-map-planet-venus.wav",
+      "seconds": 9.374,
+      "bytes": 300022,
+      "sha256": "51B1E759BE3141C9B0981DC56DE5AC04D2F672453C340F1EA9CF6A9053BBC883"
+    },
+    {
+      "id": "planet-mars",
+      "kind": "planet",
+      "key": "Mars",
+      "label": "מרס",
+      "file": "talking-map-planet-mars.wav",
+      "seconds": 9.852,
+      "bytes": 315310,
+      "sha256": "F6B1DA15D4B2F060AF3941FE0881AF8A0EE3354FE6A219B2CDB4DB4B8FDE8EE8"
+    },
+    {
+      "id": "planet-jupiter",
+      "kind": "planet",
+      "key": "Jupiter",
+      "label": "יופיטר",
+      "file": "talking-map-planet-jupiter.wav",
+      "seconds": 10.067,
+      "bytes": 322188,
+      "sha256": "CE52F5EBC9902BE931878C315B342ADAF2B5EDFC06DC2BCB4D88746401ED6F25"
+    },
+    {
+      "id": "planet-saturn",
+      "kind": "planet",
+      "key": "Saturn",
+      "label": "סטורן",
+      "file": "talking-map-planet-saturn.wav",
+      "seconds": 8.489,
+      "bytes": 271706,
+      "sha256": "2C8F2F175038CB24E8B9D64B67D78F7BFB52C4759D6468191384FA80E31B8F37"
+    },
+    {
+      "id": "planet-uranus",
+      "kind": "planet",
+      "key": "Uranus",
+      "label": "אורנוס",
+      "file": "talking-map-planet-uranus.wav",
+      "seconds": 9.12,
+      "bytes": 291870,
+      "sha256": "F0542C789A304C906D0115007C9FE44A2D24B67D046519E6064F3672DD74BA56"
+    },
+    {
+      "id": "planet-neptune",
+      "kind": "planet",
+      "key": "Neptune",
+      "label": "נפטון",
+      "file": "talking-map-planet-neptune.wav",
+      "seconds": 9.896,
+      "bytes": 316732,
+      "sha256": "CF55112DBE744D5442E01FE4F91B0E2838CEF4DA352DDD7EC55E334F83245B3C"
+    },
+    {
+      "id": "planet-pluto",
+      "kind": "planet",
+      "key": "Pluto",
+      "label": "פלוטו",
+      "file": "talking-map-planet-pluto.wav",
+      "seconds": 8.591,
+      "bytes": 274968,
+      "sha256": "84FCA2C5DFEB2A0E893953070FC2602919BBE33F30508588E435A5A5C2338C49"
+    },
+    {
+      "id": "sign-aries",
+      "kind": "sign",
+      "key": "Aries",
+      "label": "טלה",
+      "file": "talking-map-sign-aries.wav",
+      "seconds": 8.152,
+      "bytes": 260908,
+      "sha256": "7DB0722ED261721FF35740B73EEC46BDBC012E0F7E5A73131A0CE8451CFF08BB"
+    },
+    {
+      "id": "sign-taurus",
+      "kind": "sign",
+      "key": "Taurus",
+      "label": "שור",
+      "file": "talking-map-sign-taurus.wav",
+      "seconds": 9.255,
+      "bytes": 296188,
+      "sha256": "C3FB7C70315CB25B4FCDD0B1D3AB8F78C1A92BB0DA106C1E357D5B223828C429"
+    },
+    {
+      "id": "sign-gemini",
+      "kind": "sign",
+      "key": "Gemini",
+      "label": "תאומים",
+      "file": "talking-map-sign-gemini.wav",
+      "seconds": 8.079,
+      "bytes": 258564,
+      "sha256": "058C6354C505DB92837D374C6F74F77D33909BC06DD7286A1B035F24B6E265F5"
+    },
+    {
+      "id": "sign-cancer",
+      "kind": "sign",
+      "key": "Cancer",
+      "label": "סרטן",
+      "file": "talking-map-sign-cancer.wav",
+      "seconds": 8.25,
+      "bytes": 264050,
+      "sha256": "A538815C3E003460F138099DA51445D9BD3E9552FB945454802D505921BBD5EE"
+    },
+    {
+      "id": "sign-leo",
+      "kind": "sign",
+      "key": "Leo",
+      "label": "אריה",
+      "file": "talking-map-sign-leo.wav",
+      "seconds": 8.655,
+      "bytes": 277014,
+      "sha256": "C5F6894341F29D5ACB37E4B09611735D288684ECB1AED0FF7B210CB384794AFA"
+    },
+    {
+      "id": "sign-virgo",
+      "kind": "sign",
+      "key": "Virgo",
+      "label": "בתולה",
+      "file": "talking-map-sign-virgo.wav",
+      "seconds": 9.475,
+      "bytes": 303250,
+      "sha256": "EEFEBFA85F123622DEB59C62BC8222FDA814E1CE794DD26E2A44FEC2E819B905"
+    },
+    {
+      "id": "sign-libra",
+      "kind": "sign",
+      "key": "Libra",
+      "label": "מאזניים",
+      "file": "talking-map-sign-libra.wav",
+      "seconds": 8.212,
+      "bytes": 262842,
+      "sha256": "1B42F20C3133A8777C5A5B1C8BF681566D9110C1A8FBA7383D26ACE6B4BE667C"
+    },
+    {
+      "id": "sign-scorpio",
+      "kind": "sign",
+      "key": "Scorpio",
+      "label": "עקרב",
+      "file": "talking-map-sign-scorpio.wav",
+      "seconds": 9.414,
+      "bytes": 301298,
+      "sha256": "730E9FD2500BE670DBF38B3911217FA2051BD49E023E70A7465600613D945FBE"
+    },
+    {
+      "id": "sign-sagittarius",
+      "kind": "sign",
+      "key": "Sagittarius",
+      "label": "קשת",
+      "file": "talking-map-sign-sagittarius.wav",
+      "seconds": 8.966,
+      "bytes": 286940,
+      "sha256": "8124C0238A6B5D3E449018F6FD6EE301C5D52513993E09C59B82929CD9540858"
+    },
+    {
+      "id": "sign-capricorn",
+      "kind": "sign",
+      "key": "Capricorn",
+      "label": "גדי",
+      "file": "talking-map-sign-capricorn.wav",
+      "seconds": 9.069,
+      "bytes": 290236,
+      "sha256": "9EB0DC61B1BF76DD107022FA56EEA0AD4DB3C2D06D9E74AAC3A7E50CE6238182"
+    },
+    {
+      "id": "sign-aquarius",
+      "kind": "sign",
+      "key": "Aquarius",
+      "label": "דלי",
+      "file": "talking-map-sign-aquarius.wav",
+      "seconds": 8.532,
+      "bytes": 273062,
+      "sha256": "64A10137A2E330F45F253802246F52BE336B928101F7B81FD759BF6F6FA38019"
+    },
+    {
+      "id": "sign-pisces",
+      "kind": "sign",
+      "key": "Pisces",
+      "label": "דגים",
+      "file": "talking-map-sign-pisces.wav",
+      "seconds": 9.213,
+      "bytes": 294860,
+      "sha256": "374F4A85B107E13ED53CE820937FC98B7598DD9D3391A218E246DB75A5C11B25"
+    },
+    {
+      "id": "house-1",
+      "kind": "house",
+      "key": "1",
+      "label": "בית ראשון",
+      "file": "talking-map-house-1.wav",
+      "seconds": 9.932,
+      "bytes": 317882,
+      "sha256": "FADF1E993D4FC0649FAC1B8D1DA97540CED2EC93B08C7A5C7E23ED29E59A2211"
+    },
+    {
+      "id": "house-2",
+      "kind": "house",
+      "key": "2",
+      "label": "בית שני",
+      "file": "talking-map-house-2.wav",
+      "seconds": 11.675,
+      "bytes": 373654,
+      "sha256": "1BB52DA936685D6C071780AC2CD2B8187EA78B349FC7862B12C408C8D81B40F5"
+    },
+    {
+      "id": "house-3",
+      "kind": "house",
+      "key": "3",
+      "label": "בית שלישי",
+      "file": "talking-map-house-3.wav",
+      "seconds": 9.467,
+      "bytes": 303000,
+      "sha256": "8631EB0098ABAA355154ECDB2BAA6F7DCF2AB257C4D4AB76743F799520F73981"
+    },
+    {
+      "id": "house-4",
+      "kind": "house",
+      "key": "4",
+      "label": "בית רביעי",
+      "file": "talking-map-house-4.wav",
+      "seconds": 8.713,
+      "bytes": 278846,
+      "sha256": "DE1F3978875A4EBD65C4854F95721F5F960EB895366CC7517C3A6C7425BC8C5A"
+    },
+    {
+      "id": "house-5",
+      "kind": "house",
+      "key": "5",
+      "label": "בית חמישי",
+      "file": "talking-map-house-5.wav",
+      "seconds": 8.987,
+      "bytes": 287642,
+      "sha256": "99F4633E034518AB31E7060E80BC04994934D1A6AE11B2B14E308F90DF8CB664"
+    },
+    {
+      "id": "house-6",
+      "kind": "house",
+      "key": "6",
+      "label": "בית שישי",
+      "file": "talking-map-house-6.wav",
+      "seconds": 9.999,
+      "bytes": 320012,
+      "sha256": "0C1891A69077264C8555DDA7CAE67B1B65BC48AE0DBF7C4F2CB5A243A8B196A9"
+    },
+    {
+      "id": "house-7",
+      "kind": "house",
+      "key": "7",
+      "label": "בית שביעי",
+      "file": "talking-map-house-7.wav",
+      "seconds": 9.766,
+      "bytes": 312560,
+      "sha256": "BF790C77719207F15768AD07B04FC1DF28EB53548D9275583B37764332BF401C"
+    },
+    {
+      "id": "house-8",
+      "kind": "house",
+      "key": "8",
+      "label": "בית שמיני",
+      "file": "talking-map-house-8.wav",
+      "seconds": 10.347,
+      "bytes": 331140,
+      "sha256": "3E0DCC677AE78CDE02192836A71F56303B124D9D555E915918A7ADFF9A5C058F"
+    },
+    {
+      "id": "house-9",
+      "kind": "house",
+      "key": "9",
+      "label": "בית תשיעי",
+      "file": "talking-map-house-9.wav",
+      "seconds": 10.46,
+      "bytes": 334770,
+      "sha256": "7D216AEF4B2B41271144F8B18FA539DA317832443BE62F6AF56C7E57D712F4C4"
+    },
+    {
+      "id": "house-10",
+      "kind": "house",
+      "key": "10",
+      "label": "בית עשירי",
+      "file": "talking-map-house-10.wav",
+      "seconds": 10.052,
+      "bytes": 321720,
+      "sha256": "05E766F71726FF861C66B147B0C2496ED6C95A32384FA8DBE19B8FCEB41E9A5D"
+    },
+    {
+      "id": "house-11",
+      "kind": "house",
+      "key": "11",
+      "label": "בית אחד עשר",
+      "file": "talking-map-house-11.wav",
+      "seconds": 9.746,
+      "bytes": 311904,
+      "sha256": "0244768577D48B4A7F68157E251A23C55FCBA307BE8B5974E460867194BA7FCC"
+    },
+    {
+      "id": "house-12",
+      "kind": "house",
+      "key": "12",
+      "label": "בית שנים עשר",
+      "file": "talking-map-house-12.wav",
+      "seconds": 10.538,
+      "bytes": 337266,
+      "sha256": "D2B3FD501023D178F5F47F007C70A291337C5B77392F62F47366DCE6C098DF0E"
+    },
+    {
+      "id": "aspect-conjunction",
+      "kind": "aspect",
+      "key": "Conjunction",
+      "label": "צמידות",
+      "file": "talking-map-aspect-conjunction.wav",
+      "seconds": 8.803,
+      "bytes": 281724,
+      "sha256": "F451D4DEC5DAD78B9DCDFE3B4A6C59BBEBAE58DB8B2096C652D51CC084E85209"
+    },
+    {
+      "id": "aspect-semi-sextile",
+      "kind": "aspect",
+      "key": "Semi-Sextile",
+      "label": "חצי שישית",
+      "file": "talking-map-aspect-semi-sextile.wav",
+      "seconds": 8.895,
+      "bytes": 284692,
+      "sha256": "8317F91655085820ED93AC29B8DEC9390AD01411942BB4E8BCA78E7CD5D25CE7"
+    },
+    {
+      "id": "aspect-semi-square",
+      "kind": "aspect",
+      "key": "Semi-Square",
+      "label": "חצי ריבוע",
+      "file": "talking-map-aspect-semi-square.wav",
+      "seconds": 8.662,
+      "bytes": 277236,
+      "sha256": "368ECC47E5C794E84ECBF504E0781BB3429134C1DEBCA7535E280BC4208CB673"
+    },
+    {
+      "id": "aspect-septile",
+      "kind": "aspect",
+      "key": "Septile",
+      "label": "שביעית",
+      "file": "talking-map-aspect-septile.wav",
+      "seconds": 8.838,
+      "bytes": 282858,
+      "sha256": "8C712FC44C2F7C2785217088FEB9ADD7AE1E4567856BE4663D1301F9FE9E8DCA"
+    },
+    {
+      "id": "aspect-sextile",
+      "kind": "aspect",
+      "key": "Sextile",
+      "label": "שישית",
+      "file": "talking-map-aspect-sextile.wav",
+      "seconds": 8.929,
+      "bytes": 285778,
+      "sha256": "7331F0EBFAA95E77E0AA4EE53B75E7CE7FF17DC922FEE42A23C5A48F03B23FB5"
+    },
+    {
+      "id": "aspect-quintile",
+      "kind": "aspect",
+      "key": "Quintile",
+      "label": "חמישית",
+      "file": "talking-map-aspect-quintile.wav",
+      "seconds": 8.605,
+      "bytes": 275408,
+      "sha256": "58799EFE2488C7868BB75E4A5C5A4A147DE516924DAD4809118BE44B551BF8F9"
+    },
+    {
+      "id": "aspect-square",
+      "kind": "aspect",
+      "key": "Square",
+      "label": "ריבוע",
+      "file": "talking-map-aspect-square.wav",
+      "seconds": 9.232,
+      "bytes": 295460,
+      "sha256": "5B9AC8679CA935CA9E2D87AF496D8FF77A34ACB54C720E513520268E58DA60E6"
+    },
+    {
+      "id": "aspect-trine",
+      "kind": "aspect",
+      "key": "Trine",
+      "label": "משולש",
+      "file": "talking-map-aspect-trine.wav",
+      "seconds": 7.899,
+      "bytes": 252798,
+      "sha256": "71DD2D778A98441124373E081A2BB69F51925FB2F422393B55137874AA613A8E"
+    },
+    {
+      "id": "aspect-biquintile",
+      "kind": "aspect",
+      "key": "Biquintile",
+      "label": "חמישית כפולה",
+      "file": "talking-map-aspect-biquintile.wav",
+      "seconds": 8.998,
+      "bytes": 287976,
+      "sha256": "0BD0C535A3DFE3AED5926F9AB75F30C452EFE57FBB52CB28EEAB743649E50802"
+    },
+    {
+      "id": "aspect-quincunx",
+      "kind": "aspect",
+      "key": "Quincunx",
+      "label": "קווינקונס",
+      "file": "talking-map-aspect-quincunx.wav",
+      "seconds": 8.78,
+      "bytes": 281008,
+      "sha256": "6C8F1FB083887BD0BF619F14056E5A90640BC5CC5F4A3149881EA7D0C7A5FBF8"
+    },
+    {
+      "id": "aspect-opposition",
+      "kind": "aspect",
+      "key": "Opposition",
+      "label": "מולות",
+      "file": "talking-map-aspect-opposition.wav",
+      "seconds": 8.81,
+      "bytes": 281978,
+      "sha256": "2C927F6C335FA5955E61281A7E7DD0E93791825C3831C011F8FDC52BBFF0AF30"
+    }
+  ]
+}
