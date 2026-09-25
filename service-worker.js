@@ -1,10 +1,10 @@
-const CACHE_NAME = "mcm-shell-v31-map-explanations";
+const CACHE_NAME = "mcm-shell-v39-mentor-mao-v5";
 const SHELL = [
   "./manifest.webmanifest",
-  "./mcm-launcher-v2-192.png?v=3",
-  "./mcm-launcher-v2-512.png?v=3",
-  "./mcm-launcher-v2-maskable-192.png?v=3",
-  "./mcm-launcher-v2-maskable-512.png?v=3",
+  "./mcm-launcher-bright-v5-mao-192.png?v=5",
+  "./mcm-launcher-bright-v5-mao-512.png?v=5",
+  "./mcm-launcher-bright-v5-mao-maskable-192.png?v=5",
+  "./mcm-launcher-bright-v5-mao-maskable-512.png?v=5",
   "./install.html",
   "./setup.html"
 ];
