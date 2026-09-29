@@ -119,15 +119,43 @@
       }
       if (!/^[a-z0-9]{8}$/.test(reportId || "") || !keyText) throw new Error("missing");
       localStorage.setItem("mcmPersonalUrl", location.href);
-      const response = await fetch(`reports/${reportId}.json?v=${Date.now()}`, { cache: "no-store" });
-      if (!response.ok) throw new Error("not-found");
-      const encrypted = await response.json();
-      if (encrypted.algorithm !== "chacha20") throw new Error("unsupported");
-      let currentDate = israelReportDate();
-      if (encrypted.days && !encrypted.days[currentDate]) {
-        const availableDays = Object.keys(encrypted.days).sort();
-        currentDate = availableDays.find(day => day > currentDate) || availableDays.at(-1) || currentDate;
+      const primaryBase = new URL(".", location.href).href.replace(/\/$/, "");
+      const emergencyBase = "https://mcm-emergency-read-mss7f3xmgq-ew.a.run.app";
+      const currentDate = israelReportDate();
+      const readJson = async (url, timeoutMs = 8000) => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          const response = await fetch(url, { cache: "no-store", signal: controller.signal });
+          if (!response.ok) throw new Error("http-" + response.status);
+          return await response.json();
+        } finally {
+          clearTimeout(timeout);
+        }
+      };
+      const loadVerifiedPair = async (base) => {
+        const nonce = Date.now();
+        const encodedId = encodeURIComponent(reportId);
+        const version = await readJson(`${base}/versions/${encodedId}.json?v=${nonce}`);
+        const report = await readJson(`${base}/reports/${encodedId}.json?v=${nonce}`);
+        if (!version.generated_at || report.generated_at !== version.generated_at) throw new Error("revision-mismatch");
+        if (report.algorithm !== "chacha20" || report.compression !== "gzip") throw new Error("unsupported");
+        if (!report.days?.[currentDate]?.data || !report.days?.[currentDate]?.nonce) throw new Error("date-not-ready");
+        return report;
+      };
+      let encrypted = null;
+      let loadedSource = "";
+      for (const origin of [
+        { name: "primary", base: primaryBase },
+        { name: "emergency", base: emergencyBase },
+      ]) {
+        try {
+          encrypted = await loadVerifiedPair(origin.base);
+          loadedSource = origin.name;
+          break;
+        } catch {}
       }
+      if (!encrypted) throw new Error("no-verified-origin");
       const encryptedDay = encrypted.days ? encrypted.days[currentDate] : encrypted;
       if (!encryptedDay?.data || !encryptedDay?.nonce) throw new Error("date-not-ready");
       const plaintext = chacha20(
@@ -502,7 +530,12 @@
           }
           const loadedDate = "${currentDate}";
           const loadedRevision = ${JSON.stringify(encrypted.generated_at || "")};
+          const loadedSource = ${JSON.stringify(loadedSource)};
           const activeReportId = ${JSON.stringify(reportId)};
+          const reportOrigins = [
+            { name: "primary", base: new URL(".", location.href).href.replace(/\/$/, "") },
+            { name: "emergency", base: "https://mcm-emergency-read-mss7f3xmgq-ew.a.run.app" },
+          ];
           const cutoverTestValue = new URLSearchParams(location.search).get("cutoverTest");
           const cutoverTestMinutes = cutoverTestValue === "noon"
             ? 12 * 60
@@ -557,25 +590,28 @@
               return;
             }
             try {
-              const versionResponse = await fetch(
-                "versions/" + encodeURIComponent(activeReportId) + ".json?v=" + Date.now(),
-                { cache: "no-store" }
-              );
-              if (versionResponse.ok) {
-                const latestVersion = await versionResponse.json();
-                if (latestVersion.generated_at && latestVersion.generated_at !== loadedRevision) {
-                  const payloadResponse = await fetch(
-                    "reports/" + encodeURIComponent(activeReportId) + ".json?v=" + Date.now(),
-                    { cache: "no-store" }
-                  );
-                  if (payloadResponse.ok) {
-                    const livePayload = await payloadResponse.json();
-                    if (livePayload.generated_at === latestVersion.generated_at) {
-                      reloadOnce(latestVersion.generated_at);
-                      return;
+              for (const origin of reportOrigins) {
+                try {
+                  const nonce = Date.now();
+                  const id = encodeURIComponent(activeReportId);
+                  const versionResponse = await fetch(origin.base + "/versions/" + id + ".json?v=" + nonce, { cache: "no-store" });
+                  if (!versionResponse.ok) continue;
+                  const latestVersion = await versionResponse.json();
+                  const payloadResponse = await fetch(origin.base + "/reports/" + id + ".json?v=" + nonce, { cache: "no-store" });
+                  if (!payloadResponse.ok) continue;
+                  const livePayload = await payloadResponse.json();
+                  if (
+                    latestVersion.generated_at &&
+                    livePayload.generated_at === latestVersion.generated_at &&
+                    livePayload.days?.[liveDate]?.data &&
+                    livePayload.days?.[liveDate]?.nonce
+                  ) {
+                    if (latestVersion.generated_at !== loadedRevision || origin.name !== loadedSource) {
+                      reloadOnce(origin.name + ":" + latestVersion.generated_at);
                     }
+                    return;
                   }
-                }
+                } catch {}
               }
             } catch {}
             finally { refreshInFlight = false; }
