@@ -533,13 +533,13 @@
           const loadedSource = ${JSON.stringify(loadedSource)};
           const activeReportId = ${JSON.stringify(reportId)};
           const reportOrigins = [
-            { name: "primary", base: new URL(".", location.href).href.replace(/\/$/, "") },
+            { name: "primary", base: new URL(".", location.href).href.replace(/\\\/$/, "") },
             { name: "emergency", base: "https://mcm-emergency-read-mss7f3xmgq-ew.a.run.app" },
           ];
           const cutoverTestValue = new URLSearchParams(location.search).get("cutoverTest");
           const cutoverTestMinutes = cutoverTestValue === "noon"
             ? 12 * 60
-            : /^\d{4}$/.test(cutoverTestValue || "")
+            : /^\\d{4}$/.test(cutoverTestValue || "")
               ? Number(cutoverTestValue.slice(0, 2)) * 60 + Number(cutoverTestValue.slice(2))
               : null;
           const reportDateNow = () => {
