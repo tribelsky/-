@@ -1,10 +1,11 @@
-const CACHE_NAME = "mcm-shell-v39-mentor-mao-v5";
+const CACHE_NAME = "mcm-shell-v43-mao-home-v6";
 const SHELL = [
-  "./manifest.webmanifest",
-  "./mcm-launcher-bright-v5-mao-192.png?v=5",
-  "./mcm-launcher-bright-v5-mao-512.png?v=5",
-  "./mcm-launcher-bright-v5-mao-maskable-192.png?v=5",
-  "./mcm-launcher-bright-v5-mao-maskable-512.png?v=5",
+  "./manifest.webmanifest?v=6",
+  "./mcm-launcher-bright-v5-mao-192.png?v=6",
+  "./mcm-launcher-bright-v5-mao-512.png?v=6",
+  "./mcm-launcher-bright-v5-mao-maskable-192.png?v=6",
+  "./mcm-launcher-bright-v5-mao-maskable-512.png?v=6",
+  "./assets/mcm-launcher-bright-v5-mao-180.png?v=6",
   "./install.html",
   "./setup.html"
 ];
