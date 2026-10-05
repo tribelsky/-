@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+  <title>My Cosmic Mentor — Chrome Web Store Review Demo</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --night: #020711;
+      --panel: #081629;
+      --panel-soft: #0d2137;
+      --gold: #e6c56a;
+      --cream: #fff7e1;
+      --blue: #77c9ff;
+      --muted: #b7c8d8;
+      --line: #31516f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--cream);
+      font-family: Arial, "Noto Sans Hebrew", sans-serif;
+      background:
+        radial-gradient(circle at 12% 12%, #103c5d 0, transparent 27rem),
+        radial-gradient(circle at 88% 76%, #341340 0, transparent 30rem),
+        var(--night);
+      padding: 28px 18px 48px;
+    }
+
+    main {
+      width: min(920px, 100%);
+      margin: 0 auto;
+    }
+
+    .brand {
+      color: var(--gold);
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-align: center;
+      margin: 8px 0 22px;
+    }
+
+    .demo-banner {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 18px;
+      border: 1px solid var(--gold);
+      border-radius: 999px;
+      background: #2d2410cc;
+      color: #ffe59a;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    header {
+      text-align: center;
+      padding: 42px 16px 30px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(38px, 8vw, 72px);
+      line-height: 1;
+    }
+
+    .subtitle {
+      margin: 18px auto 0;
+      max-width: 660px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.65;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: linear-gradient(145deg, #0b1b2ed9, #071120f2);
+      box-shadow: 0 22px 60px #0007;
+      padding: 26px;
+    }
+
+    .card.primary {
+      grid-column: 1 / -1;
+      border-color: #b39345;
+      background: linear-gradient(145deg, #18243aee, #211728ee);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--blue);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: .04em;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      color: var(--gold);
+      font-size: 25px;
+    }
+
+    p {
+      margin: 0;
+      line-height: 1.7;
+    }
+
+    .action {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #0a2035;
+      color: #e9f7ff;
+      font-weight: 700;
+    }
+
+    footer {
+      margin-top: 22px;
+      padding: 20px;
+      border: 1px dashed #45617b;
+      border-radius: 18px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.65;
+    }
+
+    footer strong { color: var(--cream); }
+
+    @media (max-width: 680px) {
+      body { padding: 18px 12px 32px; }
+      header { padding: 34px 8px 24px; }
+      .grid { grid-template-columns: 1fr; }
+      .card.primary { grid-column: auto; }
+      .card { padding: 22px; }
+    }
+  </style>
+</head>
+<body data-demo-only="true">
+  <main>
+    <div class="brand">✦ MY COSMIC MENTOR</div>
+    <div class="demo-banner">נתוני הדגמה בלבד · DEMO DATA ONLY</div>
+
+    <header>
+      <p class="eyebrow">DEMO USER · CHROME WEB STORE REVIEW</p>
+      <h1>היום שלך</h1>
+      <p class="subtitle">זהו דף הדגמה סטטי שנועד להראות לבודקי Chrome Web Store שכפתור Today פותח את My Cosmic Mentor כראוי. הוא אינו מציג חישוב אישי או אסטרולוגי אמיתי.</p>
+    </header>
+
+    <section class="grid" aria-label="תוכן הדגמה">
+      <article class="card primary">
+        <p class="eyebrow">מיקוד להדגמה</p>
+        <h2>לבחור צעד אחד ברור</h2>
+        <p>הממשק מציג כאן דוגמה כללית בלבד: לבחור משימה חשובה אחת, להגדיר לה גבול ברור ולהתקדם בקצב רגוע.</p>
+        <p class="action">פעולת הדגמה: לנסח את הצעד הבא במשפט אחד.</p>
+      </article>
+
+      <article class="card">
+        <p class="eyebrow">כדאי</p>
+        <h2>לשמור על פשטות</h2>
+        <p>להשלים פעולה אחת לפני שמוסיפים פעולה נוספת.</p>
+      </article>
+
+      <article class="card">
+        <p class="eyebrow">פחות כדאי</p>
+        <h2>לא ליצור עומס מלאכותי</h2>
+        <p>לא להפוך רשימת אפשרויות ארוכה לתוכנית מחייבת.</p>
+      </article>
+    </section>
+
+    <footer>
+      <strong>דף זה אינו משתמש בנתוני משתמש.</strong><br>
+      אין בו התחברות, מזהה אישי, נתוני לידה, API פרטי, תשלום, cookies או analytics.
+    </footer>
+  </main>
+</body>
+</html>
