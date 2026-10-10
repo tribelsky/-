@@ -2742,7 +2742,10 @@
         // Source provenance: PGN Mentor player collection, mirrored in the public MKSite PGN folder.
         // Olga always plays Black in this build, so historical move matching uses games
         // in which Karpov played Black. The complete archive is still counted and reported.
-        const KARP0V_ARCHIVE_URL = 'https://raw.githubusercontent.com/milesdotjs/MKSite/main/projects/study-something/pgn/Karpov.pgn';
+        const KARP0V_ARCHIVE_URLS = [
+            'https://cdn.jsdelivr.net/gh/milesdotjs/MKSite@main/projects/study-something/pgn/Karpov.pgn',
+            'https://raw.githubusercontent.com/milesdotjs/MKSite/main/projects/study-something/pgn/Karpov.pgn'
+        ];
         const karpovHistoricalBook = new Map();
         let karpovArchiveReady = false;
         let karpovArchiveStats = { totalGames: 0, blackGames: 0, parsedBlackGames: 0, positions: 0, source: 'PGN Mentor mirror' };
@@ -2838,9 +2841,20 @@
 
             try {
                 setKarpovArchiveStatus('♟ Downloading historical Anatoly Karpov PGN archive…');
-                const response = await fetch(KARP0V_ARCHIVE_URL, { cache: 'force-cache' });
-                if (!response.ok) throw new Error('PGN HTTP ' + response.status);
-                const pgn = await response.text();
+                let pgn = '';
+                let lastError = null;
+                for (const sourceUrl of KARP0V_ARCHIVE_URLS) {
+                    try {
+                        const response = await fetch(sourceUrl, { cache: 'force-cache', mode: 'cors' });
+                        if (!response.ok) throw new Error('PGN HTTP ' + response.status);
+                        pgn = await response.text();
+                        if (pgn && pgn.includes('[Event "')) break;
+                    } catch (err) {
+                        lastError = err;
+                        console.warn('Karpov source failed:', sourceUrl, err);
+                    }
+                }
+                if (!pgn || !pgn.includes('[Event "')) throw (lastError || new Error('No Karpov PGN source loaded'));
 
                 const blocks = pgn.split(/(?=\[Event\s+")/).filter(b => /\[Event\s+"/.test(b));
                 karpovArchiveStats.totalGames = blocks.length;
