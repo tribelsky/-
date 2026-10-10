@@ -1035,6 +1035,7 @@
             }
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
 </head>
 <body>
     <!-- LOGIN SCREEN -->
@@ -1043,7 +1044,8 @@
             <div class="login-owl">🦉</div>
             <h1 class="login-title">OLGA CHESS</h1>
             <p class="login-subtitle">The Karpov Machine • Chess with a Terrible Attitude</p>
-            <p style="margin:0 auto 20px;max-width:520px;color:#b7beca;line-height:1.5;font-size:14px">A fictional, bitter Soviet-era chess coach powered by a Karpov-inspired opening book, a built-in chess engine, 450+ rotating taunts, Schneider interjections, and a heavy Russian-accent voice.</p>
+            <p style="margin:0 auto 12px;max-width:520px;color:#b7beca;line-height:1.5;font-size:14px">A fictional, bitter Soviet-era chess coach connected to a historical Anatoly Karpov PGN archive, backed by a built-in chess engine, 450+ rotating taunts, Schneider interjections, and a heavy Russian-accent voice.</p>
+            <div id="karpov-archive-status" style="margin:0 auto 18px;max-width:520px;padding:9px 12px;border:1px solid rgba(0,255,200,.28);border-radius:8px;background:rgba(0,255,200,.07);color:#9fffe9;font-size:12px;line-height:1.35">♟ Loading historical Karpov archive…</div>
             
             <form class="login-form" id="login-form">
                 <div class="form-group">
@@ -1079,6 +1081,7 @@
 
     <!-- GAME CONTAINER -->
     <div class="game-container" id="game-container">
+    <div id="karpov-game-status" style="max-width:760px;margin:0 auto 12px;padding:7px 12px;border:1px solid rgba(0,255,200,.2);border-radius:8px;background:rgba(0,255,200,.05);color:#8ddfce;font-size:12px;text-align:center">♟ Karpov archive loading…</div>
     
     <!-- Stats & Leaderboard Panel -->
     <div class="stats-panel">
@@ -2598,11 +2601,210 @@
             return uci;
         }
         
+
+        // Historical Anatoly Karpov archive.
+        // Source provenance: PGN Mentor player collection, mirrored in the public MKSite PGN folder.
+        // Olga always plays Black in this build, so historical move matching uses games
+        // in which Karpov played Black. The complete archive is still counted and reported.
+        const KARP0V_ARCHIVE_URL = 'https://raw.githubusercontent.com/milesdotjs/MKSite/main/projects/study-something/pgn/Karpov.pgn';
+        const karpovHistoricalBook = new Map();
+        let karpovArchiveReady = false;
+        let karpovArchiveStats = { totalGames: 0, blackGames: 0, parsedBlackGames: 0, positions: 0, source: 'PGN Mentor mirror' };
+
+        function setKarpovArchiveStatus(text, good = false) {
+            const ids = ['karpov-archive-status', 'karpov-game-status'];
+            for (const id of ids) {
+                const el = document.getElementById(id);
+                if (!el) continue;
+                el.textContent = text;
+                if (good) {
+                    el.style.borderColor = 'rgba(0,255,200,.45)';
+                    el.style.background = 'rgba(0,255,200,.09)';
+                    el.style.color = '#b6ffef';
+                }
+            }
+        }
+
+        function pgnHeader(block, name) {
+            const rx = new RegExp('\\\\[' + name + '\\\\s+"([^"]*)"\\\\]', 'i');
+            const m = block.match(rx);
+            return m ? m[1] : '';
+        }
+
+        function cleanPgnMovetext(block) {
+            let text = block.replace(/^\s*\[[^\]]+\]\s*$/gm, ' ');
+            text = text.replace(/\{[^}]*\}/gs, ' ');
+            text = text.replace(/;[^\n\r]*/g, ' ');
+            // Remove nested PGN variations conservatively.
+            let previous;
+            do {
+                previous = text;
+                text = text.replace(/\([^()]*\)/g, ' ');
+            } while (text !== previous);
+            text = text.replace(/\$\d+/g, ' ');
+            text = text.replace(/\d+\.(?:\.\.)?/g, ' ');
+            text = text.replace(/\b(?:1-0|0-1|1\/2-1\/2|\*)\b/g, ' ');
+            return text.trim();
+        }
+
+        function addHistoricalKarpovMove(historyKey, uci, meta) {
+            if (!historyKey || !uci) return;
+            let entry = karpovHistoricalBook.get(historyKey);
+            if (!entry) {
+                entry = { moves: new Map(), examples: new Map() };
+                karpovHistoricalBook.set(historyKey, entry);
+            }
+            entry.moves.set(uci, (entry.moves.get(uci) || 0) + 1);
+            if (!entry.examples.has(uci)) entry.examples.set(uci, meta);
+        }
+
+        function isHistoricalMoveLegal(uci) {
+            if (!uci || uci.length < 4) return false;
+            const { fromRow, fromCol, toRow, toCol } = uciToCoords(uci);
+            const piece = board[fromRow] && board[fromRow][fromCol];
+            if (!piece || !isBlackPiece(piece)) return false;
+            return getLegalMoves(fromRow, fromCol).some(([r, c]) => r === toRow && c === toCol);
+        }
+
+        function getHistoricalKarpovMove(historyKey) {
+            if (!karpovArchiveReady) return null;
+            const entry = karpovHistoricalBook.get(historyKey);
+            if (!entry) return null;
+
+            const legal = [];
+            let totalWeight = 0;
+            for (const [uci, count] of entry.moves.entries()) {
+                if (!isHistoricalMoveLegal(uci)) continue;
+                legal.push({ uci, count, meta: entry.examples.get(uci) || null });
+                totalWeight += count;
+            }
+            if (!legal.length) return null;
+
+            let pick = Math.random() * totalWeight;
+            let chosen = legal[legal.length - 1];
+            for (const item of legal) {
+                pick -= item.count;
+                if (pick <= 0) { chosen = item; break; }
+            }
+
+            if (chosen.meta) {
+                const label = [chosen.meta.event, chosen.meta.date].filter(Boolean).join(' • ');
+                console.log('Historical Karpov move:', chosen.uci, label, 'frequency', chosen.count);
+            }
+            return chosen.uci;
+        }
+
+        async function loadKarpovArchive() {
+            if (typeof Chess === 'undefined') {
+                setKarpovArchiveStatus('♟ Historical archive unavailable — local Karpov repertoire active.');
+                return;
+            }
+
+            try {
+                setKarpovArchiveStatus('♟ Downloading historical Anatoly Karpov PGN archive…');
+                const response = await fetch(KARP0V_ARCHIVE_URL, { cache: 'force-cache' });
+                if (!response.ok) throw new Error('PGN HTTP ' + response.status);
+                const pgn = await response.text();
+
+                const blocks = pgn.split(/(?=\[Event\s+")/).filter(b => /\[Event\s+"/.test(b));
+                karpovArchiveStats.totalGames = blocks.length;
+
+                const blackBlocks = blocks.filter(b => /\[Black\s+"[^"]*Karpov[^"]*"\]/i.test(b));
+                karpovArchiveStats.blackGames = blackBlocks.length;
+
+                let index = 0;
+                const CHUNK = 55;
+                const MAX_PLIES = 32; // 16 full moves: broad historical repertoire without freezing the UI.
+
+                await new Promise(resolve => {
+                    const processChunk = () => {
+                        const end = Math.min(index + CHUNK, blackBlocks.length);
+
+                        for (; index < end; index++) {
+                            const block = blackBlocks[index];
+                            const game = new Chess();
+                            const history = [];
+                            const meta = {
+                                event: pgnHeader(block, 'Event'),
+                                date: pgnHeader(block, 'Date'),
+                                white: pgnHeader(block, 'White'),
+                                result: pgnHeader(block, 'Result')
+                            };
+
+                            const movetext = cleanPgnMovetext(block);
+                            if (!movetext) continue;
+                            const tokens = movetext.split(/\s+/).filter(Boolean);
+                            let ply = 0;
+                            let parsedAny = false;
+
+                            for (let token of tokens) {
+                                if (ply >= MAX_PLIES) break;
+                                token = token.replace(/[!?]+$/g, '');
+                                if (!token || /^(?:1-0|0-1|1\/2-1\/2|\*)$/.test(token)) continue;
+
+                                const beforeKey = history.join(' ');
+                                const move = game.move(token, { sloppy: true });
+                                if (!move) break;
+
+                                const uci = move.from + move.to + (move.promotion || '');
+                                if (ply % 2 === 1) {
+                                    addHistoricalKarpovMove(beforeKey, uci, meta);
+                                }
+                                history.push(uci);
+                                ply++;
+                                parsedAny = true;
+                            }
+                            if (parsedAny) karpovArchiveStats.parsedBlackGames++;
+                        }
+
+                        const pct = blackBlocks.length ? Math.round(index * 100 / blackBlocks.length) : 100;
+                        setKarpovArchiveStatus(
+                            '♟ Karpov archive: ' + blocks.length.toLocaleString() +
+                            ' games • indexing Black-side lines ' + pct + '%…'
+                        );
+
+                        if (index < blackBlocks.length) {
+                            (window.requestIdleCallback || window.setTimeout)(processChunk, 0);
+                        } else {
+                            karpovArchiveStats.positions = karpovHistoricalBook.size;
+                            karpovArchiveReady = karpovHistoricalBook.size > 0;
+                            window.__olgaKarpovArchiveStats = { ...karpovArchiveStats, ready: karpovArchiveReady };
+                            setKarpovArchiveStatus(
+                                '♟ ' + blocks.length.toLocaleString() + '-game Karpov archive connected • ' +
+                                karpovArchiveStats.parsedBlackGames.toLocaleString() +
+                                ' Black-side games active • ' +
+                                karpovArchiveStats.positions.toLocaleString() + ' historical positions',
+                                true
+                            );
+                        }
+                    };
+                    processChunk();
+                    const watcher = setInterval(() => {
+                        if (index >= blackBlocks.length) {
+                            clearInterval(watcher);
+                            resolve();
+                        }
+                    }, 40);
+                });
+            } catch (err) {
+                console.warn('Karpov archive load failed:', err);
+                window.__olgaKarpovArchiveStats = { ...karpovArchiveStats, ready: false, error: String(err) };
+                setKarpovArchiveStatus('♟ Historical archive could not load — local Karpov repertoire remains active.');
+            }
+        }
+
+        // Start loading immediately while the visitor is still on the registration screen.
+        loadKarpovArchive();
+
         // Check opening book for Karpov moves
         function getOpeningBookMove() {
             const history = moveHistoryUCI.join(' ');
+
+            // Prefer exact historical moves from games where Karpov played Black.
+            const historicalMove = getHistoricalKarpovMove(history);
+            if (historicalMove) return historicalMove;
             
-            // Check if this position is in Karpov's book
+            // Otherwise use Olga's hand-built Karpov-inspired local repertoire.
             if (karpovOpeningBook[history]) {
                 const moves = karpovOpeningBook[history];
                 const move = moves[Math.floor(Math.random() * moves.length)];
