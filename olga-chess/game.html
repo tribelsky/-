@@ -1034,7 +1034,96 @@
                 margin-bottom: 20px;
             }
         }
-    </style>
+    
+        /* OLGA micro-animation layer */
+        .character-image-container.olga-speaking .character-image.olga-state {
+            animation: olgaAddressCamera 1.6s ease-in-out infinite, subtleBreathing 2.2s ease-in-out infinite !important;
+        }
+        @keyframes olgaAddressCamera {
+            0%,100% { transform: scale(1.00) translateX(0) rotate(0deg); }
+            35% { transform: scale(1.035) translateX(3px) rotate(.35deg); }
+            65% { transform: scale(1.02) translateX(-2px) rotate(-.2deg); }
+        }
+        .character-image-container.olga-blink .character-image.olga-state {
+            filter: brightness(.88) contrast(1.04);
+            transform: scaleY(.985) translateY(1px);
+        }
+        .cigarette-glow {
+            display:block !important;
+            position:absolute;
+            top:59%;
+            left:66%;
+            width:8px;
+            height:8px;
+            border-radius:50%;
+            background:radial-gradient(circle,#fff6b1 0%,#ff8a00 35%,#ff3b00 60%,transparent 72%);
+            box-shadow:0 0 8px #ff6b00,0 0 16px rgba(255,80,0,.75);
+            z-index:13;
+            opacity:.55;
+            animation:cigarettePulse 2.4s ease-in-out infinite;
+        }
+        .character-image-container.olga-speaking .cigarette-glow {
+            opacity:1;
+            animation:cigarettePulse .9s ease-in-out infinite;
+        }
+        @keyframes cigarettePulse {
+            0%,100% { transform:scale(.75); opacity:.45; }
+            50% { transform:scale(1.35); opacity:1; }
+        }
+        .character-image-container.olga-smoking .smoke-container {
+            opacity:1 !important;
+            filter:brightness(1.15);
+        }
+        .vodka-glass {
+            position:absolute;
+            right:7%;
+            bottom:7%;
+            z-index:15;
+            font-size:42px;
+            opacity:0;
+            transform:translate(0,0) rotate(-8deg) scale(.85);
+            pointer-events:none;
+            filter:drop-shadow(0 3px 6px rgba(0,0,0,.5));
+        }
+        .vodka-glass.drinking {
+            animation:olgaVodkaSip 3.1s ease-in-out forwards;
+        }
+        @keyframes olgaVodkaSip {
+            0% { opacity:0; transform:translate(0,12px) rotate(-8deg) scale(.8); }
+            12% { opacity:1; }
+            38% { opacity:1; transform:translate(-62px,-118px) rotate(-24deg) scale(1.05); }
+            54% { opacity:1; transform:translate(-67px,-128px) rotate(-34deg) scale(1.05); }
+            72% { opacity:1; transform:translate(-62px,-118px) rotate(-24deg) scale(1.05); }
+            100% { opacity:0; transform:translate(0,12px) rotate(-8deg) scale(.8); }
+        }
+        .camera-stare-badge {
+            position:absolute;
+            left:10px;
+            top:10px;
+            z-index:16;
+            font-family:'Orbitron',sans-serif;
+            font-size:10px;
+            letter-spacing:1px;
+            color:#ffdf9e;
+            background:rgba(0,0,0,.52);
+            border:1px solid rgba(255,218,150,.22);
+            border-radius:999px;
+            padding:5px 8px;
+            opacity:0;
+            transition:opacity .2s ease;
+        }
+        .character-image-container.olga-speaking .camera-stare-badge { opacity:.85; }
+
+        .smoke-container { transition:opacity .25s ease; }
+        .character-image { transition:transform .25s ease, filter .12s ease; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .character-image.olga-state,
+            .character-image-container.olga-speaking .character-image.olga-state,
+            .vodka-glass.drinking,
+            .cigarette-glow { animation:none !important; }
+        }
+</style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
 </head>
 <body>
@@ -1126,6 +1215,8 @@
                     <div class="smoke"></div>
                 </div>
                 <div class="mouth-overlay" id="mouth"></div>
+                <div class="camera-stare-badge">OLGA IS TALKING TO YOU</div>
+                <div class="vodka-glass" id="vodka-glass" aria-hidden="true">🥃</div>
                 <div class="eye-blink-overlay">
                     <div class="eyelid"></div>
                     <div class="eyelid"></div>
@@ -2027,6 +2118,48 @@
             }
         }
         
+        let olgaBlinkTimer = null;
+        function getOlgaImageContainer() {
+            return document.querySelector('.character-image-container');
+        }
+
+        function scheduleOlgaBlink() {
+            clearTimeout(olgaBlinkTimer);
+            olgaBlinkTimer = setTimeout(() => {
+                const box = getOlgaImageContainer();
+                if (box) {
+                    box.classList.add('olga-blink');
+                    setTimeout(() => box.classList.remove('olga-blink'), 120);
+                }
+                scheduleOlgaBlink();
+            }, 2800 + Math.random() * 5200);
+        }
+        scheduleOlgaBlink();
+
+        function triggerOlgaMicroAction() {
+            const box = getOlgaImageContainer();
+            if (!box) return;
+            const roll = Math.random();
+
+            if (roll < 0.34) {
+                box.classList.add('olga-smoking');
+                setTimeout(() => box.classList.remove('olga-smoking'), 2600);
+            } else if (roll < 0.52) {
+                const glass = document.getElementById('vodka-glass');
+                if (glass && !glass.classList.contains('drinking')) {
+                    glass.classList.add('drinking');
+                    setTimeout(() => glass.classList.remove('drinking'), 3200);
+                }
+            }
+        }
+
+        function setOlgaSpeakingAnimation(active) {
+            const box = getOlgaImageContainer();
+            if (!box) return;
+            box.classList.toggle('olga-speaking', !!active);
+            if (active) triggerOlgaMicroAction();
+        }
+
         function updateSpeech(text, type = null) {
             const el = document.getElementById('olga-speech');
             const mouth = document.getElementById('mouth');
@@ -2044,10 +2177,12 @@
                 // Animate mouth while speaking
                 mouth.classList.add('talking');
                 isTalking = true;
+                setOlgaSpeakingAnimation(true);
                 
                 speakText(text, () => {
                     mouth.classList.remove('talking');
                     isTalking = false;
+                    setOlgaSpeakingAnimation(false);
                 });
             }, 200);
         }
@@ -2133,7 +2268,8 @@
             voiceEnabled = true;
             const btn = document.getElementById('voice-btn');
             if (btn) btn.textContent = '🔊 Voice';
-            speakText('Da, comrade. You vant to hear Olga? Good. Now register, sit down, and try not to embarrass yourself, blyad.', null);
+            setOlgaSpeakingAnimation(true);
+            speakText('Da, comrade. You vant to hear Olga? Good. Now register, sit down, and try not to embarrass yourself, blyad.', () => setOlgaSpeakingAnimation(false));
         }
 
         // Preload voices; browsers often populate the list asynchronously.
