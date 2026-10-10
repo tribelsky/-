@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>OLGA — The Karpov Machine | Chess Maestros</title>
+<meta name="description" content="OLGA — a character-driven chess demo inspired by the positional style associated with Anatoly Karpov. Part of Chess Maestros by Yair Tribelsky."/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
+<style>
+:root{--bg:#070b13;--panel:#0e1724;--line:#25465f;--cyan:#6ee7f9;--gold:#d7b46a;--text:#eef5fb;--muted:#9fb0c3;--light:#c8d8df;--dark:#365566}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,Arial,sans-serif;background:radial-gradient(circle at 20% 10%,#15243c 0,#070b13 45%,#05070c 100%);color:var(--text);min-height:100vh}
+.wrap{max-width:1180px;margin:auto;padding:26px}.brand{letter-spacing:.18em;color:var(--cyan);font-weight:800;font-size:13px}.hero{display:grid;grid-template-columns:340px 1fr;gap:28px;align-items:start}
+.card{background:rgba(14,23,36,.92);border:1px solid #223a50;border-radius:22px;box-shadow:0 18px 60px rgba(0,0,0,.35)}
+.persona{padding:24px;position:sticky;top:20px}.portrait{height:290px;border-radius:18px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 35%,#425b6e,#182432 55%,#0a1018);border:1px solid #31526c;position:relative;overflow:hidden}
+.face{font-size:120px;filter:grayscale(1)}.smoke{position:absolute;right:34px;bottom:55px;font-size:36px;opacity:.7}.tag{margin-top:18px;color:var(--gold);font-size:12px;letter-spacing:.14em}.persona h1{margin:.25rem 0 .4rem;font-size:42px}.sub{color:var(--muted);line-height:1.5}.speech{margin-top:18px;padding:16px;border-left:3px solid var(--gold);background:#0a121d;border-radius:10px;color:#e9edf1;line-height:1.45;min-height:82px}
+.game{padding:24px}.topline{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}.status{padding:9px 12px;border:1px solid #31526c;border-radius:999px;color:var(--cyan);font-size:13px}.board{width:min(72vw,640px);max-width:100%;aspect-ratio:1;display:grid;grid-template-columns:repeat(8,1fr);border:8px solid #172838;border-radius:12px;overflow:hidden;margin:auto;box-shadow:0 0 0 1px #35566d,0 16px 40px rgba(0,0,0,.35)}
+.sq{display:flex;align-items:center;justify-content:center;font-size:clamp(28px,5vw,58px);cursor:pointer;user-select:none;position:relative}.sq.light{background:#c8d8df;color:#0f1720}.sq.dark{background:#365566;color:#eef5fb}.sq.sel{outline:5px solid #f0d98a;outline-offset:-5px}.sq.hint:after{content:"";width:22%;height:22%;border-radius:50%;background:rgba(110,231,249,.6);position:absolute}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;justify-content:center}.btn{border:1px solid #36556d;background:#101c2a;color:white;padding:10px 16px;border-radius:10px;cursor:pointer;font-weight:700}.btn:hover{border-color:var(--cyan)}.primary{background:linear-gradient(135deg,#164b5d,#233a69);border-color:#4c8da6}.meta{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}.box{padding:15px;border:1px solid #223a50;border-radius:14px;background:#0a121d}.box h3{margin:0 0 7px;color:var(--gold);font-size:14px}.box p{margin:0;color:var(--muted);line-height:1.45;font-size:14px}.moves{margin-top:16px;color:#b8c4cf;font-size:13px;min-height:22px}
+.footer{margin-top:22px;text-align:center;color:#73879a;font-size:12px}.footer b{color:#a9bbcb}.notice{margin-top:14px;font-size:12px;color:#7f93a5;line-height:1.4}
+@media(max-width:860px){.hero{grid-template-columns:1fr}.persona{position:static}.portrait{height:210px}.board{width:100%}.meta{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">CHESS MAESTROS • CHARACTER-DRIVEN CHESS</div>
+  <div class="hero">
+    <section class="card persona">
+      <div class="portrait"><div class="face">♛</div><div class="smoke">〰</div></div>
+      <div class="tag">OLGA • POSITIONAL PERSONA</div>
+      <h1>OLGA</h1>
+      <div class="sub">Former grandmaster. Patient. Severe. Positional. She would rather squeeze your position for twenty moves than give you the dignity of a quick defeat.</div>
+      <div id="speech" class="speech">So. You came to play chess, not decorate the board. You are White. Begin.</div>
+      <div class="notice">Investor/public demo. OLGA is a fictional character. The positional persona is inspired by classic grandmaster principles; it is not an official Karpov product or endorsement.</div>
+    </section>
+    <section class="card game">
+      <div class="topline">
+        <div>
+          <div style="font-size:12px;color:#94a8ba;letter-spacing:.12em">YOU vs OLGA</div>
+          <div style="font-size:26px;font-weight:800;margin-top:4px">The Karpov Machine</div>
+        </div>
+        <div id="status" class="status">Your move • White</div>
+      </div>
+      <div id="board" class="board" aria-label="Chess board"></div>
+      <div class="controls">
+        <button class="btn primary" onclick="newGame()">New game</button>
+        <button class="btn" onclick="undoMove()">Undo last pair</button>
+        <button class="btn" onclick="flipBoard()">Flip board</button>
+      </div>
+      <div id="moves" class="moves">Moves: —</div>
+      <div class="meta">
+        <div class="box"><h3>PERSONA LAYER</h3><p>Distinct voice, attitude, teaching behavior and style. OLGA is the first character in a planned multi-master roster.</p></div>
+        <div class="box"><h3>STYLE LAYER</h3><p>Opening preferences and decision heuristics can be swapped without rebuilding the core game experience.</p></div>
+      </div>
+    </section>
+  </div>
+  <div class="footer"><b>OLGA</b> • Chess Maestros concept by Yair Tribelsky • Public Demo</div>
+</div>
+<script>
+const game = new Chess();
+let selected=null, flipped=false, locked=false;
+const speech=document.getElementById('speech'), statusEl=document.getElementById('status'), movesEl=document.getElementById('moves');
+const chars={p:'♟',r:'♜',n:'♞',b:'♝',q:'♛',k:'♚',P:'♙',R:'♖',N:'♘',B:'♗',Q:'♕',K:'♔'};
+const olgaLines=[
+  "You moved. Good. Now we discover whether it was a move or an accident.",
+  "Patience. Space first. Weakness later. Panic is optional.",
+  "You are attacking. How optimistic.",
+  "I do not need a combination if your position can be made permanently unpleasant.",
+  "Every pawn move is a small confession. I remember confessions.",
+  "No drama. Improve the worst piece. Then improve your opponent's suffering.",
+  "You see tactics. I see the position after your tactics are over."
+];
+const opening={
+  "e4":"c6","d4":"Nf6","c4":"e6","Nf3":"d5",
+  "e4 c6 d4":"d5","d4 Nf6 c4":"e6","c4 e6 Nf3":"Nf6"
+};
+function sqColor(file,rank){return ((file+rank)%2===0)?'light':'dark'}
+function boardOrder(){const files=flipped?['h','g','f','e','d','c','b','a']:['a','b','c','d','e','f','g','h'];const ranks=flipped?[1,2,3,4,5,6,7,8]:[8,7,6,5,4,3,2,1];return {files,ranks}}
+function draw(){
+ const b=document.getElementById('board'); b.innerHTML='';
+ const {files,ranks}=boardOrder();
+ for(const rank of ranks) for(const file of files){
+   const sq=file+rank, p=game.get(sq), f=file.charCodeAt(0)-97;
+   const d=document.createElement('div'); d.className='sq '+sqColor(f,rank);
+   d.dataset.sq=sq; d.innerHTML=p?chars[p.color==='w'?p.type.toUpperCase():p.type]:'';
+   if(selected===sq)d.classList.add('sel');
+   if(selected){
+      const hints=game.moves({square:selected,verbose:true}).map(m=>m.to);
+      if(hints.includes(sq))d.classList.add('hint');
+   }
+   d.onclick=()=>clickSq(sq); b.appendChild(d);
+ }
+ updateText();
+}
+function clickSq(sq){
+ if(locked || game.game_over()) return;
+ const p=game.get(sq);
+ if(!selected){ if(p && p.color==='w'){selected=sq;draw();} return; }
+ if(p && p.color==='w'){selected=sq;draw();return;}
+ const mv=game.move({from:selected,to:sq,promotion:'q'}); selected=null;
+ if(!mv){draw();return;}
+ speech.textContent=olgaLines[Math.floor(Math.random()*olgaLines.length)];
+ draw(); locked=true; statusEl.textContent='OLGA is thinking…';
+ setTimeout(olgaMove,550);
+}
+function olgaMove(){
+ if(game.game_over()){locked=false;draw();return;}
+ const hist=game.history().join(' ');
+ let san=opening[hist], mv=null;
+ if(san){ try{mv=game.move(san);}catch(e){} }
+ if(!mv){
+   const legal=game.moves({verbose:true});
+   const captures=legal.filter(m=>m.captured);
+   const candidates=captures.length?captures:legal;
+   mv=game.move(candidates[Math.floor(Math.random()*candidates.length)].san);
+ }
+ locked=false; draw();
+}
+function updateText(){
+ const hist=game.history();
+ movesEl.textContent='Moves: '+(hist.length?hist.join('  '):'—');
+ if(game.in_checkmate()){statusEl.textContent=game.turn()==='w'?'Checkmate • OLGA wins':'Checkmate • You win';speech.textContent=game.turn()==='w'?'There. The position has finished explaining itself.':'Hmph. Acceptable. Do not become insufferable.';return}
+ if(game.in_draw()){statusEl.textContent='Draw';speech.textContent='A draw. Civilization survives.';return}
+ statusEl.textContent=locked?'OLGA is thinking…':'Your move • White';
+}
+function newGame(){game.reset();selected=null;locked=false;speech.textContent='Again. This time try to make your pieces cooperate.';draw()}
+function undoMove(){if(locked)return;game.undo();game.undo();selected=null;speech.textContent='Rewriting history? Very human.';draw()}
+function flipBoard(){flipped=!flipped;draw()}
+draw();
+</script>
+</body>
+</html>
