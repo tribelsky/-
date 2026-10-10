@@ -2743,12 +2743,11 @@
         // Olga always plays Black in this build, so historical move matching uses games
         // in which Karpov played Black. The complete archive is still counted and reported.
         const KARP0V_ARCHIVE_URLS = [
-            'https://cdn.jsdelivr.net/gh/milesdotjs/MKSite@main/projects/study-something/pgn/Karpov.pgn',
-            'https://raw.githubusercontent.com/milesdotjs/MKSite/main/projects/study-something/pgn/Karpov.pgn'
+            'data/karpov-531.pgn'
         ];
         const karpovHistoricalBook = new Map();
         let karpovArchiveReady = false;
-        let karpovArchiveStats = { totalGames: 0, blackGames: 0, parsedBlackGames: 0, positions: 0, source: 'PGN Mentor mirror' };
+        let karpovArchiveStats = { totalGames: 0, blackGames: 0, parsedBlackGames: 0, positions: 0, source: 'Bundled verified PGN corpus' };
 
         function setKarpovArchiveStatus(text, good = false) {
             const ids = ['karpov-archive-status', 'karpov-game-status'];
@@ -2939,7 +2938,7 @@
             } catch (err) {
                 console.warn('Karpov archive load failed:', err);
                 window.__olgaKarpovArchiveStats = { ...karpovArchiveStats, ready: false, error: String(err) };
-                setKarpovArchiveStatus('♟ Historical archive could not load — local Karpov repertoire remains active.');
+                setKarpovArchiveStatus('♟ Bundled historical archive could not load — local Karpov repertoire remains active.');
             }
         }
 
