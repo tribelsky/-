@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OLGA CHESS - The Rudest Chess AI You'll Ever Meet</title>
+    <!-- Recovery build 2026-10-10 -->
+    <meta name="description" content="Play chess against Olga, a chain-smoking Soviet chess champion with 4 ex-husbands and zero patience for bad moves.">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(0, 255, 200, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(100, 0, 255, 0.05) 0%, transparent 50%);
+            z-index: -1;
+        }
+        
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .owl-icon {
+            font-size: 100px;
+            animation: owlFloat 3s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes owlFloat {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50% { transform: translateY(-15px) rotate(3deg); }
+        }
+        
+        .hero-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 900;
+            color: #00ffc8;
+            text-shadow: 0 0 40px rgba(0, 255, 200, 0.5);
+            margin-bottom: 10px;
+            letter-spacing: 4px;
+        }
+        
+        .hero-subtitle {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            color: #8a9aaa;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+        
+        .hero-description {
+            max-width: 600px;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #b0c0d0;
+            margin-bottom: 40px;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #00ffc8 0%, #00aa88 100%);
+            color: #0a0a0f;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 20px 50px;
+            border-radius: 15px;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0, 255, 200, 0.3);
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 60px rgba(0, 255, 200, 0.4);
+        }
+        
+        .cta-button:active {
+            transform: translateY(0);
+        }
+        
+        /* Features */
+        .features {
+            padding: 80px 20px;
+            background: linear-gradient(180deg, transparent 0%, rgba(0, 255, 200, 0.02) 50%, transparent 100%);
+        }
+        
+        .features-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        
+        .feature-card {
+            background: linear-gradient(135deg, rgba(15, 20, 30, 0.9) 0%, rgba(5, 10, 20, 0.95) 100%);
+            border: 1px solid rgba(0, 255, 200, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(0, 255, 200, 0.5);
+            box-shadow: 0 20px 40px rgba(0, 255, 200, 0.1);
+        }
+        
+        .feature-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+        
+        .feature-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            color: #00ffc8;
+            margin-bottom: 10px;
+        }
+        
+        .feature-text {
+            color: #8a9aaa;
+            line-height: 1.6;
+        }
+        
+        /* Quotes Section */
+        .quotes {
+            padding: 80px 20px;
+            text-align: center;
+        }
+        
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            color: #00ffc8;
+            margin-bottom: 50px;
+            text-shadow: 0 0 20px rgba(0, 255, 200, 0.3);
+        }
+        
+        .quotes-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .quote-card {
+            background: rgba(0, 20, 30, 0.6);
+            border-left: 4px solid #00ffc8;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: left;
+        }
+        
+        .quote-text {
+            font-size: 1.1rem;
+            color: #b0c0d0;
+            font-style: italic;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .quote-author {
+            color: #00ffc8;
+            font-weight: 600;
+        }
+        
+        .quote-stars {
+            color: #ffd700;
+            margin-left: 10px;
+        }
+        
+        /* Olga Quotes */
+        .olga-quotes {
+            padding: 60px 20px;
+            background: linear-gradient(180deg, transparent 0%, rgba(100, 0, 255, 0.03) 50%, transparent 100%);
+        }
+        
+        .olga-quote-box {
+            max-width: 700px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, rgba(20, 10, 30, 0.9) 0%, rgba(10, 5, 20, 0.95) 100%);
+            border: 2px solid rgba(100, 0, 255, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .olga-quote-box::before {
+            content: '"';
+            font-size: 100px;
+            color: rgba(0, 255, 200, 0.1);
+            position: absolute;
+            top: -20px;
+            left: 20px;
+            font-family: Georgia, serif;
+        }
+        
+        .olga-quote-text {
+            font-size: 1.4rem;
+            color: #c8b8ff;
+            font-style: italic;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        
+        .olga-quote-author {
+            color: #00ffc8;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+        }
+        
+        /* Final CTA */
+        .final-cta {
+            padding: 100px 20px;
+            text-align: center;
+        }
+        
+        .final-cta-text {
+            font-size: 1.5rem;
+            color: #8a9aaa;
+            margin-bottom: 30px;
+        }
+        
+        .final-cta-text span {
+            color: #00ffc8;
+            font-weight: 700;
+        }
+        
+        /* Footer */
+        .footer {
+            padding: 40px 20px;
+            text-align: center;
+            border-top: 1px solid rgba(0, 255, 200, 0.1);
+        }
+        
+        .footer-text {
+            color: #4a5a6a;
+            font-size: 0.9rem;
+        }
+        
+        .footer-text a {
+            color: #00ffc8;
+            text-decoration: none;
+        }
+        
+        /* Chess pieces decoration */
+        .chess-deco {
+            position: absolute;
+            font-size: 40px;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+        
+        .chess-deco.queen { top: 10%; left: 5%; animation: float1 6s ease-in-out infinite; }
+        .chess-deco.king { top: 20%; right: 8%; animation: float2 7s ease-in-out infinite; }
+        .chess-deco.rook { bottom: 15%; left: 10%; animation: float3 5s ease-in-out infinite; }
+        .chess-deco.knight { bottom: 25%; right: 5%; animation: float1 8s ease-in-out infinite; }
+        
+        @keyframes float1 { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(10deg); } }
+        @keyframes float2 { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-15px) rotate(-10deg); } }
+        @keyframes float3 { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-25px) rotate(5deg); } }
+        
+        /* Mobile */
+        @media (max-width: 600px) {
+            .hero { padding: 30px 15px; }
+            .owl-icon { font-size: 70px; }
+            .cta-button { padding: 15px 35px; font-size: 1.2rem; }
+            .features, .quotes, .olga-quotes, .final-cta { padding: 50px 15px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="chess-deco queen">♕</div>
+        <div class="chess-deco king">♔</div>
+        <div class="chess-deco rook">♖</div>
+        <div class="chess-deco knight">♘</div>
+        
+        <div class="owl-icon">🦉</div>
+        <h1 class="hero-title">OLGA CHESS</h1>
+        <p class="hero-subtitle">"The Rudest Chess AI You'll Ever Meet"</p>
+        
+        <p class="hero-description">
+            Play against Olga — a fictional, chain-smoking Soviet chess champion with 
+            <strong>4 ex-husbands</strong>, a pet owl named Schneider, and 
+            <strong>zero patience</strong> for your terrible moves.
+        </p>
+        
+        <a href="game.html" class="cta-button">♟️ Play Now — Free</a>
+    </section>
+    
+    <!-- Features -->
+    <section class="features">
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🤬</div>
+                <h3 class="feature-title">450+ Rotating Taunts</h3>
+                <p class="feature-text">Olga has something rude to say about every move you make. In heavy Russian accent, of course.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <h3 class="feature-title">Chess Engine Powered</h3>
+                <p class="feature-text">A built-in chess engine plus a Karpov-inspired opening book keeps the game playable without fragile external engine dependencies.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🎭</div>
+                <h3 class="feature-title">Full Personality</h3>
+                <p class="feature-text">Chain-smoking, vodka-drinking, owl-owning chess master with stories from 4 failed marriages.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🔊</div>
+                <h3 class="feature-title">Voice Acting</h3>
+                <p class="feature-text">Olga says the insults out loud in a slow, bitter, heavy Russian accent. Schneider occasionally joins the abuse. Toggle her voice on/off anytime.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3 class="feature-title">Play Anywhere</h3>
+                <p class="feature-text">Works in a modern browser on desktop, tablet, and mobile. No download required.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🆓</div>
+                <h3 class="feature-title">100% Free</h3>
+                <p class="feature-text">No ads or paywalls in this demo. Just chess, positional pressure, and an unreasonable amount of verbal abuse.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Olga Quote -->
+    <section class="olga-quotes">
+        <div class="olga-quote-box">
+            <p class="olga-quote-text">
+                "You play like my fourth husband drove — drunk, blind, and into a tree. 
+                At least HE had excuse. Vat is YOUR excuse, blyad?!"
+            </p>
+            <p class="olga-quote-author">— Olga, after your opening move</p>
+        </div>
+    </section>
+    
+    <!-- Character / concept notes -->
+    <section class="quotes">
+        <h2 class="section-title">♟️ WHY OLGA EXISTS</h2>
+        <div class="quotes-grid">
+            <div class="quote-card">
+                <p class="quote-text">Karpov-inspired positional play gives Olga a recognizable chess personality instead of a generic random-move bot.</p>
+                <p class="quote-author">CHESS DNA</p>
+            </div>
+            <div class="quote-card">
+                <p class="quote-text">More than 450 rotating reactions plus Schneider interjections cover good moves, blunders, captures, checks, castling, hints, undos, wins and losses.</p>
+                <p class="quote-author">CHARACTER ENGINE</p>
+            </div>
+            <div class="quote-card">
+                <p class="quote-text">Her voice is generated in the browser and deliberately shaped to sound slower, older, bitter and heavily Russian-accented.</p>
+                <p class="quote-author">VOICE LAYER</p>
+            </div>
+            <div class="quote-card">
+                <p class="quote-text">Olga is a fictional character. The joke is the collision between serious chess discipline and a spectacularly bad attitude.</p>
+                <p class="quote-author">THE CONCEPT</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <p class="final-cta-text">Ready to be <span>insulted</span> by a Soviet chess champion?</p>
+        <a href="game.html" class="cta-button">♟️ Challenge Olga</a>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <p class="footer-text">
+            Olga is a fictional character. Built as an experimental AI-assisted chess experience.<br>
+            <a href="#">Privacy</a> • <a href="#">Contact</a>
+        </p>
+    </footer>
+</body>
+</html>
