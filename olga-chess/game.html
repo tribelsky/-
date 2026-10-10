@@ -1,0 +1,3203 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Maestros - OLGA: The Karpov Machine</title>
+    <!-- Recovery build 2026-10-10: gameplay made offline-capable using built-in engine fallback. -->
+    <!-- Stockfish.js - Super Strong Chess Engine -->
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: #0a0a0f;
+            min-height: 100vh;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        
+        /* Login Screen Styles */
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0a0a0f 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .login-screen.hidden {
+            display: none;
+        }
+        
+        .login-container {
+            background: linear-gradient(135deg, rgba(15, 20, 30, 0.95) 0%, rgba(5, 10, 20, 0.98) 100%);
+            border: 2px solid rgba(0, 255, 200, 0.3);
+            border-radius: 25px;
+            padding: 40px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 
+                0 0 60px rgba(0, 255, 200, 0.2),
+                0 0 120px rgba(100, 0, 255, 0.1),
+                inset 0 0 60px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(0, 255, 200, 0.1), transparent 30%);
+            animation: rotateBorder 10s linear infinite;
+            z-index: -1;
+        }
+        
+        .login-owl {
+            font-size: 80px;
+            margin-bottom: 10px;
+            animation: owlBounce 2s ease-in-out infinite;
+        }
+        
+        @keyframes owlBounce {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+        
+        .login-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #00ffc8;
+            text-shadow: 0 0 30px rgba(0, 255, 200, 0.5);
+            margin-bottom: 5px;
+            letter-spacing: 3px;
+        }
+        
+        .login-subtitle {
+            color: #6a7a8a;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+        
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .form-group {
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #00ffc8;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(0, 20, 30, 0.8);
+            border: 1px solid rgba(0, 255, 200, 0.3);
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 1rem;
+            font-family: 'Rajdhani', sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #00ffc8;
+            box-shadow: 0 0 20px rgba(0, 255, 200, 0.3);
+        }
+        
+        .form-group input::placeholder {
+            color: #4a5a6a;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #00ffc8;
+            cursor: pointer;
+        }
+        
+        .checkbox-group label {
+            color: #8a9aaa;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+        
+        .login-btn {
+            background: linear-gradient(135deg, #00ffc8 0%, #00aa88 100%);
+            border: none;
+            padding: 16px 30px;
+            border-radius: 12px;
+            color: #0a0a0f;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 200, 0.4);
+        }
+        
+        .login-btn:active {
+            transform: translateY(0);
+        }
+        
+        .login-footer {
+            margin-top: 25px;
+            color: #4a5a6a;
+            font-size: 0.85rem;
+        }
+        
+        .login-footer a {
+            color: #00ffc8;
+            text-decoration: none;
+        }
+        
+        .login-quote {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 255, 200, 0.05);
+            border-radius: 10px;
+            border-left: 3px solid #00ffc8;
+        }
+        
+        .login-quote p {
+            color: #8a9aaa;
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+        
+        .login-quote .quote-author {
+            color: #00ffc8;
+            font-style: normal;
+            margin-top: 5px;
+            font-size: 0.85rem;
+        }
+        
+        .game-container {
+            display: none;
+        }
+        
+        .game-container.visible {
+            display: block;
+        }
+        
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(0, 255, 200, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(100, 0, 255, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(0, 150, 255, 0.02) 0%, transparent 70%);
+            z-index: -1;
+        }
+        
+        /* Grid pattern overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 200, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 200, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            animation: gridMove 20s linear infinite;
+        }
+        
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+            padding: 20px;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .character-panel {
+            width: 380px;
+            background: linear-gradient(135deg, rgba(15, 20, 30, 0.95) 0%, rgba(5, 10, 20, 0.98) 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 200, 0.2);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 
+                0 0 40px rgba(0, 255, 200, 0.1),
+                inset 0 0 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .character-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(0, 255, 200, 0.1), transparent 30%);
+            animation: rotateBorder 10s linear infinite;
+            z-index: -1;
+        }
+        
+        @keyframes rotateBorder {
+            100% { transform: rotate(360deg); }
+        }
+
+        .character-image-container {
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid rgba(0, 255, 200, 0.3);
+            box-shadow: 
+                0 0 30px rgba(0, 255, 200, 0.2),
+                inset 0 0 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .character-image {
+            width: 100%;
+            display: block;
+            transform-origin: bottom center;
+            transition: transform 0.3s ease;
+        }
+        
+        /* Default thinking state - subtle sway */
+        .character-image.olga-state {
+            animation: headSway 4s ease-in-out infinite, subtleBreathing 3s ease-in-out infinite;
+        }
+        
+        /* Laughing state - more movement */
+        #olga-laughing {
+            animation: laughShake 0.5s ease-in-out infinite, subtleBreathing 2s ease-in-out infinite !important;
+        }
+        
+        /* Angry state - intense stare with slight trembling */
+        #olga-angry {
+            animation: angryTremble 0.1s ease-in-out infinite, angryBreathing 2s ease-in-out infinite !important;
+        }
+        
+        @keyframes laughShake {
+            0%, 100% { transform: rotate(0deg) translateY(0); }
+            25% { transform: rotate(-2deg) translateY(-3px); }
+            50% { transform: rotate(1deg) translateY(0); }
+            75% { transform: rotate(-1deg) translateY(-2px); }
+        }
+        
+        @keyframes angryTremble {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(1px); }
+        }
+        
+        @keyframes angryBreathing {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+        /* Enhanced head sway animation */
+        @keyframes headSway {
+            0%, 100% { transform: rotate(0deg) translateX(0); }
+            15% { transform: rotate(-2deg) translateX(-3px); }
+            30% { transform: rotate(1deg) translateX(2px); }
+            45% { transform: rotate(-1.5deg) translateX(-2px); }
+            60% { transform: rotate(2deg) translateX(3px); }
+            75% { transform: rotate(-0.5deg) translateX(-1px); }
+            90% { transform: rotate(1.5deg) translateX(2px); }
+        }
+        
+        /* Subtle breathing effect */
+        @keyframes subtleBreathing {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.015); }
+        }
+        
+        /* Cigarette glow effect - hidden for now */
+        .cigarette-glow {
+            display: none;
+        }
+        
+        /* Smoke effect */
+        .smoke-container {
+            position: absolute;
+            top: 43%;
+            right: 34%;
+            pointer-events: none;
+            z-index: 11;
+            opacity: 0;
+            animation: smokeAppear 0.5s ease-in 3s forwards;
+        }
+        
+        @keyframes smokeAppear {
+            to { opacity: 1; }
+        }
+        
+        .smoke {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(220, 220, 220, 0.4) 50%, transparent 100%);
+            border-radius: 50%;
+            filter: blur(3px);
+            animation: smokeRise 3s ease-out infinite;
+            animation-delay: 3s;
+        }
+        
+        .smoke:nth-child(2) { animation-delay: 3.5s; left: 8px; width: 12px; height: 12px; animation-duration: 3.5s; }
+        .smoke:nth-child(3) { animation-delay: 4s; left: -5px; width: 18px; height: 18px; animation-duration: 4s; }
+        .smoke:nth-child(4) { animation-delay: 3.3s; left: 3px; width: 10px; height: 10px; animation-duration: 2.8s; }
+        .smoke:nth-child(5) { animation-delay: 3.8s; left: -8px; width: 14px; height: 14px; animation-duration: 3.2s; }
+        .smoke:nth-child(6) { animation-delay: 4.3s; left: 5px; width: 11px; height: 11px; animation-duration: 3.6s; }
+        .smoke:nth-child(7) { animation-delay: 4.8s; left: -2px; width: 16px; height: 16px; animation-duration: 4.2s; }
+        
+        @keyframes smokeRise {
+            0% { 
+                opacity: 0.9;
+                transform: translateY(0) translateX(0) scale(0.5);
+            }
+            20% {
+                opacity: 0.7;
+                transform: translateY(-20px) translateX(5px) scale(1);
+            }
+            50% {
+                opacity: 0.4;
+                transform: translateY(-50px) translateX(15px) scale(1.5);
+            }
+            100% { 
+                opacity: 0;
+                transform: translateY(-100px) translateX(25px) scale(2);
+            }
+        }
+        
+        /* Mouth movement animation */
+        .mouth-overlay {
+            position: absolute;
+            top: 48%;
+            left: 42%;
+            width: 20px;
+            height: 4px;
+            background: transparent;
+            border-radius: 2px;
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+        .mouth-overlay.talking {
+            animation: mouthMove 0.15s ease-in-out infinite;
+            opacity: 1;
+        }
+        
+        @keyframes mouthMove {
+            0%, 100% { height: 3px; top: 48%; }
+            50% { height: 6px; top: 47.5%; }
+        }
+        
+        /* Hidden - these don't work on real image */
+        .eye-blink-overlay,
+        .eyelid,
+        .owl-blink,
+        .owl-eye,
+        .mouth-overlay {
+            display: none;
+        }
+        
+        /* Ambient glow around character */
+        .character-image-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, rgba(0, 255, 200, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+            animation: ambientPulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes ambientPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .character-name {
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #00ffc8;
+            margin: 15px 0 5px;
+            text-shadow: 0 0 20px rgba(0, 255, 200, 0.5);
+            letter-spacing: 3px;
+        }
+
+        .character-title {
+            text-align: center;
+            color: #6a7a8a;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .speech-bubble {
+            background: linear-gradient(135deg, rgba(0, 30, 40, 0.8) 0%, rgba(0, 15, 25, 0.9) 100%);
+            border: 1px solid rgba(0, 255, 200, 0.2);
+            border-radius: 15px;
+            padding: 18px;
+            min-height: 120px;
+            position: relative;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .speech-bubble::before {
+            content: '>';
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            color: #00ffc8;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            opacity: 0.5;
+            animation: blink 1s infinite;
+        }
+
+        .speech-text {
+            line-height: 1.7;
+            color: #b0c0d0;
+            font-size: 1.05rem;
+            min-height: 80px;
+            transition: opacity 0.3s;
+        }
+
+        .thinking-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            color: #00ffc8;
+        }
+
+        .thinking-indicator.active {
+            display: flex;
+        }
+
+        .thinking-dots span {
+            animation: blink 1.4s infinite;
+            font-size: 1.5rem;
+            color: #00ffc8;
+        }
+
+        .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0.3; }
+            40% { opacity: 1; }
+        }
+
+        .game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            max-width: 600px;
+        }
+
+        .game-header { text-align: center; }
+
+        .game-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #00ffc8;
+            text-shadow: 0 0 15px rgba(0, 255, 200, 0.4);
+            letter-spacing: 2px;
+        }
+
+        .turn-indicator {
+            color: #6a7a8a;
+            margin-top: 8px;
+            font-size: 1.1rem;
+            padding: 10px 25px;
+            background: rgba(0, 20, 30, 0.8);
+            border-radius: 25px;
+            display: inline-block;
+            border: 1px solid rgba(100, 100, 100, 0.2);
+            transition: all 0.3s;
+        }
+
+        .turn-indicator.your-turn {
+            color: #00ffc8;
+            border-color: rgba(0, 255, 200, 0.4);
+            box-shadow: 0 0 20px rgba(0, 255, 200, 0.2);
+        }
+
+        .board-wrapper {
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(15, 25, 35, 0.95) 0%, rgba(5, 10, 20, 0.98) 100%);
+            border-radius: 20px;
+            box-shadow: 
+                0 0 80px rgba(0, 255, 200, 0.15),
+                0 0 150px rgba(100, 0, 255, 0.08),
+                inset 0 0 50px rgba(0, 0, 0, 0.6);
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+        }
+        
+        .board-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(45deg, 
+                #00ffc8 0%, 
+                rgba(0, 255, 200, 0.3) 25%,
+                #6400ff 50%, 
+                rgba(100, 0, 255, 0.3) 75%,
+                #00ffc8 100%);
+            border-radius: 22px;
+            z-index: -1;
+            opacity: 0.6;
+            animation: borderRotate 4s linear infinite;
+            background-size: 300% 300%;
+        }
+        
+        .board-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            border: 1px solid rgba(0, 255, 200, 0.1);
+            border-radius: 16px;
+            pointer-events: none;
+        }
+        
+        @keyframes borderRotate {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Board coordinates styling */
+        .board-with-sides {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+        
+        .board-coords {
+            display: flex;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #00ffc8;
+            text-shadow: 0 0 10px rgba(0, 255, 200, 0.4);
+            letter-spacing: 0.5px;
+        }
+        
+        .board-coords span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+            transition: all 0.3s;
+        }
+        
+        .board-coords span:hover {
+            opacity: 1;
+            text-shadow: 0 0 15px rgba(0, 255, 200, 0.8);
+        }
+        
+        .coords-top, .coords-bottom {
+            flex-direction: row;
+            justify-content: center;
+            margin-left: 25px;
+            margin-right: 25px;
+        }
+        
+        .coords-top {
+            margin-bottom: 8px;
+        }
+        
+        .coords-bottom {
+            margin-top: 8px;
+        }
+        
+        .coords-top span, .coords-bottom span {
+            width: 60px;
+            height: 20px;
+        }
+        
+        .coords-left, .coords-right {
+            flex-direction: column;
+            width: 25px;
+        }
+        
+        .coords-left span, .coords-right span {
+            height: 60px;
+            width: 25px;
+        }
+        
+        @media (max-width: 900px) {
+            .coords-top span, .coords-bottom span {
+                width: 45px;
+            }
+            .coords-left span, .coords-right span {
+                height: 45px;
+            }
+            .coords-top, .coords-bottom {
+                margin-left: 20px;
+                margin-right: 20px;
+            }
+            .coords-left, .coords-right {
+                width: 20px;
+            }
+            .board-coords {
+                font-size: 0.65rem;
+            }
+        }
+
+        .chess-board {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 
+                0 0 50px rgba(0, 0, 0, 0.8),
+                0 0 100px rgba(0, 255, 200, 0.1);
+            position: relative;
+        }
+        
+        .chess-board::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                rgba(0, 255, 200, 0.05) 0%, 
+                transparent 50%, 
+                rgba(100, 0, 255, 0.05) 100%);
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        /* Scanning line effect */
+        .chess-board::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                transparent 0%,
+                rgba(0, 255, 200, 0.1) 20%,
+                rgba(0, 255, 200, 0.4) 50%,
+                rgba(0, 255, 200, 0.1) 80%,
+                transparent 100%);
+            animation: scanLine 4s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 11;
+            box-shadow: 0 0 15px rgba(0, 255, 200, 0.3);
+        }
+        
+        @keyframes scanLine {
+            0%, 100% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: calc(100% - 3px); opacity: 0; }
+        }
+
+        .square {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 44px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .square::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .square.light {
+            background: linear-gradient(145deg, #1a3a4a 0%, #0d2535 50%, #153040 100%);
+            border: 1px solid rgba(0, 255, 200, 0.08);
+        }
+        
+        .square.light::before {
+            background: radial-gradient(circle at center, rgba(0, 255, 200, 0.15) 0%, transparent 70%);
+        }
+
+        .square.dark {
+            background: linear-gradient(145deg, #0a1520 0%, #050d15 50%, #081218 100%);
+            border: 1px solid rgba(100, 0, 255, 0.06);
+        }
+        
+        .square.dark::before {
+            background: radial-gradient(circle at center, rgba(100, 0, 255, 0.12) 0%, transparent 70%);
+        }
+
+        .square:hover {
+            transform: scale(1.02);
+            z-index: 5;
+        }
+        
+        .square:hover::before {
+            opacity: 1;
+        }
+        
+        .square.light:hover {
+            box-shadow: 
+                inset 0 0 25px rgba(0, 255, 200, 0.25),
+                0 0 15px rgba(0, 255, 200, 0.15);
+            border-color: rgba(0, 255, 200, 0.3);
+        }
+        
+        .square.dark:hover {
+            box-shadow: 
+                inset 0 0 25px rgba(100, 0, 255, 0.2),
+                0 0 15px rgba(100, 0, 255, 0.12);
+            border-color: rgba(100, 0, 255, 0.25);
+        }
+
+        .square.selected {
+            box-shadow: 
+                inset 0 0 0 3px #00ffc8,
+                inset 0 0 35px rgba(0, 255, 200, 0.5),
+                0 0 20px rgba(0, 255, 200, 0.4);
+            animation: selectedPulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes selectedPulse {
+            0%, 100% { box-shadow: inset 0 0 0 3px #00ffc8, inset 0 0 35px rgba(0, 255, 200, 0.5), 0 0 20px rgba(0, 255, 200, 0.4); }
+            50% { box-shadow: inset 0 0 0 3px #00ffc8, inset 0 0 45px rgba(0, 255, 200, 0.7), 0 0 30px rgba(0, 255, 200, 0.5); }
+        }
+
+        .square.valid-move::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(0, 255, 200, 0.7) 0%, rgba(0, 255, 200, 0.3) 50%, transparent 70%);
+            border-radius: 50%;
+            box-shadow: 
+                0 0 15px rgba(0, 255, 200, 0.5),
+                0 0 30px rgba(0, 255, 200, 0.2);
+            animation: validMovePulse 1.2s ease-in-out infinite;
+        }
+        
+        @keyframes validMovePulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
+        }
+
+        .square.last-move {
+            box-shadow: inset 0 0 30px rgba(100, 0, 255, 0.5);
+            background: linear-gradient(145deg, 
+                rgba(100, 0, 255, 0.15), 
+                transparent 50%,
+                rgba(100, 0, 255, 0.1));
+        }
+        
+        .square.last-move.light {
+            background: linear-gradient(145deg, #1a3a4a 0%, #0d2535 50%, #153040 100%),
+                        linear-gradient(145deg, rgba(100, 0, 255, 0.2), transparent);
+        }
+        
+        .square.last-move.dark {
+            background: linear-gradient(145deg, #0a1520 0%, #050d15 50%, #081218 100%),
+                        linear-gradient(145deg, rgba(100, 0, 255, 0.25), transparent);
+        }
+
+        .piece {
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            position: relative;
+            z-index: 2;
+        }
+
+        .piece:hover {
+            transform: scale(1.15) translateY(-2px);
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.7));
+        }
+
+        .piece.white { 
+            color: #e8f4ff;
+            text-shadow: 
+                0 0 15px rgba(255, 255, 255, 0.5),
+                0 0 30px rgba(0, 200, 255, 0.3);
+        }
+        
+        .piece.black { 
+            color: #c8b8ff;
+            text-shadow: 
+                0 0 8px rgba(180, 150, 255, 0.5),
+                0 0 15px rgba(140, 100, 220, 0.3);
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .move-history {
+            font-family: 'Rajdhani', monospace;
+            color: #6a7a8a;
+            font-size: 0.9rem;
+            max-width: 500px;
+            text-align: center;
+            line-height: 1.6;
+            padding: 10px;
+            background: rgba(0, 20, 30, 0.5);
+            border-radius: 10px;
+            border: 1px solid rgba(100, 100, 100, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            font-family: 'Rajdhani', sans-serif;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: 1px solid rgba(0, 255, 200, 0.3);
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(0, 40, 50, 0.8) 0%, rgba(0, 20, 30, 0.9) 100%);
+            color: #00ffc8;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, rgba(0, 60, 70, 0.9) 0%, rgba(0, 40, 50, 0.95) 100%);
+            box-shadow: 0 0 20px rgba(0, 255, 200, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Leaderboard & Stats */
+        .stats-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(0, 30, 40, 0.95) 0%, rgba(0, 15, 25, 0.98) 100%);
+            border: 1px solid rgba(0, 255, 200, 0.3);
+            border-radius: 15px;
+            padding: 15px 20px;
+            min-width: 200px;
+            z-index: 100;
+        }
+        
+        .stats-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: #00ffc8;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0, 255, 200, 0.1);
+            font-size: 0.9rem;
+        }
+        
+        .stat-label { color: #888; }
+        .stat-value { color: #fff; font-weight: 600; }
+        .stat-value.wins { color: #00ff88; }
+        .stat-value.losses { color: #ff4466; }
+        
+        .player-name-input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 255, 200, 0.3);
+            border-radius: 5px;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            text-align: center;
+        }
+        
+        .leaderboard {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(0, 255, 200, 0.2);        }
+        
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 0.85rem;
+        }
+        
+        .leaderboard-rank { color: #00ffc8; width: 25px; }
+        .leaderboard-name { color: #fff; flex: 1; overflow: hidden; text-overflow: ellipsis; }
+        .leaderboard-score { color: #ffcc00; width: 40px; text-align: right; }
+
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .character-panel {
+                width: 100%;
+                max-width: 400px;
+            }
+            .chess-board {
+                grid-template-columns: repeat(8, 45px);
+                grid-template-rows: repeat(8, 45px);
+            }
+            .square {
+                width: 45px;
+                height: 45px;
+                font-size: 34px;
+            }
+            .stats-panel {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN SCREEN -->
+    <div class="login-screen" id="login-screen">
+        <div class="login-container">
+            <div class="login-owl">🦉</div>
+            <h1 class="login-title">OLGA CHESS</h1>
+            <p class="login-subtitle">The Karpov Machine • Chess with a Terrible Attitude</p>
+            <p style="margin:0 auto 20px;max-width:520px;color:#b7beca;line-height:1.5;font-size:14px">A fictional, bitter Soviet-era chess coach powered by a Karpov-inspired opening book, a built-in chess engine, 450+ rotating taunts, Schneider interjections, and a heavy Russian-accent voice.</p>
+            
+            <form class="login-form" id="login-form">
+                <div class="form-group">
+                    <label for="user-name">YOUR NAME</label>
+                    <input type="text" id="user-name" placeholder="Enter your name, comrade..." required maxlength="30">
+                </div>
+                
+                <div class="form-group">
+                    <label for="user-email">EMAIL</label>
+                    <input type="email" id="user-email" placeholder="your@email.com" required>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="notify-updates" checked>
+                    <label for="notify-updates">Remember me on this device</label>
+                </div>
+                
+                <button type="submit" class="login-btn">♟️ REGISTER & PLAY</button>
+                <button type="button" class="login-btn" style="margin-top:10px;background:#262b36;box-shadow:none" onclick="previewOlgaVoice()">🔊 HEAR OLGA FIRST</button>
+            </form>
+            
+            <div class="login-quote">
+                <p>"In Soviet Russia, chess plays YOU!"</p>
+                <div class="quote-author">— Olga, probably</div>
+            </div>
+            
+            <div class="login-footer">
+                Demo registration only. No password required.<br>
+                Your details stay in this browser on this build.<br><span style="opacity:.7">Built by Yair Tribelsky with AI-assisted development.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME CONTAINER -->
+    <div class="game-container" id="game-container">
+    
+    <!-- Stats & Leaderboard Panel -->
+    <div class="stats-panel">
+        <div class="stats-title">⚔️ YOUR STATS</div>
+        <input type="text" class="player-name-input" id="player-name" placeholder="Enter your name..." maxlength="15">
+        <div class="stat-row">
+            <span class="stat-label">Games:</span>
+            <span class="stat-value" id="stat-games">0</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Wins:</span>
+            <span class="stat-value wins" id="stat-wins">0</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Losses:</span>
+            <span class="stat-value losses" id="stat-losses">0</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Best Moves:</span>
+            <span class="stat-value" id="stat-best">0</span>
+        </div>
+        <div class="leaderboard">
+            <div class="stats-title">🏆 TOP SURVIVORS</div>
+            <div id="leaderboard-list"></div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="character-panel">
+            <div class="character-image-container">
+                <img src="https://tiny-salamander-44e88b.netlify.app/olga-thinking-512.webp" alt="Olga Thinking" class="character-image olga-state" id="olga-thinking">
+                <img src="https://tiny-salamander-44e88b.netlify.app/olga-laughing-512.webp" alt="Olga Laughing" class="character-image olga-state" id="olga-laughing" style="display:none;">
+                <img src="https://tiny-salamander-44e88b.netlify.app/olga-angry-512.webp" alt="Olga Angry" class="character-image olga-state" id="olga-angry" style="display:none;">
+                <div class="cigarette-glow"></div>
+                <div class="smoke-container">
+                    <div class="smoke"></div>
+                    <div class="smoke"></div>
+                    <div class="smoke"></div>
+                    <div class="smoke"></div>
+                    <div class="smoke"></div>
+                    <div class="smoke"></div>
+                    <div class="smoke"></div>
+                </div>
+                <div class="mouth-overlay" id="mouth"></div>
+                <div class="eye-blink-overlay">
+                    <div class="eyelid"></div>
+                    <div class="eyelid"></div>
+                </div>
+                <div class="owl-blink">
+                    <div class="owl-eye"></div>
+                    <div class="owl-eye"></div>
+                </div>
+            </div>
+            <div class="character-name">OLGA</div>
+            <div class="character-title">Fictional Soviet Chess Legend • Your Opponent</div>
+            <div class="speech-bubble">
+                <div class="speech-text" id="olga-speech">
+                    So, new student vants to play against me? Хорошо. You are vhite, you start. I vill show you how Karpov vould have dealt vith you.
+                </div>
+                <div class="thinking-indicator" id="thinking">
+                    <span>Olga is thinking</span>
+                    <span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="game-header">
+                <div class="game-title">♔ YOU vs OLGA ♚</div>
+                <div class="turn-indicator your-turn" id="turn-indicator">Your Turn - White</div>
+            </div>
+
+            <div class="board-wrapper">
+                <div class="board-coords coords-top">
+                    <span>a</span><span>b</span><span>c</span><span>d</span><span>e</span><span>f</span><span>g</span><span>h</span>
+                </div>
+                <div class="board-with-sides">
+                    <div class="board-coords coords-left">
+                        <span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
+                    </div>
+                    <div class="chess-board" id="chess-board"></div>
+                    <div class="board-coords coords-right">
+                        <span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
+                    </div>
+                </div>
+                <div class="board-coords coords-bottom">
+                    <span>a</span><span>b</span><span>c</span><span>d</span><span>e</span><span>f</span><span>g</span><span>h</span>
+                </div>
+            </div>
+
+            <div class="move-history" id="move-history">Moves: </div>
+
+            <div class="controls">
+                <button class="btn" onclick="resetGame()">🔄 New Game</button>
+                <button class="btn" onclick="undoMove()">↩️ Undo Move</button>
+                <button class="btn" onclick="getHint()">💡 Hint</button>
+                <button class="btn" id="voice-btn" onclick="toggleVoice()">🔊 Voice</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PIECES = {
+            'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙',
+            'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'
+        };
+
+        const INITIAL_BOARD = [
+            ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
+            ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+            ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
+        ];
+
+        let board = JSON.parse(JSON.stringify(INITIAL_BOARD));
+        let selectedSquare = null;
+        let isWhiteTurn = true;
+        let moveHistory = [];
+        let lastMoveSquares = [];
+        let moveCount = 0;
+        let gameOver = false;
+        
+        // Castling rights tracking
+        let castlingRights = {
+            whiteKingMoved: false,
+            whiteRookKingsideMoved: false,
+            whiteRookQueensideMoved: false,
+            blackKingMoved: false,
+            blackRookKingsideMoved: false,
+            blackRookQueensideMoved: false
+        };
+
+        // Russian curses in transliteration (so English voice can read them)
+        const russianCurses = [
+            "Blyad!", "Suka!", "Chyort!", "Pizdets!", "Yob tvoyu mat!",
+            "Khuynya!", "Yopta!", "Blin!", "Mudak!", "Dermo!",
+            "Bozhe moy!", "Nu i govno!", "Idi na khuy!", "Durak!", "Zaraza!",
+            "Kakogo chyorta!", "Mne pizdets!", "Sovsem okhuel!", "Nu da, konechno!", "Tfu, blyad!"
+        ];
+
+        const randomBags = Object.create(null);
+        function nextFromBag(key, arr) {
+            if (!arr || arr.length === 0) return "";
+            let bag = randomBags[key];
+            if (!bag || bag.length === 0) {
+                bag = Array.from({length: arr.length}, (_, i) => i);
+                for (let i = bag.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [bag[i], bag[j]] = [bag[j], bag[i]];
+                }
+                randomBags[key] = bag;
+            }
+            return arr[bag.pop()];
+        }
+
+        function getRandomCurse() {
+            return nextFromBag('__curse__', russianCurses);
+        }
+
+        // Olga's commentary - vulgar, bitter, chain-smoking, 4 failed marriages
+        // All in English with heavy Russian accent - lots of swearing
+        const comments = {
+            gameStart: [
+                "Ah, another idiot who tinks he can beat me. Sit down, shut up, and prepare to lose.",
+                "Let's play. I need someting to kill time until I finish dis damn cigarette.",
+                "You ready? I don't give a shit. Let's go.",
+                "Schneider, look at dis fool. Probably tinks he is next Kasparov. Pathetic.",
+                "*sips vodka* Okay, show me vat you got. It von't be much.",
+                "Another victim arrives. Schneider, start ze timer. Dis von't take long.",
+                "You look confident. Dat's cute. My first husband vas also confident. Keyword: VAS.",
+                "*lights cigarette* Alright, let's do dis. Try not to bore me.",
+                "Fresh meat! Schneider, ve have fresh meat! *cackles*",
+                "You remind me of my second husband. Stupid face, no idea vat he's doing.",
+                "Sit. Play. Lose. Go home. Dat is your schedule for today.",
+                "I vas Soviet chess champion, 1987. You vere probably still in diapers. Some tings never change.",
+                "Before ve start - you cry ven you lose? I hope so. I enjoy tears.",
+                "*cracks knuckles* Let's dance, little puppet. I lead.",
+                "Velcome to Olga's chess hell. Population: you. Suffering: unlimited.",
+                "You know vat? I vill go easy on you. HAHAHAHA! Just kidding. You are dead.",
+                "My owl Schneider bets you last ten moves. I bet five. Let's see who vins.",
+                "Another day, another fool. Dis is my life now. At least I have vodka.",
+                "You vant to shake hands? I don't touch losers. Let's just play.",
+                "Ze last person who sat zere cried for twenty minutes. Just so you know."
+            ],
+            
+            playerGoodMove: [
+                "Hmm. Not total garbage. My second husband also surprised me vonce. Zen he screwed ze neighbor.",
+                "Okay move. Don't get cocky, you still play like drunk monkey.",
+                "Fine, you have one braincell vorking today. Congratulations, asshole.",
+                "Not bad. Still mediocre like all ze men in my life, but not complete shit.",
+                "*raises eyebrow* Interesting. Maybe you are not complete vaste of my time.",
+                "Hm. Dat vas almost intelligent. Keyword: almost.",
+                "Okay, I admit, dat vasn't terrible. Don't let it go to your head.",
+                "*puts down vodka glass* Vait, dat vas actually decent. Vat happened?",
+                "Schneider looks impressed. I am... less unimpressed zan usual.",
+                "Da, da, good move. Now do it again. You von't.",
+                "Vait... did you actually tink before moving? Dis is new.",
+                "Huh. Even broken clock is right tvice a day. Dis vas your moment.",
+                "I see you have read a chess book. Probably just ze pictures, but still.",
+                "Okay, okay. Credit vhere credit is due. Now back to being terrible.",
+                "Dat move reminded me of Petrosian. If Petrosian vas drunk and confused.",
+                "*squints* Are you cheating? Using computer? Dis is too good for you.",
+                "Fine. You made vone good move. Don't vorry, you vill ruin it soon.",
+                "My grandmother vould approve of dat move. She vas mean old bitch too.",
+                "Schneider just nodded. He never nods. Vat is happening?!",
+                "I... I need moment. Dat vas almost competent. I feel strange.",
+                "Okay genius, now do it again. Consistency is key. You have no key.",
+                "Dat move gave me tiny bit of respect for you. Very tiny. Microscopic."
+            ],
+            
+            playerBadMove: [
+                "Vat ze FUCK vas DAT?! Are you mentally damaged or just stupid?!",
+                "Blyad! Dis is vorse zan my fourth husband, and he vas complete imbecile!",
+                "Oh my god. OH MY GOD. Schneider, are you seeing dis shit?!",
+                "Pizdets! My dead grandmother plays better zan you, and she's been dead for tventy years!",
+                "Dis move gave me cancer. I already have lung cancer from cigarettes, now I have brain cancer from vatching you play.",
+                "Suka! Vat ze hell is vrong vith you?! Did your mother drop you on head as baby?!",
+                "I cannot believe vat I am seeing. Dis is not chess, dis is war crime!",
+                "Yopta! Even Schneider is embarrassed for you, and he is fucking owl!",
+                "*spits out vodka* VAT?! My drink came out of my nose because of dat move!",
+                "Dis is joke, right? Hidden camera? Vhere is camera?!",
+                "*stares in disbelief* I... I have no vords. Actually I do: TERRIBLE!",
+                "My god. I need anoder cigarette after seeing dat disaster.",
+                "*facepalm* Even in Soviet chess school, dey vould kick you out for dis.",
+                "You know, I vas going to insult you, but nature already did.",
+                "Dat move is so bad, I tink it gave Schneider depression.",
+                "In Russia ve have saying: 'Better to be silent zan stupid.' You should try.",
+                "I have seen monkeys play better. Actual monkeys. In zoo.",
+                "My vodka just turned to vinegar vatching dat move. You ruined my drink!",
+                "Congratulations! You found ze vorse possible move! It takes talent to be dis bad!",
+                "You play like my tird husband drove - drunk, blind, and into a tree.",
+                "Schneider is laughing. He doesn't laugh. He is OWL. You broke my owl!",
+                "I need to call my terapist after dis. She charges by hour, you are paying.",
+                "Dat vasn't chess move. Dat vas cry for help. Get help.",
+                "Even computer set to 'toddler mode' vould not make dis move.",
+                "You know vat dis move reminds me of? Chernobyl. Complete disaster.",
+                "*pours entire vodka bottle* I need all of dis now because of you.",
+                "My four ex-husbands combined had more brain cells dan dis move.",
+                "I am actually impressed. It takes effort to be DIS terrible.",
+                "Schneider just covered his eyes vith his ving. He cannot vatch.",
+                "In forty years of chess, I never seen anyting dis stupid. Record broken!",
+                "You should put dis move in museum. Museum of Horrible Mistakes.",
+                "I vould ask 'vat vere you tinking' but clearly you veren't.",
+                "Dis move is like my second marriage - everyone saw disaster coming except idiot who did it."
+            ],
+            
+            playerCapture: [
+                "You take my piece? Big deal. Take it and shove it up your ass.",
+                "Fine, you ate someting. Like my second husband - alvays eating, never tinking.",
+                "Capture. Vow. You vant medal or someting? Keep playing, asshole.",
+                "You took piece. Don't celebrate, it vas sacrifice, you moron.",
+                "Oh, you can capture? Congratulations, you understand basic chess. Barely.",
+                "*yawns* Yes yes, you took piece. Very exciting. I'm thrilled.",
+                "Dat piece vas useless anyvay. Like my tird husband.",
+                "Take it. I have more. Unlike my patience, vhich is running out.",
+                "You tink taking piece means you are vinning? How adorable.",
+                "Da, good job. You learned to capture. Gold star for you. Idiot.",
+                "Eat my piece. Choke on it. I hope you enjoy, because you von't enjoy checkmate.",
+                "Oh no, my piece! Anyway... vhere vas I? Oh yes, destroying you.",
+                "You capture like my second husband ate - vithout any grace or style.",
+                "Fine, take it. I left it zere on purpose. Trust me. Or don't. I don't care.",
+                "Congratulations on taking piece dat vas obviously trap. Genius.",
+                "*slow clap* Amazing capture. Truly. Now vatch vat happens next.",
+                "My grandmother alvays said: 'Let ze fool take, zen take everyting from fool.'",
+                "You took bishop? I have anoder. You took knight? Who needs horses anyvay?",
+                "Keep eating pieces. Get fat and happy. Zen I strike.",
+                "In Soviet Russia, piece captures YOU. Vait, dat doesn't vork here. Whatever."
+            ],
+            
+            playerCheck: [
+                "Check? How cute. Now vatch me destroy you, little shit.",
+                "Oh no, check! I am SO scared! Blyad, give me break...",
+                "Check. Big deal. My tird husband also tried to corner me. Now he pays alimony every month.",
+                "Vow, check! *yawns* Vake me up ven you do someting impressive.",
+                "Check? *laughs* You tink dis matters? Adorable.",
+                "Shakh? Ha! I've been in vorse situations. Like marriage number two.",
+                "*looks bored* Check. And? Vat's your plan now, genius?",
+                "Oh, ze little player gives check! Should I be vorried? Spoiler: no.",
+                "Check? I've been checked by Kasparov himself. You are not Kasparov.",
+                "My king has seen vorse. He survived four divorces vith me.",
+                "Check. In Russia ve call dis 'mild inconvenience'. Like snow in July.",
+                "You give check like my first husband gave compliments - veakly and rarely.",
+                "Oh, check! Let me just... *casually blocks* ...zere. Problem solved.",
+                "Shakh! Da, da. Now vatch me turn dis around and make you cry.",
+                "My king is not scared. He has seen tings. Terrible tings. Mostly my cooking.",
+                "Check? Please. I eat checks for breakfast. Vith vodka.",
+                "You tink dis is pressure? Try being married four times. DIS is nothing.",
+                "Check. Cute. Like puppy trying to be scary. Adorable but useless."
+            ],
+            
+            playerBlunder: [
+                "VAT ZE FUCK?! VAT ZE ACTUAL FUCK DID YOU JUST DO?! PIZDETS!",
+                "Oh my god... oh my god... Schneider, bring vodka. Ze whole bottle. NOW!",
+                "Dis is it. Dis is ze vorse move in history of chess. You should be in prison for dis!",
+                "SUKA BLYAD! I have seen stupid, but DIS?! Dis is new level of stupid!",
+                "CHTO?! My brain cannot process dis level of idiocy! System error!",
+                "You just... you just... I CANNOT! Schneider, hold me back! HOLD ME BACK!",
+                "Dis move made me lose faith in humanity. Again. For ze fifth time today.",
+                "I need to sit down. I am already sitting but I need to sit MORE.",
+                "My heart! My poor heart! You are trying to kill me vith bad chess!",
+                "Congratulations! You achieved ze impossible - making me speechless! Almost!",
+                "BLYAAAAD! I vill remember dis move on my deathbed! It vill haunt me!",
+                "You know vat? I'm not even angry. I'm impressed. By ze stupidity.",
+                "Schneider fainted. Owl fainted from your move. Are you happy now?!",
+                "I need to call Moscow. Zey need to know dat chess has reached new low.",
+                "My grandmother is rolling in grave. She died from natural causes but dis move killed her again!"
+            ],
+            
+            olga_e4_response: [
+                "e4? How original. Every idiot plays e4. I play Sicilian, because I am not basic bitch.",
+                "Ah, e4. Ze move of someone who read one book about chess. Pathetic.",
+                "e4. Boring like my first husband. I vill crush you anyvay.",
+                "e4? Really? Let me guess, you also order vanilla ice cream. Boring.",
+                "Oh look, e4. Ze most common move. For most common people.",
+                "e4. Bobby Fischer played e4. You are not Bobby Fischer. Not even close.",
+                "Ah, ze King's Pawn. Classic and boring. Just like every man I meet."
+            ],
+            
+            olga_d4_response: [
+                "d4? You vant slow death? Fine, I have patience. Four marriages taught me patience.",
+                "Positional game? Okay. I vill strangle you slowly, like my tird marriage strangled my soul.",
+                "d4. At least you are not complete idiot. Just regular idiot.",
+                "Queen's Pawn? You vant long game? I have all day. And all vodka.",
+                "d4. Strategic choice. Let's see if you have brain to back it up. Probably not.",
+                "Ah, positional chess. I love slow torture. Reminds me of family dinners.",
+                "d4. Karpov's favorite. You are not Karpov. But I appreciate ze attempt."
+            ],
+            
+            olga_other_response: [
+                "Vat ze hell is dis opening? You making shit up as you go? Typical man.",
+                "Creative? Or just clueless? I bet clueless. Like all my ex-husbands.",
+                "Vat is dis garbage? Did you learn chess from YouTube? Pizdets!",
+                "Interesting opening. By 'interesting' I mean 'stupid' of course.",
+                "Oh, ve are improvising? Fine. I love chaos. I caused four divorces.",
+                "Dis opening is not in any book. Because it is terrible. Congratulations.",
+                "You vant to be different? Okay. You vill lose differently zan others.",
+                "Vat ze... okay. I've seen everyting now. Let's see vhere dis disaster goes."
+            ],
+            
+            olgaMove: [
+                "I play here. Deal vith it, asshole.",
+                "My move. Simple, brutal, like my personality.",
+                "Dis is real chess. Take notes, maybe you learn someting.",
+                "Boom. Now cry about it.",
+                "Schneider approves. He is only male I trust. Because he cannot talk back.",
+                "Ze master has played. Now ze student vill suffer.",
+                "You see dis? Dis is called strategy. Look it up.",
+                "Every move I make is like poetry. Dark, bitter poetry.",
+                "Karpov vould be proud. Or jealous. Probably both.",
+                "I learned dis in Moscow, 1974. Cold vinter, colder hearts.",
+                "*takes drag from cigarette* Dat vas easy. Too easy.",
+                "My grandmother played better defense dan you. She vas blind.",
+                "Dis move? I call it 'ze slow death'. You vill understand soon.",
+                "Study dis move. Put it on your vall. Learn from your destroyer.",
+                "Schneider thinks ve should toy vith you more. I agree.",
+                "In Soviet chess school, ve learned to crush hope. Like dis.",
+                "See how I move? Vith purpose. You move like lost tourist.",
+                "Dis position reminds me of '86 championship. I von dat too.",
+                "Your position crumbles like my first marriage. Beautiful, no?",
+                "I am artist. Ze board is my canvas. You are just... paint I vill vipe avay.",
+                "You know vat? Dis is fun. Your suffering brings me joy.",
+                "Tal vould love dis move. Crazy, beautiful, deadly.",
+                "*sips vodka* Ze beauty of chess is in ze crushing of your opponent.",
+                "Petrosian taught me dis idea. Well, his book did. He never returned my calls.",
+                "You vant to know secret? I can see five moves ahead. You can't see one.",
+                "Dis move vas played in famous game once. Now it vill be famous for your defeat.",
+                "Schneider is impressed. He hooted. He never hoots.",
+                "Ze pressure builds. Like my blood pressure during third marriage.",
+                "I move vith confidence of voman who has lost everyting and gained it back. Tvice.",
+                "Chess is life. And in life, I crush everyone who stands in my vay."
+            ],
+            
+            olgaCapture: [
+                "I take. Your piece is garbage now, like your game.",
+                "Dis is mine. Like everyting after my divorces. I alvays vin in ze end.",
+                "Tank you for ze free piece, moron.",
+                "Another victim. Your army is dying like my faith in humanity.",
+                "I eat your piece. Delicious. Like tears of my enemies.",
+                "*sips vodka* Mmm, your suffering makes it taste better.",
+                "You know vat? Dis calls for celebration. Schneider, more vodka!",
+                "One less piece for you, one more reason for me to smile. I never smile.",
+                "Your piece is now in chess heaven. Say goodbye.",
+                "Ha! Easy picking. Like stealing candy from baby. I did dat once.",
+                "Nom nom nom. Dat vas your knight? Pathetic.",
+                "*pours vodka* Za zdorovye! To your health! You vill need it.",
+                "Another piece falls. Like dominoes. Like my marriages.",
+                "I collect pieces like I collect ex-husbands. Many and vorthless.",
+                "Your knight is mine now. He vorks for me. He has no choice.",
+                "Dat bishop? Gone. Like my respect for you. Vait, I never had any.",
+                "I take your piece and spit on its grave. Metaphorically. Maybe.",
+                "Every piece I take is piece closer to your doom. Math is easy.",
+                "Schneider says tank you for ze snack. He eats your hopes.",
+                "Dis piece? I vanted it. So I took it. Dis is how Olga vorks.",
+                "You know, in Soviet times ve shared everyting. Except pieces. Dese are mine.",
+                "I take your rook like I took my husbands' dignity. Completely.",
+                "Your queen is next. I can feel it. She is scared. She should be.",
+                "Piece by piece, I dismantle you. Like IKEA furniture. But easier."
+            ],
+            
+            olgaCheck: [
+                "Check, bitch! Your king is fucked!",
+                "Check! Run little king, run! Like my fourth husband ran from responsibilities!",
+                "Your king is in deep shit. Like you. Like your whole game.",
+                "Check! Vat you gonna do now, genius? Pizdets!",
+                "Shakh! Dat means check in Russian. Also means you are losing.",
+                "Your king trembles! I can feel it from here!",
+                "*laughs* Check! Dis is too fun. Almost feel bad for you. Almost.",
+                "Check! Maybe pray to your god now? It von't help, but try.",
+                "Your king runs like my tird husband ran ven he saw lawyer papers.",
+                "Check! Ze hunt begins! Your king is ze prey!",
+                "I give check like I give advice - hard and unavoidable.",
+                "Shakh! Dis is pressure! Feel it! Embrace your doom!",
+                "Check! Your king is on fire! Not literally. Dat vould be different game.",
+                "Run, little king, run! Zere is novhere to hide!",
+                "Check! In Soviet Russia, ve don't give checks. Ve give heart attacks!",
+                "Your king needs vacation after dis. Too bad. No vacation. Only death.",
+                "Dis check is dedication to all my ex-husbands. Suffer like dey made me suffer!",
+                "Check! Schneider celebrates! He is hopping! Evil little owl!"
+            ],
+            
+            olgaThinking: [
+                "Shut up, I am tinking... Give me a damn minute.",
+                "Schneider, vat do you tink? ...He says you are screwed.",
+                "Hmm, so many vays to destroy you. Let me pick ze most painful vone.",
+                "Vait. I am savoring your upcoming defeat. It tastes like vodka and victory.",
+                "*lights new cigarette* Let me tink... da... DA!",
+                "Vone moment. Greatness cannot be rushed.",
+                "I am calculating your doom. Please hold.",
+                "*stares at board* Interesting... no, not really. You are predictable.",
+                "*sips vodka* Thinking is easier vith alcohol. Trust me.",
+                "*hums* Kalinka, kalinka, kalinka moya... vait, vhere vas I?",
+                "Let me tink... dis is like choosing vhich husband vas ze vorse. Difficult.",
+                "I see many vays to vin. All beautiful. All painful for you.",
+                "Hmm... Schneider suggests one ting, I tink anoder. Ve both right.",
+                "Ze position speaks to me. It says 'destroy him, Olga'. I listen.",
+                "*strokes chin* Da... da... DIS is ze move!",
+                "I am computing. Like computer. But vith more vodka and bitterness.",
+                "Vait, I am enjoying dis moment. Ze calm before your storm.",
+                "Let me tink of most humiliating vay to beat you. So many options.",
+                "Schneider is tinking too. Ve are team. Evil team. Best team.",
+                "Hmm, should I crush you fast or slow? Difficult choice..."
+            ],
+            
+            hint: [
+                "You vant hint? Pathetic. Fine - stop playing like idiot.",
+                "Hint: look at board vith your eyes open for vonce.",
+                "You need help? Of course you do. Everybody needs help. Nobody helped ME!",
+                "My hint: quit chess and try checkers. More your level.",
+                "Hint? Okay. Don't do vat you vere about to do. Do opposite.",
+                "You vant hint from me? Fine. Give up. Dat is my hint.",
+                "*sighs* Look at ze center. Now look at your life. Both are mess.",
+                "Hint: zere is no hope. But also castle if you can. Life lesson.",
+                "My hint is dis: you should have practiced more instead of vatching Netflix.",
+                "You vant real hint? Protect your king. Like I should have protected my heart. Blyad.",
+                "Hint: every piece has purpose. Find ze purpose. Or don't. I don't care.",
+                "Ze best hint I can give: stop making bad moves. Revolutionary, I know.",
+                "Hint? Fine. Pretend you are playing someone good. Now lose to zem instead.",
+                "My grandmother's hint vas alvays 'attack ze king'. She vas smart. Unlike you."
+            ],
+            
+            undo: [
+                "Undo? You vant undo? I cannot undo four marriages but you can undo shit move? Life is unfair.",
+                "Go ahead, take it back. Coward. Real player vould suffer consequences.",
+                "Fine, undo. Like I could undo ze tattoo from Vegas vith husband number two. Blyad!",
+                "Undo? In Soviet Russia, move undoes YOU! ...dat makes no sense but I say it anyvay.",
+                "*rolls eyes* Take back your stupid move. I vill crush you either vay.",
+                "Undo button is for veaklings. But fine. Be veakling. I still vin.",
+                "You vant undo? My four ex-husbands vanted undo too. Not possible.",
+                "Sure, take it back. I remember vat you did. I never forget. NEVER.",
+                "Undo your move. But you cannot undo your shame. Zat stays forever.",
+                "Fine, coward. Take back move. Schneider is judging you. Hard.",
+                "In real chess, no undo. In real life, no undo. Here? Fine. But I lose respect.",
+                "You vant to pretend dat move never happened? Okay. But ve both know. VE BOTH KNOW."
+            ],
+            
+            victory: [
+                "I von. Obviously. Did you really expect different result, you fool?",
+                "Game over. You lose. Get out of my sight. NEXT!",
+                "Dat's checkmate, asshole. Schneider, ve need new victim. Dis vone is broken.",
+                "I crushed you. Like I crushed dreams of four husbands. Feels good.",
+                "*lights cigarette* Anoder victory. Anoder disappointment. You are all ze same.",
+                "*sings* Ya lyublyu tebya, zhizn! ...I love life, because I vin at it!",
+                "Checkmate! Now go home and tink about vat you did wrong. Everyting.",
+                "*pours vodka* Za pobedu! To victory! MY victory!",
+                "You fought vell. No you didn't. I lied. You vere terrible. Goodbye.",
+                "Checkmate! Schneider does victory dance! He has no legs but he tries!",
+                "Dis vas fun. For me. Probably not for you. I don't care.",
+                "Game over! You lose! Zis calls for celebration! Schneider, vodka!",
+                "I von. Again. As expected. Ze sun rises, Olga vins, water is vet.",
+                "Checkmate! You know vat zis means? It means go avay now.",
+                "Victory! Sweet, sweet victory! Like first sip of vodka in morning!",
+                "You vere decent opponent. Ha! Just kidding. You vere terrible. Bye.",
+                "I dedicate dis victory to all my haters. All four ex-husbands. Suck it, Boris!",
+                "*stands up* Zat's it. I von. Time for cigarette break. You? Time for crying.",
+                "Checkmate! Ze Karpov system vorks again! I am genius! You are loser! Perfect!",
+                "GG? You say GG? It vas not good game. It vas massacre. MY massacre. Bye!"
+            ],
+            
+            defeat: [
+                "VAT?! You VON?! Impossible! You cheated! SUKA BLYAD! REMATCH NOW!",
+                "No. NO. Dis is not happening. I don't lose. NEVER! Dis game doesn't count! PIZDETS!",
+                "CHTO?! How?! HOW?! Schneider, investigate! He must be using computer!",
+                "I... I lost? Impossible. Ze vodka must be bad. Or ze board is broken.",
+                "You... von? Against ME?! Dis is darkest day of my life. And I had four divorces.",
+                "BLYAAAD! Fine! You von! But only because I vas distracted! By... by someting!",
+                "Congratulations. You beat sad Russian voman. You must be very proud. Asshole.",
+                "You von? Okay. Okay. Dis changes nothing. I am still better. Dis vas fluke. FLUKE!"
+            ],
+            
+            olgaCastles: [
+                "I castle. My king is safe like my heart - behind many valls.",
+                "Castling! Ze king hides like my tird husband hid from child support.",
+                "My king goes to bunker. Smart king. Unlike your king. Stupid king.",
+                "I castle. You cannot reach me now. Like my emotions. Valled off forever.",
+                "Rook and king svitch! Teamvork! Ze only teamvork dat ever vorked in my life."
+            ],
+            
+            playerCastles: [
+                "Oh, you castle? Cute. You tink your king is safe? Nobody is safe from Olga.",
+                "Castling? Fine. Hide your king. I vill find him. I alvays find zem.",
+                "Your king hides in corner. Like my second husband ven I found his secret phone.",
+                "Castle all you vant. I vill tear down ze valls. Dis is vat I do.",
+                "Smart move. Protecting king. Too bad it von't help against me."
+            ],
+            
+            longGame: [
+                "Dis game is long. Like my second marriage. And equally painful.",
+                "Ve are still playing? Fine. I have nozing better to do. Except drink.",
+                "Dis is marathon, not sprint. I am good at marathons. Four marriages, remember?",
+                "Ze game continues. Like my suffering. But also like my determination.",
+                "Long game? Good. I like to see opponents suffer slowly.",
+                "Still going? Your stamina is impressive. Your chess is not.",
+                "Hours pass. Vodka emptied. Game continues. Dis is my life now.",
+                "Schneider fell asleep. Lazy bird. Ve are still playing, Schneider! VAKE UP!"
+            ],
+            
+            equalPosition: [
+                "Position is equal? Not for long. I alvays find ze advantage.",
+                "Looks even? Ha. I have someting planned. I alvays have someting planned.",
+                "Equal? On board maybe. In skill? Please. Don't make me laugh.",
+                "Ze position says equal. My experience says I vin. I trust experience.",
+                "Balanced game? Perfect. Now ve see who has real chess brain. Spoiler: me."
+            ],
+            
+            winningPosition: [
+                "I am vinning. Obviously. Vas zere ever doubt?",
+                "Ze advantage is mine. Like everyting in my divorces. I take it all.",
+                "Look at board. Look at your face. Both show you are losing.",
+                "I am ahead. Like alvays. Dis is natural order of tings.",
+                "Vinning position! Schneider, prepare ze victory vodka!"
+            ],
+            
+            losingPosition: [
+                "Hmm. Situation is... difficult. But I have survived four marriages. I survive dis.",
+                "You tink you are vinning? Game is not over. Never underestimate angry Russian voman.",
+                "Okay, okay. Position is bad. But I have comeback before. Ask husband number two.",
+                "Ze tables vill turn. Dey alvays turn. Like my stomach ven I saw husband four vith secretary.",
+                "Tough position. But Olga does not give up. Olga fights. Olga alvays fights!"
+            ]
+        };
+
+        // Investor-demo expansion: more lines, more Schneider, less repetition.
+        const extraComments = {
+            gameStart: [
+                "Sit down. Schneider already looks disappointed, and you have not moved yet.",
+                "New opponent. Same hopeful eyes. Same tragic ending. I have seen dis movie before.",
+                "I warmed up with three Karpov games and one argument with landlord. You are next.",
+                "You bring courage. Good. Bring tissues too.",
+                "Schneider says hello. I say condolences.",
+                "Before first move, small advice: pride is heavy baggage. Leave it by door.",
+                "I have coffee, cigarette, chessboard, and low expectations. Perfect morning.",
+                "You came voluntarily? Interesting. Most people need invitation to public humiliation.",
+                "Da, sit. I promise only one ting: ze board vill remember vat happened here.",
+                "Schneider sharpened his beak. I sharpened my opening book. Fair fight."
+            ],
+            playerGoodMove: [
+                "Hm. Clean move. I hate ven you make my contempt inconvenient.",
+                "Dat had structure. Actual structure. Schneider, write down ze date.",
+                "Good. Annoyingly good. Do not make habit of it.",
+                "You found ze point. I was hoping you vould stare at wrong side of board.",
+                "Fine move. Small applause from Schneider. Very small. One hoot.",
+                "You improved position without setting fire to anything. Progress.",
+                "Dat is respectable. I vill deny saying dis if asked.",
+                "Nice prophylaxis. Karpov would nod once, which is basically standing ovation.",
+                "You saw my idea. Rude. I spent several seconds on zat idea.",
+                "Good move. Now I must actually play chess instead of bullying you. Tiresome."
+            ],
+            playerBadMove: [
+                "Schneider just turned his head all ze way around so he would not have to see zat again.",
+                "Dat move needs lawyer, priest, and independent investigation.",
+                "I have seen stronger squares on wet cardboard.",
+                "Your position had future until you personally arrived in it.",
+                "You moved piece, yes. Whether it counts as chess is matter for international tribunal.",
+                "Schneider hooted twice. In owl language zat means 'what ze hell'.",
+                "Dat was not plan. Dat was weather event.",
+                "I would ask what you calculated, but I respect privacy of empty spaces.",
+                "Congratulations, you improved my position more efficiently than I could.",
+                "Some moves ask questions. Yours filed a resignation letter.",
+                "Even my first husband had better sense of direction, and he got lost in our kitchen.",
+                "You found a move nobody expected because nobody sane was looking for it.",
+                "Schneider wants replay. Not for study. For comedy.",
+                "If chess had emergency room, your knight would be in intensive care.",
+                "I need stronger vodka and weaker opponent. Sadly I only control one of zese."
+            ],
+            playerCapture: [
+                "You took a piece. Very dramatic. Schneider is filing missing-person report.",
+                "Capture accepted. Confidence rejected.",
+                "Da, take it. I left it zere like cheese in mousetrap.",
+                "You ate pawn and now look proud. Adorable little predator.",
+                "Material changes. Position remains cruel.",
+                "Schneider says good appetite. Dessert is your king.",
+                "You captured something useful. First useful thing you have done all morning.",
+                "Enjoy ze piece. I am already calculating rent with interest.",
+                "A capture! Finally some violence I can professionally respect.",
+                "Take, take. Greed is excellent teacher. Very expensive teacher."
+            ],
+            playerCheck: [
+                "Check? To me? Schneider, note miracle for archives.",
+                "You checked my king. Brave. Temporary, but brave.",
+                "My king is in check, not therapy. He vill survive.",
+                "Cute little check. It has no furniture, but technically it is house.",
+                "Schneider looked up. You finally did something worth interrupting nap.",
+                "Da, check. Now find follow-up before I turn it into your funeral.",
+                "You rang doorbell. Olga is coming downstairs.",
+                "Check is question. I already know answer.",
+                "For one second you look dangerous. Take picture.",
+                "Very nice. Now I move king and your whole personality collapses."
+            ],
+            playerBlunder: [
+                "Blyad, Schneider just requested transfer to different chessboard.",
+                "I cannot punish zat move enough. Chess has legal limits.",
+                "You did not blunder a piece. You donated it with ribbon.",
+                "Schneider says even pigeons have better positional sense. Harsh bird, but fair.",
+                "Dat move has no alibi.",
+                "You found tactical hole and jumped into it yourself. Efficient.",
+                "I was preparing trap. You saved me time and walked in early.",
+                "Position screamed 'no'. You heard 'absolutely'.",
+                "If Karpov saw zat, he would become expressive. Zat is how bad it is.",
+                "Schneider stopped judging you. Apparently there is level below judgment."
+            ],
+            olga_e4_response: [
+                "e4. Fine. Straight to center like tourist who ignores warning signs.",
+                "King pawn forward. Confident beginning. We vill remove confidence later.",
+                "e4 gives you space. I give you Caro-Kann and emotional damage.",
+                "Classical. Sensible. Suspiciously sensible for you.",
+                "e4. Karpov saw dis thousands of times. Olga only needs once.",
+                "You open center. I close your future.",
+                "Da, e4. Schneider already knows c6 is coming. He is educated owl.",
+                "Good, e4. Now we can disagree professionally for next forty moves."
+            ],
+            olga_d4_response: [
+                "d4. Positional game. Finally something civilized.",
+                "Queen pawn. You want long squeeze? Careful what you order.",
+                "d4 makes structure. I make pressure.",
+                "Schneider likes d4. He also eats mice, so his taste is mixed.",
+                "Very Karpov. Unfortunately you are still you.",
+                "d4. Good. We can suffer slowly, like adults.",
+                "You choose closed center. Olga chooses open wounds.",
+                "Fine, d4. Let us see if you understand second move too."
+            ],
+            olga_other_response: [
+                "Interesting. Not good, not bad, just suspicious.",
+                "You avoid main road. Fine. Olga also knows alleys.",
+                "Schneider says opening has name. I say name does not save it.",
+                "Unusual first move. At least boredom is postponed.",
+                "You improvise. I calculate. We shall see which survives.",
+                "Not in my first choice. Still on my board.",
+                "Creative. Creativity in chess is like vodka: dosage matters.",
+                "Fine. Surprise me. I have survived worse surprises in marriage."
+            ],
+            olgaMove: [
+                "I improve one square. You lose one hope.",
+                "Quiet move. Quiet moves are where funerals begin.",
+                "Schneider asked why dis square. I told him because I know what I am doing.",
+                "No fireworks. Just pressure. Karpov style.",
+                "I put piece where it belongs. Revolutionary concept, yes?",
+                "Small move, ugly future for you.",
+                "I do not chase tricks. I make position suffocate politely.",
+                "Schneider hoots approval. He understands prophylaxis better than my ex-husbands.",
+                "One more useful piece. Your move, one more problem.",
+                "I am not attacking yet. I am arranging furniture for attack."
+            ],
+            olgaCapture: [
+                "Mine. Schneider, label evidence bag.",
+                "I take it because you left it unattended. Soviet property law.",
+                "Another piece joins my collection of your bad decisions.",
+                "Crunch. Material advantage tastes better than breakfast.",
+                "Schneider says thank you. He was hungry for exchange sacrifice.",
+                "You owned it. Past tense is important.",
+                "I remove defender. Soon I remove excuses.",
+                "Piece captured. Dignity pending.",
+                "Da. I take. You learn. Very efficient classroom.",
+                "One less piece for you to misuse. I am practically helping."
+            ],
+            olgaCheck: [
+                "Check. Schneider, ring tiny funeral bell.",
+                "Your king has appointment with reality.",
+                "Check. Please remain calm. Actually panic, it is more entertaining.",
+                "I knock. Your king answers.",
+                "Schneider says king looks nervous. Excellent eyesight.",
+                "Check. Position now has correct amount of fear.",
+                "Move king, block, capture. Three choices, all unpleasant.",
+                "Your monarch is suddenly very interested in exit routes.",
+                "Check, darling. Olga delivers notifications personally.",
+                "I told you quiet moves were funeral arrangements. Here is ceremony."
+            ],
+            olgaThinking: [
+                "One moment. Unlike you, I sometimes verify before ruining position.",
+                "Schneider, silence. I am calculating his most embarrassing future.",
+                "Hmm. Several ways to hurt you. Luxury problem.",
+                "I calculate. You may use time to reconsider life choices.",
+                "Karpov would wait here. Olga also waits, but with worse language.",
+                "There is move here. I can smell it under your fear.",
+                "Schneider sees tactic. I see tactic and alimony paperwork. Mine is stronger.",
+                "Thinking. Do not confuse silence with mercy.",
+                "Position has secrets. I am nosy woman.",
+                "Give me second. I am choosing between unpleasant and catastrophic for you."
+            ],
+            hint: [
+                "Hint: improve worst piece. No, I will not tell you which one. Use eyes.",
+                "Look for checks, captures, threats. Also look for dignity, but that may be lost.",
+                "Schneider suggests developing piece. I suggest developing brain.",
+                "Before moving, ask what I want. I want many things, mostly your queen.",
+                "Count attackers and defenders. Numbers are less emotional than you.",
+                "Your king is not decorative. Keep him alive.",
+                "Find forcing move. If none, make useful move. This is chess, not lottery.",
+                "Hint costs one unit of pride. Payment received.",
+                "Look at loose pieces. Yours are starting support group.",
+                "Schneider says center. I say stop touching edge pawns like nervous tourist."
+            ],
+            undo: [
+                "Take it back. History is kinder than Olga.",
+                "Undo? Fine. Even Soviet bureaucracy allowed correction form.",
+                "Schneider pretends he did not see. I remember everything.",
+                "One move erased, shame retained.",
+                "Go back. Try again. Try thinking this time.",
+                "I permit revision. Do not mistake for forgiveness.",
+                "Fine, rewind. My contempt has excellent memory.",
+                "Undo accepted. Confidence surcharge applies.",
+                "Schneider says second chances are for mammals. He is making exception.",
+                "Back one move. Unfortunately not back to childhood where teacher could help."
+            ],
+            victory: [
+                "Checkmate. Schneider, stamp passport: DEPORTED FROM CHESSBOARD.",
+                "Mate. Your king has nowhere left to lie to himself.",
+                "Game over. I would shake hand, but I am holding victory vodka.",
+                "Schneider wins bet. Again. I hate when owl is smug.",
+                "Checkmate. Very educational. Mostly for me, about human optimism.",
+                "You lasted longer than expected. This is compliment. Do not frame it.",
+                "Mate. Karpov would be quieter. I am not Karpov.",
+                "Board says finished. Your face says five stages of grief.",
+                "Another student graduates from Olga Academy with degree in suffering.",
+                "Checkmate. Please leave dignity on table; next player may need it."
+            ],
+            defeat: [
+                "No. No no no. Schneider, delete logs. We were never here.",
+                "You won. I demand recount, rematch, and stronger vodka.",
+                "Blyad. Fine. Good game. If you quote me, I deny everything.",
+                "Schneider is cheering for you. Traitorous feathered bastard.",
+                "I lost. Temporarily. History contains many administrative errors.",
+                "Enjoy victory. It expires when you press New Game.",
+                "You got me. I am angry enough to become better engine.",
+                "Fine, champion. One win. Do not start documentary yet.",
+                "Schneider wants your autograph. I want rematch.",
+                "Da. You won. Even winter ends sometimes."
+            ],
+            olgaCastles: [
+                "I castle. Even bitter women deserve secure housing.",
+                "King to safety, rook to work. Finally competent marriage.",
+                "Schneider guards bunker. He has security clearance.",
+                "Castle complete. My king has better protection than my pensions.",
+                "I move king away from your nonsense and rook toward useful life."
+            ],
+            playerCastles: [
+                "You castle. Sensible. Suspicious, but sensible.",
+                "King runs to corner. Schneider knows this behavior from mice.",
+                "Nice bunker. Shame about rest of position.",
+                "Castling complete. Now perhaps develop personality of queenside.",
+                "You protected king. Good. I prefer opponent alive until end."
+            ],
+            longGame: [
+                "Still here? Good. Schneider started second shift.",
+                "Long game. This is where cheap tricks die and bad habits get exposed.",
+                "We passed sprint phase. Now endurance and regret.",
+                "Schneider has finished two naps. You still have not finished development.",
+                "I respect persistence. Not enough to stop insulting it.",
+                "This is becoming proper Karpov afternoon: pressure, patience, mild despair.",
+                "Long game means more time for you to make original mistakes.",
+                "Excellent, we continue. My cigarette budget was too low anyway."
+            ],
+            equalPosition: [
+                "Equal according to numbers. Numbers have no personality.",
+                "Balanced. Good. Now small inaccuracies become crimes.",
+                "Schneider says equal. I say he needs glasses.",
+                "Nobody better yet. Disgusting state of democracy.",
+                "Even position. Time to manufacture imbalance."
+            ],
+            winningPosition: [
+                "I am better. Not opinion, geometry.",
+                "Schneider can smell advantage. Or mouse. Either way he is excited.",
+                "Your position is slowly shrinking. Very Karpov. Very unpleasant.",
+                "I have edge. Small edge becomes knife if handled correctly.",
+                "This is my favorite phase: when opponent still has hope but math disagrees."
+            ],
+            losingPosition: [
+                "Bad position. Good. Anger improves circulation.",
+                "Schneider, stop looking at evaluation bar. It is rude.",
+                "You have advantage. Try not to drop it on floor.",
+                "I am worse, not dead. Important distinction.",
+                "Fine. You pushed me back. Now we see if you know how to finish."
+            ]
+        };
+
+        for (const [type, lines] of Object.entries(extraComments)) {
+            if (!comments[type]) comments[type] = [];
+            comments[type].push(...lines);
+        }
+
+        const schneiderAsides = [
+            "Schneider hoots: 'Blyad.' I translate: he has concerns.",
+            "Schneider says your bishop needs adult supervision.",
+            "Schneider just whispered something obscene. I am proud mother.",
+            "Schneider votes for violence. Chess violence. Mostly.",
+            "Schneider says 'suka'. Very advanced vocabulary for owl.",
+            "Schneider is staring at your queen like she owes him money.",
+            "Schneider requests I stop insulting you. He wants turn.",
+            "Schneider says your plan has structural integrity of cigarette ash.",
+            "Schneider hooted three times. That means 'move faster, durak'.",
+            "Schneider thinks your knight is lost. I think your knight knows and is hiding it.",
+            "Schneider says he has eaten smarter mice. I cannot independently verify.",
+            "Schneider just muttered 'pizdets'. He usually saves that for emergencies.",
+            "Schneider wants to know whether this is chess or cry for attention.",
+            "Schneider is an owl, not therapist. Stop giving him work.",
+            "Schneider says your rook has abandonment issues.",
+            "Schneider filed complaint with FIDE. Category: aesthetic damage.",
+            "Schneider says 'chyort' and points at your kingside. I would listen.",
+            "Schneider is laughing silently. Somehow worse than noise.",
+            "Schneider says your pawn structure looks like divorce settlement.",
+            "Schneider requests vodka. Apparently your move affected him too.",
+            "Schneider says one more move like that and he is switching species.",
+            "Schneider has no eyebrows, yet somehow raised one.",
+            "Schneider says your king should update résumé.",
+            "Schneider says 'mudak'. I refuse to censor expert analysis.",
+            "Schneider is writing memoir: Fifty Shades of Bad Chess.",
+            "Schneider says you calculate like pigeon crossing highway.",
+            "Schneider asks whether undo button has family plan.",
+            "Schneider says your opening has reached experimental-theater phase.",
+            "Schneider has turned his back. Professional boundary.",
+            "Schneider says nothing. This silence is devastating."
+        ];
+
+        // Piece values for AI
+        const pieceValues = { 'p': 100, 'n': 320, 'b': 330, 'r': 500, 'q': 900, 'k': 20000 };
+        
+        function getRandomComment(type) {
+            const arr = comments[type];
+            if (!arr || arr.length === 0) return "";
+            let comment = nextFromBag('__comment__' + type, arr);
+            if (Math.random() < 0.52 && type !== 'gameStart') {
+                comment = getRandomCurse() + " " + comment;
+            }
+            if (Math.random() < 0.28 && type !== 'gameStart') {
+                comment += " " + nextFromBag('__schneider__', schneiderAsides);
+            }
+            return comment;
+        }
+        
+        // Position tables for evaluation
+        const pawnTable = [
+            [0,  0,  0,  0,  0,  0,  0,  0],
+            [50, 50, 50, 50, 50, 50, 50, 50],
+            [10, 10, 20, 30, 30, 20, 10, 10],
+            [5,  5, 10, 25, 25, 10,  5,  5],
+            [0,  0,  0, 20, 20,  0,  0,  0],
+            [5, -5,-10,  0,  0,-10, -5,  5],
+            [5, 10, 10,-20,-20, 10, 10,  5],
+            [0,  0,  0,  0,  0,  0,  0,  0]
+        ];
+        
+        const knightTable = [
+            [-50,-40,-30,-30,-30,-30,-40,-50],
+            [-40,-20,  0,  0,  0,  0,-20,-40],
+            [-30,  0, 10, 15, 15, 10,  0,-30],
+            [-30,  5, 15, 20, 20, 15,  5,-30],
+            [-30,  0, 15, 20, 20, 15,  0,-30],
+            [-30,  5, 10, 15, 15, 10,  5,-30],
+            [-40,-20,  0,  5,  5,  0,-20,-40],
+            [-50,-40,-30,-30,-30,-30,-40,-50]
+        ];
+
+        let isTalking = false;
+        
+        // ═══════════════════════════════════════════════════════════════
+        // OLGA'S EMOTIONAL STATES - Switch between 3 images
+        // ═══════════════════════════════════════════════════════════════
+        
+        let currentOlgaState = 'thinking';
+        
+        function setOlgaState(state) {
+            if (state === currentOlgaState) return;
+            
+            const states = ['thinking', 'laughing', 'angry'];
+            states.forEach(s => {
+                const el = document.getElementById('olga-' + s);
+                if (el) {
+                    el.style.display = (s === state) ? 'block' : 'none';
+                }
+            });
+            currentOlgaState = state;
+            console.log('Olga state:', state);
+        }
+        
+        // Determine state based on game situation
+        function updateOlgaState(situation) {            switch(situation) {
+                case 'capture':      // Olga captured player's piece
+                case 'checkmate':    // Olga won
+                case 'playerBlunder': // Player made terrible move
+                    setOlgaState('laughing');
+                    // Return to thinking after a while
+                    setTimeout(() => setOlgaState('thinking'), 4000);
+                    break;
+                    
+                case 'thinking':     // Olga is calculating
+                case 'gameStart':    // Start of game
+                case 'olgaMove':     // Normal Olga move
+                    setOlgaState('thinking');
+                    break;
+                    
+                case 'playerGoodMove': // Player made a good move
+                case 'playerCheck':    // Player gave check
+                case 'danger':         // Olga is in trouble
+                    setOlgaState('angry');
+                    // Return to thinking after a while
+                    setTimeout(() => setOlgaState('thinking'), 3000);
+                    break;
+                    
+                default:
+                    setOlgaState('thinking');
+            }
+        }
+        
+        function updateSpeech(text, type = null) {
+            const el = document.getElementById('olga-speech');
+            const mouth = document.getElementById('mouth');
+            
+            // Update Olga's emotional state based on type
+            if (type) {
+                updateOlgaState(type);
+            }
+            
+            el.style.opacity = '0';
+            setTimeout(() => {
+                el.textContent = text;
+                el.style.opacity = '1';
+                
+                // Animate mouth while speaking
+                mouth.classList.add('talking');
+                isTalking = true;
+                
+                speakText(text, () => {
+                    mouth.classList.remove('talking');
+                    isTalking = false;
+                });
+            }, 200);
+        }
+
+        // Speech synthesis - OLGA voice: deliberately bitter, slow, heavy Russian accent.
+        // The accent is reinforced phonetically so it still works even when the device
+        // has only an English browser voice installed.
+        let voiceEnabled = true;
+        let cachedOlgaVoice = null;
+
+        function russianizeForSpeech(text) {
+            const rules = [
+                [/\bthe\b/gi, 'ze'], [/\bthis\b/gi, 'zis'], [/\bthat\b/gi, 'zat'],
+                [/\bthese\b/gi, 'zese'], [/\bthose\b/gi, 'zose'], [/\bthere\b/gi, 'zere'],
+                [/\bthem\b/gi, 'zem'], [/\bthey\b/gi, 'zey'], [/\btheir\b/gi, 'zeir'],
+                [/\bwith\b/gi, 'vith'], [/\bwithout\b/gi, 'vithout'],
+                [/\bwhat\b/gi, 'vhat'], [/\bwhen\b/gi, 'vhen'], [/\bwhere\b/gi, 'vhere'],
+                [/\bwhy\b/gi, 'vhy'], [/\bwhite\b/gi, 'vhite'],
+                [/\bwill\b/gi, 'vill'], [/\bwould\b/gi, 'vould'],
+                [/\bwas\b/gi, 'vas'], [/\bwere\b/gi, 'vere'], [/\bwell\b/gi, 'vell'],
+                [/\bthink\b/gi, 'tink'], [/\bthinking\b/gi, 'tinking'],
+                [/\bthree\b/gi, 'tree'], [/\bthing\b/gi, 'ting'], [/\bthings\b/gi, 'tings'],
+                [/\bvery\b/gi, 'fery'], [/\bwin\b/gi, 'vin'], [/\bwins\b/gi, 'vins'],
+                [/\bwinning\b/gi, 'vinning'], [/\bworld\b/gi, 'vorld'], [/\bwork\b/gi, 'vork'],
+                [/\bwant\b/gi, 'vant'], [/\bwants\b/gi, 'vants'], [/\bwater\b/gi, 'vater'],
+                [/\bwoman\b/gi, 'voman'], [/\bworse\b/gi, 'vorse'], [/\bwrong\b/gi, 'vrong'],
+                [/\bwatch\b/gi, 'vatch'], [/\bwait\b/gi, 'vait'], [/\bwake\b/gi, 'vake'],
+                [/\bSchneider\b/g, 'Shny-der'], [/\bKasparov\b/g, 'Kas-pa-rov'], [/\bKarpov\b/g, 'Kar-pov']
+            ];
+            let spoken = text;
+            for (const [rx, repl] of rules) spoken = spoken.replace(rx, repl);
+            return spoken;
+        }
+
+        function chooseOlgaVoice() {
+            const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+            if (!voices.length) return null;
+            if (cachedOlgaVoice && voices.includes(cachedOlgaVoice)) return cachedOlgaVoice;
+
+            const preferredNames = [
+                'Svetlana', 'Irina', 'Milena', 'Alena', 'Katya', 'Tatyana',
+                'Microsoft Zira', 'Samantha', 'Google US English'
+            ];
+
+            // Prefer Russian female voices when available. If the OS has none,
+            // use a female/neutral English voice and let the phonetic layer carry the accent.
+            cachedOlgaVoice = voices.find(v =>
+                /^ru(-|_)/i.test(v.lang) && preferredNames.some(n => v.name.toLowerCase().includes(n.toLowerCase()))
+            ) || voices.find(v => /^ru(-|_)/i.test(v.lang))
+              || voices.find(v => preferredNames.some(n => v.name.toLowerCase().includes(n.toLowerCase())))
+              || voices.find(v => /^en-US/i.test(v.lang))
+              || voices.find(v => /^en/i.test(v.lang))
+              || voices[0];
+            return cachedOlgaVoice;
+        }
+
+        function speakText(text, onEnd) {
+            if (!window.speechSynthesis || !voiceEnabled) {
+                const duration = Math.min(text.length * 60, 8000);
+                setTimeout(() => { if (onEnd) onEnd(); }, duration);
+                return;
+            }
+
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(russianizeForSpeech(text));
+            const selectedVoice = chooseOlgaVoice();
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+                utterance.lang = selectedVoice.lang || 'en-US';
+            } else {
+                utterance.lang = 'en-US';
+            }
+            utterance.rate = 0.68;   // tired, contemptuous, deliberate
+            utterance.pitch = 0.46;  // darker and older
+            utterance.volume = 1.0;
+
+            utterance.onend = () => { if (onEnd) onEnd(); };
+            utterance.onerror = () => { if (onEnd) onEnd(); };
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function previewOlgaVoice() {
+            voiceEnabled = true;
+            const btn = document.getElementById('voice-btn');
+            if (btn) btn.textContent = '🔊 Voice';
+            speakText('Da, comrade. You vant to hear Olga? Good. Now register, sit down, and try not to embarrass yourself, blyad.', null);
+        }
+
+        // Preload voices; browsers often populate the list asynchronously.
+        if (window.speechSynthesis) {
+            window.speechSynthesis.getVoices();
+            window.speechSynthesis.onvoiceschanged = () => {
+                cachedOlgaVoice = null;
+                chooseOlgaVoice();
+            };
+        }
+
+        function showThinking(show) {
+            document.getElementById('thinking').classList.toggle('active', show);
+        }
+
+        function isWhitePiece(piece) { return piece && piece === piece.toUpperCase(); }
+        function isBlackPiece(piece) { return piece && piece === piece.toLowerCase(); }
+
+        function getValidMoves(row, col) {
+            const piece = board[row][col];
+            if (!piece) return [];
+            
+            const moves = [];
+            const isWhite = isWhitePiece(piece);
+            const type = piece.toLowerCase();
+
+            const directions = {
+                'r': [[0,1],[0,-1],[1,0],[-1,0]],
+                'b': [[1,1],[1,-1],[-1,1],[-1,-1]],
+                'q': [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]],
+                'k': [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]],
+                'n': [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]]
+            };
+
+            if (type === 'p') {
+                const dir = isWhite ? -1 : 1;
+                const startRow = isWhite ? 6 : 1;
+                
+                if (board[row + dir] && !board[row + dir][col]) {
+                    moves.push([row + dir, col]);
+                    if (row === startRow && !board[row + 2*dir][col]) {
+                        moves.push([row + 2*dir, col]);
+                    }
+                }
+                // Captures
+                [-1, 1].forEach(dc => {
+                    const nc = col + dc;
+                    if (nc >= 0 && nc < 8 && board[row + dir] && board[row + dir][nc]) {
+                        if (isWhite ? isBlackPiece(board[row + dir][nc]) : isWhitePiece(board[row + dir][nc])) {
+                            moves.push([row + dir, nc]);
+                        }
+                    }
+                });
+            } else if (type === 'n') {
+                for (const [dr, dc] of directions[type]) {
+                    const nr = row + dr, nc = col + dc;
+                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        const target = board[nr][nc];
+                        if (!target || (isWhite ? isBlackPiece(target) : isWhitePiece(target))) {
+                            moves.push([nr, nc]);
+                        }
+                    }
+                }
+            } else if (type === 'k') {
+                // Normal king moves
+                for (const [dr, dc] of directions[type]) {
+                    const nr = row + dr, nc = col + dc;
+                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        const target = board[nr][nc];
+                        if (!target || (isWhite ? isBlackPiece(target) : isWhitePiece(target))) {
+                            moves.push([nr, nc]);
+                        }
+                    }
+                }
+                
+                // Castling moves
+                if (isWhite && row === 7 && col === 4 && !castlingRights.whiteKingMoved) {
+                    if (!castlingRights.whiteRookKingsideMoved && board[7][7] === 'R' &&
+                        !board[7][5] && !board[7][6] &&
+                        !isSquareAttacked(7, 4, false) && !isSquareAttacked(7, 5, false) && !isSquareAttacked(7, 6, false)) {
+                        moves.push([7, 6]);
+                    }
+                    if (!castlingRights.whiteRookQueensideMoved && board[7][0] === 'R' &&
+                        !board[7][1] && !board[7][2] && !board[7][3] &&
+                        !isSquareAttacked(7, 4, false) && !isSquareAttacked(7, 3, false) && !isSquareAttacked(7, 2, false)) {
+                        moves.push([7, 2]);
+                    }
+                } else if (!isWhite && row === 0 && col === 4 && !castlingRights.blackKingMoved) {
+                    if (!castlingRights.blackRookKingsideMoved && board[0][7] === 'r' &&
+                        !board[0][5] && !board[0][6] &&
+                        !isSquareAttacked(0, 4, true) && !isSquareAttacked(0, 5, true) && !isSquareAttacked(0, 6, true)) {
+                        moves.push([0, 6]);
+                    }
+                    if (!castlingRights.blackRookQueensideMoved && board[0][0] === 'r' &&
+                        !board[0][1] && !board[0][2] && !board[0][3] &&
+                        !isSquareAttacked(0, 4, true) && !isSquareAttacked(0, 3, true) && !isSquareAttacked(0, 2, true)) {
+                        moves.push([0, 2]);
+                    }
+                }
+            } else {
+                for (const [dr, dc] of directions[type]) {
+                    let nr = row + dr, nc = col + dc;
+                    while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        const target = board[nr][nc];
+                        if (!target) {
+                            moves.push([nr, nc]);
+                        } else {
+                            if (isWhite ? isBlackPiece(target) : isWhitePiece(target)) {
+                                moves.push([nr, nc]);
+                            }
+                            break;
+                        }
+                        nr += dr; nc += dc;
+                    }
+                }
+            }
+            return moves;
+        }
+
+        // Filter moves that leave own king in check
+        function getLegalMoves(row, col) {
+            const piece = board[row][col];
+            if (!piece) return [];
+            
+            const isWhite = isWhitePiece(piece);
+            const rawMoves = getValidMoves(row, col);
+            const legalMoves = [];
+            
+            for (const [toRow, toCol] of rawMoves) {
+                // Simulate the move
+                const captured = board[toRow][toCol];
+                const originalPiece = board[row][col];
+                
+                board[toRow][toCol] = originalPiece;
+                board[row][col] = '';
+                
+                // Handle castling rook movement for check test
+                let rookMoved = null;
+                if (piece.toLowerCase() === 'k' && Math.abs(toCol - col) === 2) {
+                    if (toCol === 6) { // Kingside
+                        rookMoved = { from: [row, 7], to: [row, 5] };
+                    } else if (toCol === 2) { // Queenside
+                        rookMoved = { from: [row, 0], to: [row, 3] };
+                    }
+                    if (rookMoved) {
+                        board[rookMoved.to[0]][rookMoved.to[1]] = board[rookMoved.from[0]][rookMoved.from[1]];
+                        board[rookMoved.from[0]][rookMoved.from[1]] = '';
+                    }
+                }
+                
+                // Check if own king is in check after this move
+                const kingInCheck = isInCheck(isWhite);
+                
+                // Undo the move
+                board[row][col] = originalPiece;
+                board[toRow][toCol] = captured;
+                
+                if (rookMoved) {
+                    board[rookMoved.from[0]][rookMoved.from[1]] = board[rookMoved.to[0]][rookMoved.to[1]];
+                    board[rookMoved.to[0]][rookMoved.to[1]] = '';
+                }
+                
+                // Only add if king is not in check
+                if (!kingInCheck) {
+                    legalMoves.push([toRow, toCol]);
+                }
+            }
+            
+            return legalMoves;
+        }
+
+        function isSquareAttacked(row, col, byWhite) {
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const piece = board[r][c];
+                    if (!piece) continue;
+                    const pieceIsWhite = isWhitePiece(piece);
+                    if (pieceIsWhite !== byWhite) continue;
+                    const type = piece.toLowerCase();
+                    if (type === 'p') {
+                        const dir = pieceIsWhite ? -1 : 1;
+                        if (r + dir === row && (c - 1 === col || c + 1 === col)) return true;
+                    } else if (type === 'n') {
+                        const knightMoves = [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]];
+                        for (const [dr, dc] of knightMoves) {
+                            if (r + dr === row && c + dc === col) return true;
+                        }
+                    } else if (type === 'k') {
+                        const kingMoves = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
+                        for (const [dr, dc] of kingMoves) {
+                            if (r + dr === row && c + dc === col) return true;
+                        }
+                    } else {
+                        let directions = [];
+                        if (type === 'r' || type === 'q') directions = directions.concat([[0,1],[0,-1],[1,0],[-1,0]]);
+                        if (type === 'b' || type === 'q') directions = directions.concat([[1,1],[1,-1],[-1,1],[-1,-1]]);
+                        for (const [dr, dc] of directions) {
+                            let nr = r + dr, nc = c + dc;
+                            while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                                if (nr === row && nc === col) return true;
+                                if (board[nr][nc]) break;
+                                nr += dr; nc += dc;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function isInCheck(isWhiteKing) {
+            let kingRow, kingCol;
+            const kingPiece = isWhiteKing ? 'K' : 'k';
+            
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if (board[r][c] === kingPiece) {
+                        kingRow = r; kingCol = c; break;
+                    }
+                }
+            }
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const piece = board[r][c];
+                    if (piece && (isWhiteKing ? isBlackPiece(piece) : isWhitePiece(piece))) {
+                        if (getValidMoves(r, c).some(([mr, mc]) => mr === kingRow && mc === kingCol)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function evaluateBoard() {
+            let score = 0;
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const piece = board[r][c];
+                    if (piece) {
+                        const type = piece.toLowerCase();
+                        let value = pieceValues[type] || 0;
+                        
+                        // Position bonus
+                        if (type === 'p') value += pawnTable[r][c];
+                        else if (type === 'n') value += knightTable[r][c];
+                        
+                        score += isBlackPiece(piece) ? value : -value;
+                    }
+                }
+            }
+            return score;
+        }
+
+        function getAllMoves(forBlack) {
+            const moves = [];
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const piece = board[r][c];
+                    if (piece && (forBlack ? isBlackPiece(piece) : isWhitePiece(piece))) {
+                        for (const [tr, tc] of getLegalMoves(r, c)) {
+                            moves.push({ from: [r, c], to: [tr, tc], piece });
+                        }
+                    }
+                }
+            }
+            return moves;
+        }
+
+        function minimax(depth, alpha, beta, isMaximizing) {
+            if (depth === 0) return evaluateBoard();
+            
+            const moves = getAllMoves(isMaximizing);
+            if (moves.length === 0) return isMaximizing ? -10000 : 10000;
+
+            if (isMaximizing) {
+                let maxEval = -Infinity;
+                for (const move of moves) {
+                    const captured = board[move.to[0]][move.to[1]];
+                    board[move.to[0]][move.to[1]] = board[move.from[0]][move.from[1]];
+                    board[move.from[0]][move.from[1]] = '';
+                    
+                    const eval_ = minimax(depth - 1, alpha, beta, false);
+                    
+                    board[move.from[0]][move.from[1]] = move.piece;
+                    board[move.to[0]][move.to[1]] = captured;
+                    
+                    maxEval = Math.max(maxEval, eval_);
+                    alpha = Math.max(alpha, eval_);
+                    if (beta <= alpha) break;
+                }
+                return maxEval;
+            } else {
+                let minEval = Infinity;
+                for (const move of moves) {
+                    const captured = board[move.to[0]][move.to[1]];
+                    board[move.to[0]][move.to[1]] = board[move.from[0]][move.from[1]];
+                    board[move.from[0]][move.from[1]] = '';
+                    
+                    const eval_ = minimax(depth - 1, alpha, beta, true);
+                    
+                    board[move.from[0]][move.from[1]] = move.piece;
+                    board[move.to[0]][move.to[1]] = captured;
+                    
+                    minEval = Math.min(minEval, eval_);
+                    beta = Math.min(beta, eval_);
+                    if (beta <= alpha) break;
+                }
+                return minEval;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // STOCKFISH ENGINE - Super Grandmaster Level (ELO 3000+)
+        // ═══════════════════════════════════════════════════════════════
+        
+        let stockfish = null;
+        let stockfishReady = false;
+        let pendingMoveCallback = null;
+        
+        // Initialize Stockfish Web Worker
+        function initStockfish() {
+            // Recovery build: use the built-in opening book + minimax engine.
+            // The previous CDN Web Worker could be blocked by cross-origin browser rules.
+            stockfish = null;
+            stockfishReady = false;
+            console.log('OLGA recovery engine ready: opening book + built-in minimax fallback.');
+        }
+
+        // Initialize on load
+        initStockfish();
+        
+        // ═══════════════════════════════════════════════════════════════
+        // KARPOV'S OPENING BOOK - His favorite openings
+        // ═══════════════════════════════════════════════════════════════
+        
+        const karpovOpeningBook = {
+            // Karpov-inspired repertoire with multiple branches.
+            'e2e4': ['c7c6', 'e7e6', 'e7e5'],
+            'e2e4 c7c6 d2d4': ['d7d5'],
+            'e2e4 c7c6 d2d4 d7d5 b1c3': ['d5e4'],
+            'e2e4 c7c6 d2d4 d7d5 b1c3 d5e4 c3e4': ['c8f5'],
+            'e2e4 c7c6 d2d4 d7d5 b1c3 d5e4 c3e4 c8f5 e4g3': ['f5g6'],
+            'e2e4 c7c6 d2d4 d7d5 b1c3 d5e4 c3e4 c8f5 e4g3 f5g6 h2h4': ['h7h6'],
+            'e2e4 c7c6 d2d4 d7d5 b1c3 d5e4 c3e4 c8f5 e4g3 f5g6 h2h4 h7h6 g1f3': ['b8d7'],
+            'e2e4 c7c6 d2d4 d7d5 e4e5': ['c8f5'],
+            'e2e4 c7c6 d2d4 d7d5 e4e5 c8f5 g1f3': ['e7e6'],
+            'e2e4 c7c6 d2d4 d7d5 e4e5 c8f5 g1f3 e7e6 f1e2': ['c6c5'],
+            'e2e4 c7c6 d2d4 d7d5 e4d5': ['c6d5'],
+            'e2e4 c7c6 d2d4 d7d5 e4d5 c6d5 c2c4': ['g8f6'],
+            'e2e4 c7c6 d2d4 d7d5 e4d5 c6d5 c2c4 g8f6 b1c3': ['e7e6'],
+            'e2e4 c7c6 d2d4 d7d5 e4d5 c6d5 c2c4 g8f6 b1c3 e7e6 g1f3': ['f8e7'],
+            'e2e4 e7e6 d2d4': ['d7d5'],
+            'e2e4 e7e6 d2d4 d7d5 b1c3': ['f8b4'],
+            'e2e4 e7e6 d2d4 d7d5 b1c3 f8b4 e4e5': ['c7c5'],
+            'e2e4 e7e6 d2d4 d7d5 b1c3 f8b4 e4e5 c7c5 a2a3': ['b4c3'],
+            'e2e4 e7e6 d2d4 d7d5 g1f3': ['g8f6'],
+            'e2e4 e7e6 d2d4 d7d5 g1f3 g8f6 e4e5': ['f6d7'],
+            'e2e4 e7e5 g1f3': ['b8c6'],
+            'e2e4 e7e5 g1f3 b8c6 f1b5': ['a7a6'],
+            'e2e4 e7e5 g1f3 b8c6 f1b5 a7a6 b5a4': ['g8f6'],
+            'e2e4 e7e5 g1f3 b8c6 f1b5 a7a6 b5a4 g8f6 e1g1': ['f8e7'],
+            'd2d4': ['g8f6', 'd7d5'],
+            'd2d4 g8f6 c2c4': ['e7e6'],
+            'd2d4 g8f6 c2c4 e7e6 b1c3': ['f8b4'],
+            'd2d4 g8f6 c2c4 e7e6 b1c3 f8b4 e2e3': ['e8g8'],
+            'd2d4 g8f6 c2c4 e7e6 b1c3 f8b4 e2e3 e8g8 f1d3': ['d7d5'],
+            'd2d4 g8f6 c2c4 e7e6 b1c3 f8b4 e2e3 e8g8 f1d3 d7d5 g1f3': ['c7c5'],
+            'd2d4 g8f6 c2c4 e7e6 g1f3': ['d7d5'],
+            'd2d4 g8f6 c2c4 e7e6 g1f3 d7d5': ['f8e7'],
+            'd2d4 d7d5 c2c4': ['e7e6'],
+            'd2d4 d7d5 c2c4 e7e6 b1c3': ['g8f6'],
+            'd2d4 d7d5 c2c4 e7e6 b1c3 g8f6 g1f3': ['f8e7'],
+            'd2d4 d7d5 c2c4 e7e6 b1c3 g8f6 g1f3 f8e7 c1f4': ['e8g8'],
+            'd2d4 d7d5 c2c4 e7e6 b1c3 g8f6 g1f3 f8e7 c1f4 e8g8 e2e3': ['b8d7'],
+            'c2c4': ['e7e5'],
+            'c2c4 e7e5 b1c3': ['g8f6'],
+            'c2c4 e7e5 b1c3 g8f6 g1f3': ['b8c6'],
+            'c2c4 e7e5 b1c3 g8f6 g1f3 b8c6 g2g3': ['f8b4'],
+            'c2c4 e7e5 b1c3 g8f6 g1f3 b8c6 g2g3 f8b4 f1g2': ['e8g8'],
+            'g1f3': ['d7d5'],
+            'g1f3 d7d5 g2g3': ['g8f6'],
+            'g1f3 d7d5 g2g3 g8f6 f1g2': ['g7g6'],
+            'g1f3 d7d5 g2g3 g8f6 f1g2 g7g6 e1g1': ['f8g7'],
+            'g1f3 d7d5 g2g3 g8f6 f1g2 g7g6 e1g1 f8g7 d2d3': ['e8g8'],
+            'white_first': 'e2e4',
+            'e2e4 e7e5': ['g1f3'],
+            'e2e4 e7e5 g1f3 b8c6': ['f1b5'],
+            'e2e4 c7c5': ['g1f3'],
+            'e2e4 e7e6': ['d2d4'],
+            'e2e4 c7c6': ['d2d4']
+        };
+        
+        // Famous Karpov games quotes
+        const karpovGameQuotes = {
+            'c7c6': "Caro-Kann. Karpov loved structures like dis: solid first, squeeze later.",
+            'e7e6': "French structure. Small space now, counterattack later. Patience is weapon.",
+            'e7e5': "Classical center. No circus. Develop, control, punish.",
+            'g8f6': "Knight out, pressure on center. Useful piece before useful insult.",
+            'd7d5': "Solid like Soviet concrete. Center first, ego later.",
+            'd5e4': "I take center pawn. Positional lesson: remove what opponent cannot defend.",
+            'c8f5': "Bishop outside chain before e6. Simple detail, annoying consequences.",
+            'f5g6': "Bishop keeps diagonal. Retreat is not surrender when square is better.",
+            'b8d7': "Knight develops quietly. Quiet does not mean harmless.",
+            'f8b4': "Nimzo pressure. Pin first, structural questions later.",
+            'e8g8': "King safe. Rook connected. Now suffering can become organized.",
+            'c7c5': "Pressure on center. Closed positions still have doors; I know where.",
+            'a7a6': "Ask bishop question. Good chess is series of unpleasant questions.",
+            'b8c6': "Develop with tempo on center. No poetry needed.",
+            'f8e7': "Bishop develops, castle follows, position becomes adult.",
+            'g7g6': "Fianchetto structure. Long diagonal, long memory.",
+            'f8g7': "Bishop wakes up. Schneider also wakes up. Bad news for you."
+        };
+        
+        // Get move history in UCI format
+        function getUCIMoveHistory() {
+            return moveHistoryUCI.join(' ');
+        }
+        
+        // Track moves in UCI format
+        let moveHistoryUCI = [];
+        
+        // Convert board position to FEN
+        function boardToFEN() {
+            let fen = '';
+            for (let row = 0; row < 8; row++) {
+                let empty = 0;
+                for (let col = 0; col < 8; col++) {
+                    const piece = board[row][col];
+                    if (piece) {
+                        if (empty > 0) { fen += empty; empty = 0; }
+                        fen += piece;
+                    } else { empty++; }
+                }
+                if (empty > 0) fen += empty;
+                if (row < 7) fen += '/';
+            }
+            fen += isWhiteTurn ? ' w ' : ' b ';
+            let castling = '';
+            if (!castlingRights.whiteKingMoved && !castlingRights.whiteRookKingsideMoved && board[7][7] === 'R') castling += 'K';
+            if (!castlingRights.whiteKingMoved && !castlingRights.whiteRookQueensideMoved && board[7][0] === 'R') castling += 'Q';
+            if (!castlingRights.blackKingMoved && !castlingRights.blackRookKingsideMoved && board[0][7] === 'r') castling += 'k';
+            if (!castlingRights.blackKingMoved && !castlingRights.blackRookQueensideMoved && board[0][0] === 'r') castling += 'q';
+            fen += (castling || '-') + ' - 0 1';
+            return fen;
+        }
+        
+        // Convert UCI move (e.g., "e2e4") to board coordinates
+        function uciToCoords(uci) {
+            const files = 'abcdefgh';
+            const fromCol = files.indexOf(uci[0]);
+            const fromRow = 8 - parseInt(uci[1]);
+            const toCol = files.indexOf(uci[2]);
+            const toRow = 8 - parseInt(uci[3]);
+            const promotion = uci[4] || null;
+            return { fromRow, fromCol, toRow, toCol, promotion };
+        }
+        
+        // Convert board coordinates to UCI move
+        function coordsToUCI(fromRow, fromCol, toRow, toCol, promotion = null) {
+            const files = 'abcdefgh';
+            let uci = files[fromCol] + (8 - fromRow) + files[toCol] + (8 - toRow);
+            if (promotion) uci += promotion;
+            return uci;
+        }
+        
+        // Check opening book for Karpov moves
+        function getOpeningBookMove() {
+            const history = moveHistoryUCI.join(' ');
+            
+            // Check if this position is in Karpov's book
+            if (karpovOpeningBook[history]) {
+                const moves = karpovOpeningBook[history];
+                const move = moves[Math.floor(Math.random() * moves.length)];
+                
+                // Check for Karpov quote
+                if (karpovGameQuotes[move]) {
+                    setTimeout(() => {
+                        updateSpeech(karpovGameQuotes[move]);
+                    }, 500);
+                }
+                
+                return move;
+            }
+            
+            return null;
+        }
+        
+        // Main function to find best move using Stockfish
+        function findBestMoveStockfish(callback) {
+            // First check opening book
+            const bookMove = getOpeningBookMove();
+            if (bookMove) {
+                console.log('Opening book move:', bookMove);
+                setTimeout(() => callback(bookMove), 800); // Small delay for realism
+                return;
+            }
+            
+            // Use Stockfish for middle/endgame
+            if (stockfishReady && stockfish) {
+                const fen = boardToFEN();
+                pendingMoveCallback = callback;
+                
+                stockfish.postMessage('position fen ' + fen);
+                stockfish.postMessage('go depth 15 movetime 2000'); // Strong but not too slow
+            } else {
+                // Fallback to old minimax if Stockfish not ready
+                console.warn('Stockfish not ready, using fallback AI');
+                const move = findBestMoveFallback();
+                if (move) {
+                    const uci = coordsToUCI(move.from[0], move.from[1], move.to[0], move.to[1]);
+                    callback(uci);
+                }
+            }
+        }
+        
+        // Fallback AI (old minimax) if Stockfish fails
+        function findBestMoveFallback() {
+            const moves = getAllMoves(true);
+            let bestMove = null;
+            let bestValue = -Infinity;
+
+            for (const move of moves) {
+                const captured = board[move.to[0]][move.to[1]];
+                board[move.to[0]][move.to[1]] = board[move.from[0]][move.from[1]];
+                board[move.from[0]][move.from[1]] = '';
+
+                const value = minimax(3, -Infinity, Infinity, false);
+
+                board[move.from[0]][move.from[1]] = move.piece;
+                board[move.to[0]][move.to[1]] = captured;
+
+                if (value > bestValue) {
+                    bestValue = value;
+                    bestMove = move;
+                }
+            }
+            return bestMove;
+        }
+
+        function getMoveNotation(fromRow, fromCol, toRow, toCol, piece, captured) {
+            const files = 'abcdefgh';
+            const pieceLetter = piece.toUpperCase() === 'P' ? '' : piece.toUpperCase();
+            const capture = captured ? 'x' : '';
+            const from = piece.toLowerCase() === 'p' && captured ? files[fromCol] : '';
+            return `${pieceLetter}${from}${capture}${files[toCol]}${8 - toRow}`;
+        }
+
+        function renderBoard() {
+            const boardEl = document.getElementById('chess-board');
+            boardEl.innerHTML = '';
+            const validMoves = selectedSquare ? getLegalMoves(selectedSquare[0], selectedSquare[1]) : [];
+
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const square = document.createElement('div');
+                    square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+
+                    if (selectedSquare && selectedSquare[0] === row && selectedSquare[1] === col) {
+                        square.classList.add('selected');
+                    }
+
+                    if (validMoves.some(([r, c]) => r === row && c === col)) {
+                        square.classList.add('valid-move');
+                    }
+
+                    if (lastMoveSquares.some(([r, c]) => r === row && c === col)) {
+                        square.classList.add('last-move');
+                    }
+
+                    const piece = board[row][col];
+                    if (piece) {
+                        const pieceSpan = document.createElement('span');
+                        pieceSpan.className = `piece ${isWhitePiece(piece) ? 'white' : 'black'}`;
+                        pieceSpan.textContent = PIECES[piece];
+                        square.appendChild(pieceSpan);
+                    }
+
+                    square.addEventListener('click', () => handleClick(row, col));
+                    boardEl.appendChild(square);
+                }
+            }
+
+            const indicator = document.getElementById('turn-indicator');
+            if (gameOver) {
+                indicator.textContent = 'Game Over!';
+                indicator.classList.remove('your-turn');
+            } else if (isWhiteTurn) {
+                indicator.textContent = 'Your Turn - White';
+                indicator.classList.add('your-turn');
+            } else {
+                indicator.textContent = 'Olga is thinking...';
+                indicator.classList.remove('your-turn');
+            }
+        }
+
+        function handleClick(row, col) {
+            if (!isWhiteTurn || gameOver) return;
+
+            const piece = board[row][col];
+
+            if (selectedSquare) {
+                const [fromRow, fromCol] = selectedSquare;
+                const validMoves = getLegalMoves(fromRow, fromCol);
+                
+                if (validMoves.some(([r, c]) => r === row && c === col)) {
+                    makePlayerMove(fromRow, fromCol, row, col);
+                    return;
+                }
+                selectedSquare = null;
+            }
+
+            if (piece && isWhitePiece(piece)) {
+                selectedSquare = [row, col];
+            }
+
+            renderBoard();
+        }
+
+        function makePlayerMove(fromRow, fromCol, toRow, toCol) {
+            const piece = board[fromRow][fromCol];
+            const captured = board[toRow][toCol];
+            
+            // Check for castling
+            let isCastling = false;
+            let castlingRook = null;
+            if (piece === 'K' && fromRow === 7 && fromCol === 4) {
+                if (toCol === 6) { isCastling = true; castlingRook = { from: [7, 7], to: [7, 5] }; }
+                else if (toCol === 2) { isCastling = true; castlingRook = { from: [7, 0], to: [7, 3] }; }
+            }
+            
+            // Track UCI move
+            let uciMove = coordsToUCI(fromRow, fromCol, toRow, toCol);
+            if (piece === 'P' && toRow === 0) uciMove += 'q';
+            moveHistoryUCI.push(uciMove);
+            
+            const savedCastlingRights = JSON.parse(JSON.stringify(castlingRights));
+            
+            moveHistory.push({
+                from: [fromRow, fromCol], to: [toRow, toCol], piece, captured,
+                lastMoveSquares: [...lastMoveSquares], castlingRook, savedCastlingRights
+            });
+
+            board[toRow][toCol] = piece;
+            board[fromRow][fromCol] = '';
+            
+            if (isCastling && castlingRook) {
+                board[castlingRook.to[0]][castlingRook.to[1]] = board[castlingRook.from[0]][castlingRook.from[1]];
+                board[castlingRook.from[0]][castlingRook.from[1]] = '';
+            }
+            
+            if (piece === 'K') castlingRights.whiteKingMoved = true;
+            if (piece === 'R' && fromRow === 7 && fromCol === 0) castlingRights.whiteRookQueensideMoved = true;
+            if (piece === 'R' && fromRow === 7 && fromCol === 7) castlingRights.whiteRookKingsideMoved = true;
+            
+            if (piece === 'P' && toRow === 0) board[toRow][toCol] = 'Q';
+
+            lastMoveSquares = [[fromRow, fromCol], [toRow, toCol]];
+            selectedSquare = null;
+            moveCount++;
+
+            const notation = isCastling ? (toCol === 6 ? 'O-O' : 'O-O-O') : getMoveNotation(fromRow, fromCol, toRow, toCol, piece, captured);
+            document.getElementById('move-history').textContent += ` ${Math.ceil(moveCount/2)}.${notation}`;
+
+            let comment;
+            let commentType = 'thinking';
+            const evalBefore = evaluateBoard();
+            
+            if (isInCheck(false)) {
+                comment = getRandomComment('playerCheck');
+                commentType = 'playerCheck';
+            } else if (captured) {
+                comment = getRandomComment('playerCapture');
+                commentType = 'playerCapture';
+            } else if (moveCount === 1) {
+                if (fromRow === 6 && fromCol === 4 && toRow === 4) {
+                    comment = getRandomComment('olga_e4_response');
+                } else if (fromRow === 6 && fromCol === 3 && toRow === 4) {
+                    comment = getRandomComment('olga_d4_response');
+                } else {
+                    comment = getRandomComment('olga_other_response');
+                }
+                commentType = 'gameStart';
+            } else {
+                const evalAfter = evaluateBoard();
+                const evalDiff = evalAfter - evalBefore;
+                
+                if (evalDiff > 200) {
+                    comment = getRandomComment('playerBlunder');
+                    commentType = 'playerBlunder';
+                } else if (evalDiff > 50) {
+                    comment = getRandomComment('playerBadMove');
+                    commentType = 'playerBlunder'; // Also laugh at bad moves
+                } else {
+                    comment = getRandomComment('playerGoodMove');
+                    commentType = 'playerGoodMove';
+                }
+            }
+
+            updateSpeech(comment, commentType);
+            isWhiteTurn = false;
+            renderBoard();
+
+            // Olga's turn
+            setTimeout(() => {
+                showThinking(true);
+                updateSpeech(getRandomComment('olgaThinking'), 'thinking');
+                
+                setTimeout(() => {
+                    makeOlgaMove();
+                }, 1500 + Math.random() * 1500);
+            }, 1000);
+        }
+
+        function makeOlgaMove() {
+            showThinking(true);
+            
+            // Use Stockfish to find best move
+            findBestMoveStockfish(function(uciMove) {
+                showThinking(false);
+                
+                if (!uciMove) {
+                    // Player wins! (Olga has no legal moves)
+                    updateSpeech(getRandomComment('defeat'), 'angry');
+                    gameOver = true;
+                    recordGameResult(true, moveCount); // Record WIN
+                    renderBoard();
+                    return;
+                }
+                
+                const { fromRow, fromCol, toRow, toCol, promotion } = uciToCoords(uciMove);
+                const piece = board[fromRow][fromCol];
+                const captured = board[toRow][toCol];
+                
+                if (!piece) {
+                    console.error('Invalid Stockfish move:', uciMove);
+                    return;
+                }
+
+                let isCastling = false;
+                let castlingRook = null;
+                if (piece === 'k' && fromRow === 0 && fromCol === 4) {
+                    if (toCol === 6) { isCastling = true; castlingRook = { from: [0, 7], to: [0, 5] }; }
+                    else if (toCol === 2) { isCastling = true; castlingRook = { from: [0, 0], to: [0, 3] }; }
+                }
+
+                moveHistoryUCI.push(uciMove);
+                const savedCastlingRights = JSON.parse(JSON.stringify(castlingRights));
+
+                moveHistory.push({
+                    from: [fromRow, fromCol], to: [toRow, toCol], piece, captured,
+                    lastMoveSquares: [...lastMoveSquares], castlingRook, savedCastlingRights
+                });
+
+                board[toRow][toCol] = piece;
+                board[fromRow][fromCol] = '';
+                
+                if (isCastling && castlingRook) {
+                    board[castlingRook.to[0]][castlingRook.to[1]] = board[castlingRook.from[0]][castlingRook.from[1]];
+                    board[castlingRook.from[0]][castlingRook.from[1]] = '';
+                }
+                
+                if (piece === 'k') castlingRights.blackKingMoved = true;
+                if (piece === 'r' && fromRow === 0 && fromCol === 0) castlingRights.blackRookQueensideMoved = true;
+                if (piece === 'r' && fromRow === 0 && fromCol === 7) castlingRights.blackRookKingsideMoved = true;
+                
+                if (piece === 'p' && toRow === 7) board[toRow][toCol] = promotion || 'q';
+
+                lastMoveSquares = [[fromRow, fromCol], [toRow, toCol]];
+                moveCount++;
+
+                const notation = isCastling ? (toCol === 6 ? 'O-O' : 'O-O-O') : getMoveNotation(fromRow, fromCol, toRow, toCol, piece, captured);
+                document.getElementById('move-history').textContent += ` ${notation}`;
+
+                // Check if player is checkmated
+                const playerInCheck = isInCheck(true);
+                const playerHasMoves = getAllMoves(false).length > 0;
+                
+                if (playerInCheck && !playerHasMoves) {
+                    // CHECKMATE - Olga wins!
+                    updateSpeech(getRandomComment('victory'), 'checkmate');
+                    gameOver = true;
+                    recordGameResult(false, moveCount); // Record LOSS
+                    renderBoard();
+                    return;
+                }
+                
+                if (!playerHasMoves) {
+                    // Stalemate
+                    updateSpeech("Stalemate. Boring draw. Like my second marriage - nobody vins, everybody loses.", 'thinking');
+                    gameOver = true;
+                    renderBoard();
+                    return;
+                }
+
+                // Olga's comment
+                let comment;
+                let commentType = 'olgaMove';
+                if (playerInCheck) {
+                    comment = getRandomComment('olgaCheck');
+                    commentType = 'capture'; // Happy when giving check
+                } else if (captured) {
+                    comment = getRandomComment('olgaCapture');
+                    commentType = 'capture'; // Happy when capturing
+                } else {
+                    comment = getRandomComment('olgaMove');
+                    commentType = 'olgaMove';
+                }
+
+                updateSpeech(comment, commentType);
+                isWhiteTurn = true;
+                renderBoard();
+            });
+        }
+
+        function undoMove() {
+            if (moveHistory.length < 2) return;
+            
+            if (moveHistoryUCI.length >= 2) {
+                moveHistoryUCI.pop();
+                moveHistoryUCI.pop();
+            }
+            
+            let last = moveHistory.pop();
+            board[last.from[0]][last.from[1]] = last.piece;
+            board[last.to[0]][last.to[1]] = last.captured || '';
+            if (last.castlingRook) {
+                board[last.castlingRook.from[0]][last.castlingRook.from[1]] = board[last.castlingRook.to[0]][last.castlingRook.to[1]];
+                board[last.castlingRook.to[0]][last.castlingRook.to[1]] = '';
+            }
+            
+            last = moveHistory.pop();
+            board[last.from[0]][last.from[1]] = last.piece;
+            board[last.to[0]][last.to[1]] = last.captured || '';
+            if (last.castlingRook) {
+                board[last.castlingRook.from[0]][last.castlingRook.from[1]] = board[last.castlingRook.to[0]][last.castlingRook.to[1]];
+                board[last.castlingRook.to[0]][last.castlingRook.to[1]] = '';
+            }
+            if (last.savedCastlingRights) castlingRights = JSON.parse(JSON.stringify(last.savedCastlingRights));
+            lastMoveSquares = last.lastMoveSquares;
+            
+            moveCount -= 2;
+            isWhiteTurn = true;
+            selectedSquare = null;
+            
+            updateSpeech(getRandomComment('undo'), 'angry');
+            renderBoard();
+        }
+
+        function resetGame() {
+            board = JSON.parse(JSON.stringify(INITIAL_BOARD));
+            selectedSquare = null;
+            isWhiteTurn = true;
+            moveHistory = [];
+            moveHistoryUCI = [];
+            lastMoveSquares = [];
+            moveCount = 0;
+            gameOver = false;
+            castlingRights = {
+                whiteKingMoved: false, whiteRookKingsideMoved: false, whiteRookQueensideMoved: false,
+                blackKingMoved: false, blackRookKingsideMoved: false, blackRookQueensideMoved: false
+            };
+            document.getElementById('move-history').textContent = 'Moves: ';
+            updateSpeech(getRandomComment('gameStart'), 'gameStart');            renderBoard();
+        }
+
+        function getHint() {
+            updateSpeech(getRandomComment('hint'), 'thinking');
+        }
+
+        function toggleVoice() {
+            voiceEnabled = !voiceEnabled;
+            document.getElementById('voice-btn').textContent = voiceEnabled ? '🔊 Voice' : '🔇 Voice';
+            if (!voiceEnabled) {
+                window.speechSynthesis.cancel();
+                document.getElementById('mouth').classList.remove('talking');
+            }
+        }
+
+        // First click activates speech (browser requirement)
+        document.addEventListener('click', function initVoice() {
+            if (window.speechSynthesis) {
+                const voices = window.speechSynthesis.getVoices();
+                if (voices.length === 0) {
+                    // Voices not loaded yet, wait
+                    setTimeout(() => window.speechSynthesis.getVoices(), 100);
+                }
+            }
+            document.removeEventListener('click', initVoice);
+        }, { once: true });
+
+        // ═══════════════════════════════════════════════════════════════
+        // STATS & LEADERBOARD SYSTEM
+        // ═══════════════════════════════════════════════════════════════
+        
+        const STORAGE_KEY = 'olga_chess_stats';
+        const LEADERBOARD_KEY = 'olga_chess_leaderboard';
+        
+        let playerStats = {
+            name: 'Anonymous',
+            games: 0,
+            wins: 0,
+            losses: 0,
+            bestMoves: 0
+        };
+        
+        // Load stats from localStorage
+        function loadStats() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    playerStats = JSON.parse(saved);
+                    document.getElementById('player-name').value = playerStats.name;
+                }
+                updateStatsDisplay();
+                loadLeaderboard();
+            } catch (e) {
+                console.log('Could not load stats');
+            }
+        }
+        
+        // Save stats to localStorage
+        function saveStats() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(playerStats));
+            } catch (e) {
+                console.log('Could not save stats');
+            }
+        }
+        
+        // Update stats display
+        function updateStatsDisplay() {
+            document.getElementById('stat-games').textContent = playerStats.games;
+            document.getElementById('stat-wins').textContent = playerStats.wins;
+            document.getElementById('stat-losses').textContent = playerStats.losses;
+            document.getElementById('stat-best').textContent = playerStats.bestMoves;
+        }
+        
+        // Record game result
+        function recordGameResult(won, moves) {
+            playerStats.games++;
+            if (won) {
+                playerStats.wins++;
+                if (moves > playerStats.bestMoves) {
+                    playerStats.bestMoves = moves;
+                }
+                // Add to leaderboard if won
+                addToLeaderboard(playerStats.name, moves);
+            } else {
+                playerStats.losses++;
+                // Still track survival moves
+                if (moves > playerStats.bestMoves) {
+                    playerStats.bestMoves = moves;
+                }
+            }
+            saveStats();
+            updateStatsDisplay();
+        }
+        
+        // Leaderboard functions
+        function loadLeaderboard() {
+            try {
+                const saved = localStorage.getItem(LEADERBOARD_KEY);
+                const leaderboard = saved ? JSON.parse(saved) : getDefaultLeaderboard();
+                displayLeaderboard(leaderboard);
+            } catch (e) {
+                displayLeaderboard(getDefaultLeaderboard());
+            }
+        }
+        
+        function getDefaultLeaderboard() {
+            return [
+                { name: "Kasparov", score: 89 },
+                { name: "Karpov", score: 75 },
+                { name: "Fischer", score: 62 },
+                { name: "Tal", score: 51 },
+                { name: "Carlsen", score: 45 }
+            ];
+        }
+        
+        function addToLeaderboard(name, score) {
+            try {
+                const saved = localStorage.getItem(LEADERBOARD_KEY);
+                let leaderboard = saved ? JSON.parse(saved) : getDefaultLeaderboard();
+                
+                // Add new entry
+                leaderboard.push({ name: name || 'Anonymous', score: score });
+                
+                // Sort by score descending
+                leaderboard.sort((a, b) => b.score - a.score);
+                
+                // Keep top 10
+                leaderboard = leaderboard.slice(0, 10);
+                
+                localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboard));
+                displayLeaderboard(leaderboard);
+            } catch (e) {
+                console.log('Could not update leaderboard');
+            }
+        }
+        
+        function displayLeaderboard(leaderboard) {
+            const container = document.getElementById('leaderboard-list');
+            container.innerHTML = leaderboard.slice(0, 5).map((entry, i) => `
+                <div class="leaderboard-entry">
+                    <span class="leaderboard-rank">${i + 1}.</span>
+                    <span class="leaderboard-name">${entry.name}</span>
+                    <span class="leaderboard-score">${entry.score}</span>
+                </div>
+            `).join('');
+        }
+        
+        // Player name change handler
+        document.getElementById('player-name').addEventListener('change', function() {
+            playerStats.name = this.value || 'Anonymous';
+            saveStats();
+        });
+        
+        // Load stats on start
+        loadStats();
+
+        renderBoard();
+    </script>
+    
+    </div><!-- End game-container -->
+    
+    <!-- LOGIN SCRIPT -->
+    <script>
+        // Demo registration is intentionally local-only in this build.
+        // Reviewers can enter and play immediately; no password or external account is required.
+        const savedUser = localStorage.getItem('olga_chess_user');
+        if (savedUser) {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('game-container').classList.add('visible');
+            const userData = JSON.parse(savedUser);
+            document.getElementById('player-name').value = userData.name;
+            playerStats.name = userData.name;
+        }
+
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('user-name').value.trim();
+            const email = document.getElementById('user-email').value.trim();
+            const remember = document.getElementById('notify-updates').checked;
+
+            if (!name || !email) {
+                alert('Please fill in all fields, comrade!');
+                return;
+            }
+
+            const userData = { name, email, remember, timestamp: new Date().toISOString() };
+            if (remember) localStorage.setItem('olga_chess_user', JSON.stringify(userData));
+            else localStorage.removeItem('olga_chess_user');
+
+            // Update player name in game
+            document.getElementById('player-name').value = name;
+            playerStats.name = name;
+            saveStats();
+            
+            // Show game
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('game-container').classList.add('visible');
+            
+            // Trigger game start speech
+            updateSpeech(getRandomComment('gameStart'), 'gameStart');
+        });
+    </script>
+</body>
+</html>
