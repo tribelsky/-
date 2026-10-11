@@ -1,0 +1,39 @@
+{
+  "experiment": "TRANSFORMIX-THREE-STAGES-PRODUCT-LAB-02",
+  "date": "2026-10-12",
+  "source_of_truth": "https://docs.google.com/document/d/14C4YZeYHFy8VgAFUHTxrDPiMLpbzTcotHF5ZnrRgzt4/edit",
+  "source_archive": "https://drive.google.com/file/d/1ABUjjA0ABrMHEL92HRW6zG5kktcTE6Oc/view",
+  "archive_sha256": "5d2e42db3b783cd22b67d3840f1771a2f4b47b930796cc8b79dfba1d6e809003",
+  "stages": [
+    {
+      "name": "Transformix Code 1",
+      "purpose": "Protect, detect and repair in a separate reviewed copy",
+      "evidence": "baseline 1/3 vs candidate 3/3 public checks; original unchanged"
+    },
+    {
+      "name": "Transformix Code 2",
+      "purpose": "Build a missing tested function and preserve the verified repair",
+      "evidence": "two bounded candidate templates; verified invoice_breakdown"
+    },
+    {
+      "name": "Transformix Code 3",
+      "purpose": "Explain via seven reports and compare snapshots for drift",
+      "evidence": "seven categories, drift detected and no false alarm on unchanged file"
+    }
+  ],
+  "independent_acceptance": {
+    "billing": "6/6",
+    "new_capability": "4/4",
+    "negative_controls": "4/4",
+    "source_untouched": true
+  },
+  "execution": "Python standard-library synthetic fixture, local process-level network guard; no kernel-level isolation asserted",
+  "not_proven": [
+    "general-purpose automated software repair",
+    "production customer integration",
+    "live resident monitoring",
+    "self-sufficient evolution",
+    "arbitrary new capability invention"
+  ],
+  "source_location": "full 32-file ZIP in user's connected Google Drive; code not in this GitHub manifest"
+}
