@@ -1,5 +1,7 @@
 const fs=require('fs'),os=require('os'),path=require('path');
 const {scanProject,createSandboxCopy}=require('../src/core/scanner');
+
+// A dependency may be declared in package.json and an external host may be observed at runtime.
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'transformix-test-'));
 fs.writeFileSync(path.join(root,'package.json'),JSON.stringify({dependencies:{express:'^5.0.0'}}));
 fs.writeFileSync(path.join(root,'app.js'),"// TODO replace mock\nfetch('https://example.com/api')\nconst x='placeholder';\n");
