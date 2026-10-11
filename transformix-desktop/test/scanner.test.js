@@ -1,0 +1,14 @@
+const fs=require('fs'),os=require('os'),path=require('path');
+const {scanProject,createSandboxCopy}=require('../src/core/scanner');
+const root=fs.mkdtempSync(path.join(os.tmpdir(),'transformix-test-'));
+fs.writeFileSync(path.join(root,'package.json'),JSON.stringify({dependencies:{express:'^5.0.0'}}));
+fs.writeFileSync(path.join(root,'app.js'),"// TODO replace mock\nfetch('https://example.com/api')\nconst x='placeholder';\n");
+fs.writeFileSync(path.join(root,'.env'),"API_KEY='supersecretvalue123'\n");
+const r=scanProject(root);
+if(!r.readOnly)throw new Error('scan must be read-only');
+if(r.reports.dependencies.items.length!==1)throw new Error('dependency parse failed');
+if(r.reports.productReality.items.length<2)throw new Error('reality detection failed');
+if(r.reports.exposure.items.length<1)throw new Error('exposure detection failed');
+if(r.plutox.decision!=='NO_PLAN')throw new Error('Plutox should stop on exposure');
+const sandbox=createSandboxCopy(root);if(!fs.existsSync(path.join(sandbox,'app.js')))throw new Error('sandbox copy failed');
+console.log('Transformix scanner tests: PASS');
