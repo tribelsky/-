@@ -235,6 +235,8 @@
         .list-panel.recommended .list-head h2{color:#79e4a7!important}
         .list-panel.not-recommended .list-head h2{color:#ff9b9b!important}
         .hero-focus .focus-label{color:#7fddff!important}
+        /* mcm-mentor-retirement-v1: the retired three-question bot stays absent until the verified free-form Astrodamos service is connected. */
+        #mentor,.mentor-shell,[data-mentor-question]{display:none!important}
         .mentor-portrait{background-image:url("assets/11_MAO_MENTOR_YOGA_TRANSPARENT.png")!important;background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important;background-color:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
         #mcm-install{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9999;width:min(92vw,420px);border:1px solid #ffe08a;border-radius:18px;padding:15px 20px;background:linear-gradient(135deg,#f2c46d,#ffe292);color:#16110a;font:800 17px Arial,"Noto Sans Hebrew",sans-serif;box-shadow:0 14px 42px #000b,0 0 0 4px #f2c46d22;cursor:pointer;text-align:center}
         #mcm-install:focus-visible{outline:3px solid #63ddff;outline-offset:3px}
@@ -268,7 +270,7 @@
         }
         @media(display-mode:standalone){#mcm-install{display:none!important}}
       </style>`;
-      const installControl = `<button id="mcm-install" type="button" aria-label="שמירת האפליקציה בטלפון">שמירת האפליקציה בטלפון</button>
+      const mentorRetirementScript = `<script id="mcm-mentor-retirement-v1">\n        (() => {\n          document.querySelectorAll("#mentor,.mentor-shell,[data-mentor-question]").forEach(element => element.remove());\n          document.querySelectorAll("a[href=\'#mentor\'],a[href$=\'#mentor\']").forEach(element => element.remove());\n        })();\n      <\\/script>`;\n      const installControl = `<button id="mcm-install" type="button" aria-label="שמירת האפליקציה בטלפון">שמירת האפליקציה בטלפון</button>
         <section id="mcm-install-sheet" role="dialog" aria-modal="true" aria-labelledby="mcm-install-title" hidden>
           <div id="mcm-install-panel">
             <h2 id="mcm-install-title">שמירת האפליקציה בטלפון</h2>
@@ -774,7 +776,7 @@
       const installableReport = reportHtml
         .replace("</head>", `${revisionMeta}<link rel="manifest" href="manifest.webmanifest?v=6"><link rel="icon" href="mcm-launcher-bright-v5-mao-192.png?v=6" type="image/png"><link rel="apple-touch-icon" sizes="180x180" href="assets/mcm-launcher-bright-v5-mao-180.png?v=6">${mobileScrollFix}</head>`)
         .replace(/<body([^>]*)>/i, `<body$1>${installControl}`)
-        .replace("</body>", `${mapExplanationScript}${processTimingScript}${installScript}</body>`);
+        .replace("</body>", `${mentorRetirementScript}${mapExplanationScript}${processTimingScript}${installScript}</body>`);
       document.open();
       document.write(installableReport);
       document.close();
