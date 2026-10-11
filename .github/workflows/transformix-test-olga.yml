@@ -5,6 +5,7 @@ on:
     branches: [transformix-desktop-v01]
     paths:
       - '.github/workflows/transformix-test-olga.yml'
+      - 'transformix-desktop/src/core/scanner.js'
 jobs:
   scan:
     runs-on: ubuntu-latest
