@@ -65,3 +65,20 @@ jobs:
             ARGUS-10-report.json
             argus-lab-collected/*.json
           retention-days: 30
+
+  treatments:
+    name: Isolated treatment candidates / no upstream writes
+    needs: [probe]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare before and after on two isolated functions
+        run: python3 argus-lab/treatments.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ARGUS-10-isolated-treatment-candidates
+          path: argus-lab-treatment/*
+          if-no-files-found: warn
+          retention-days: 30
