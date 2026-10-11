@@ -1,0 +1,11 @@
+{
+  "name":"OLGA Chess — The Karpov Machine",
+  "short_name":"OLGA Chess",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#0a0a0f",
+  "theme_color":"#00ffc8",
+  "description":"Play against OLGA, a fictional Soviet chess character with a Karpov-inspired chess layer.",
+  "icons":[{"src":"olga-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
