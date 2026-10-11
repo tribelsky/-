@@ -1,0 +1,67 @@
+name: ARGUS-10 Read-Only Parallel Research
+
+on:
+  push:
+    branches: [argus-ten-probe-lab-20261011]
+    paths:
+      - 'argus-lab/**'
+      - '.github/workflows/argus-ten-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: argus-ten-research-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    name: Public source inspection ${{ matrix.id }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        id: ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Execute only permitted read-only probes
+        shell: bash
+        run: python3 argus-lab/probe.py --id "${{ matrix.id }}" --output "reports/${{ matrix.id }}.json"
+      - name: Preserve individual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: argus-probe-${{ matrix.id }}
+          path: reports/${{ matrix.id }}.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  aggregate:
+    name: Evidence review / no upstream writes
+    if: always()
+    needs: [probe]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: argus-probe-*
+          path: reports
+          merge-multiple: true
+      - name: Aggregate receipts
+        run: python3 argus-lab/aggregate.py reports
+      - name: Record evidence on job summary
+        shell: bash
+        run: cat ARGUS-10-report.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ARGUS-10-evidence-bundle
+          path: |
+            ARGUS-10-report.md
+            ARGUS-10-report.json
+            reports/*.json
+          retention-days: 30
