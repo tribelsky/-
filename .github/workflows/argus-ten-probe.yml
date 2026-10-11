@@ -29,13 +29,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Execute only permitted read-only probes
         shell: bash
-        run: python3 argus-lab/probe.py --id "${{ matrix.id }}" --output "reports/${{ matrix.id }}.json"
+        run: python3 argus-lab/probe.py --id "${{ matrix.id }}" --output "argus-lab-output/${{ matrix.id }}.json"
       - name: Preserve individual evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: argus-probe-${{ matrix.id }}
-          path: reports/${{ matrix.id }}.json
+          path: argus-lab-output/${{ matrix.id }}.json
           if-no-files-found: warn
           retention-days: 30
 
@@ -50,10 +50,10 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           pattern: argus-probe-*
-          path: reports
+          path: argus-lab-collected
           merge-multiple: true
       - name: Aggregate receipts
-        run: python3 argus-lab/aggregate.py reports
+        run: python3 argus-lab/aggregate.py argus-lab-collected
       - name: Record evidence on job summary
         shell: bash
         run: cat ARGUS-10-report.md >> "$GITHUB_STEP_SUMMARY"
@@ -63,5 +63,5 @@ jobs:
           path: |
             ARGUS-10-report.md
             ARGUS-10-report.json
-            reports/*.json
+            argus-lab-collected/*.json
           retention-days: 30
