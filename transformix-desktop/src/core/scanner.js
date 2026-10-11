@@ -3,7 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const IGNORE = new Set(['.git','node_modules','dist','build','out','vendor','__pycache__','.next','.cache','coverage','.venv','venv']);
-const TEXT_EXT = new Set(['.js','.jsx','.ts','.tsx','.json','.html','.css','.scss','.md','.txt','.py','.rb','.php','.java','.kt','.cs','.go','.rs','.toml','.yml','.yaml','.xml','.sql','.env','.ini','.conf','.sh','.ps1','.vue','.svelte']);
+const TEXT_EXT = new Set(['.js','.jsx','.ts','.tsx','.json','.html','.css','.scss','.md','.txt','.py','.rb','.php','.java','.kt','.cs','.go','.rs','.toml','.yml','.yaml','.xml','.sql','.env','.ini','.conf','.sh','.ps1','.vue','.svelte','.pgn']);
 const LANG = {
   '.js':'JavaScript','.jsx':'JavaScript','.ts':'TypeScript','.tsx':'TypeScript','.py':'Python','.cs':'C#','.java':'Java','.kt':'Kotlin','.go':'Go','.rs':'Rust','.php':'PHP','.rb':'Ruby','.html':'HTML','.css':'CSS','.scss':'SCSS','.vue':'Vue','.svelte':'Svelte','.sql':'SQL'
 };
@@ -43,6 +43,10 @@ function walk(root, maxFiles=12000) {
   visit(root); return {files,truncated};
 }
 
+function isBenignPlaceholder(line) {
+  return /::placeholder/i.test(line) || /\bplaceholder\s*=\s*["']/i.test(line);
+}
+
 function parseDependencies(root) {
   const deps=[];
   const pkg=path.join(root,'package.json');
@@ -66,7 +70,15 @@ function parseDependencies(root) {
 
 function readiness(root, files, findings) {
   const rels = new Set(files.map(f=>path.relative(root,f).replace(/\\/g,'/').toLowerCase()));
-  const checks = [
+  const isStaticWeb = rels.has('index.html') && !rels.has('package.json');
+  const checks = isStaticWeb ? [
+    ['Entry point', rels.has('index.html')],
+    ['Application page', [...rels].some(x=>x==='game.html' || x.endsWith('/game.html'))],
+    ['Local assets/data', [...rels].some(x=>/\.(?:webp|png|jpe?g|gif|svg|pgn|json)$/.test(x))],
+    ['Tests', [...rels].some(x=>/(^|\/)(test|tests|__tests__)(\/|$)/.test(x))],
+    ['CI', [...rels].some(x=>x.startsWith('.github/workflows/'))],
+    ['License', [...rels].some(x=>x.startsWith('license'))]
+  ] : [
     ['README', [...rels].some(x=>x==='readme.md' || x.startsWith('readme.'))],
     ['Tests', [...rels].some(x=>/(^|\/)(test|tests|__tests__)(\/|$)/.test(x))],
     ['CI', [...rels].some(x=>x.startsWith('.github/workflows/'))],
@@ -113,10 +125,17 @@ function scanProject(root) {
     textFiles++;
     fingerprint.update(crypto.createHash('sha256').update(text).digest('hex'));
     const lines=text.split(/\r?\n/);
+    if (ext === '.pgn') {
+      const games=(text.match(/^\[Event\s+"/gm)||[]).length;
+      if (games) findings.data.push({file:rel,line:0,signal:`PGN archive: ${games} games`});
+    }
     for (let i=0;i<lines.length;i++) {
       const line=lines[i];
       for (const [kind,re] of SECRET_PATTERNS) if (re.test(line)) findings.exposure.push({file:rel,line:i+1,kind});
-      for (const [kind,re] of REALITY_PATTERNS) if (re.test(line)) findings.reality.push({file:rel,line:i+1,kind});
+      for (const [kind,re] of REALITY_PATTERNS) {
+        if (kind==='Placeholder' && isBenignPlaceholder(line)) continue;
+        if (re.test(line)) findings.reality.push({file:rel,line:i+1,kind});
+      }
       if (/\b(?:fetch|axios\.(?:get|post|put|delete)|https?:\/\/|firebase|prisma|mongoose|sequelize|SELECT\s+.+\s+FROM)\b/i.test(line)) {
         if (findings.data.length < 250) findings.data.push({file:rel,line:i+1,signal:line.trim().slice(0,140)});
       }
@@ -125,6 +144,13 @@ function scanProject(root) {
   }
 
   const dependencies=parseDependencies(root);
+  const uniqueEndpoints=[...new Map(endpoints.map(x=>[x.url,x])).values()];
+  for (const ep of uniqueEndpoints) {
+    try {
+      const u=new URL(ep.url);
+      if (!dependencies.some(d=>d.name===u.hostname)) dependencies.push({ecosystem:'external-web',name:u.hostname,version:'runtime'});
+    } catch {}
+  }
   const ready=readiness(root,files,findings);
   const extCounts={}; for(const f of files){const e=path.extname(f).toLowerCase()||'(none)';extCounts[e]=(extCounts[e]||0)+1;}
   const report={
@@ -137,9 +163,9 @@ function scanProject(root) {
     stats:{files:files.length,textFiles,languages:languageCounts,extensions:extCounts},
     reports:{
       structure:{summary:`${files.length} files mapped; ${Object.keys(topDirs).length} top-level areas.`,topAreas:Object.entries(topDirs).sort((a,b)=>b[1]-a[1]).slice(0,30)},
-      data:{summary:`${findings.data.length} data/API signals found.`,items:findings.data.slice(0,200),endpoints:[...new Map(endpoints.map(x=>[x.url,x])).values()].slice(0,100)},
+      data:{summary:`${findings.data.length} data/API signals found.`,items:findings.data.slice(0,200),endpoints:uniqueEndpoints.slice(0,100)},
       exposure:{summary:`${findings.exposure.length} potential exposure findings.`,items:findings.exposure.slice(0,100)},
-      productReality:{summary:`${findings.reality.length} TODO/MOCK/PLACEHOLDER or environment signals.`,items:findings.reality.slice(0,200)},
+      productReality:{summary:`${findings.reality.length} actionable TODO/MOCK/PLACEHOLDER or environment signals after syntax filtering.`,items:findings.reality.slice(0,200)},
       dependencies:{summary:`${dependencies.length} declared dependencies.`,items:dependencies},
       readiness:{summary:`Readiness evidence score ${ready.score}/100.`,score:ready.score,checks:ready.checks},
       repairUpgrade:{summary:'Derived after evidence review; no source write is performed by scan.',items:[]}
