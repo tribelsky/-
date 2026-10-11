@@ -1,0 +1,85 @@
+{
+  "experiment": "CROSS-APP-SKILL-METAMORPHOSIS-01",
+  "version": "0.1.0-prototype",
+  "status": "DESIGN_AND_ADAPTER_SELECTION_ONLY",
+  "parent_skills": [
+    {
+      "id": "frontend-api-contracts",
+      "platform": "OpenHands",
+      "repo": "OpenHands/OpenHands",
+      "commit": "1104f0af1debed08bd8e0ab9daf31111ff1d8b0c",
+      "file": ".agents/skills/frontend-api-contracts/SKILL.md",
+      "blob_sha": "27a723407327da79ef47c9d2ffc0e7972453f250",
+      "traits": [
+        "typed_api_contracts",
+        "backend_ownership",
+        "authentication_invariants",
+        "compatibility_testing",
+        "persistence_invariants"
+      ]
+    },
+    {
+      "id": "piece-builder",
+      "platform": "Activepieces",
+      "repo": "activepieces/activepieces",
+      "commit": "cbcb98faaac92e0e47cef204c7e3c9aa1f071cc4",
+      "file": ".agents/skills/piece-builder/SKILL.md",
+      "blob_sha": "ea73ccfd733f83ab85366e20878e93fcf5fdd257",
+      "traits": [
+        "integration_discovery",
+        "action_trigger_design",
+        "auth_mapping",
+        "native_scaffolding",
+        "versioned_build_lint"
+      ]
+    }
+  ],
+  "offspring": {
+    "name": "cross-app-contract-builder-verifier",
+    "purpose": "Use one contract-centered capability to plan and later verify an integration change in both repositories through native adapters; do not treat textual composition alone as proof.",
+    "core_traits": [
+      "typed_api_contracts",
+      "authentication_invariants",
+      "compatibility_testing",
+      "integration_discovery",
+      "action_trigger_design",
+      "auth_mapping",
+      "evidence_collection"
+    ],
+    "adapter_targets": [
+      "OpenHands",
+      "Activepieces"
+    ],
+    "external_write_authorized": false
+  },
+  "tests": [
+    {
+      "host": "OpenHands",
+      "case": "Frontend API contract change; map auth, typed client, local/cloud compatibility and action contract",
+      "expected_origin_traits": [
+        "typed_api_contracts",
+        "authentication_invariants",
+        "action_trigger_design",
+        "evidence_collection"
+      ]
+    },
+    {
+      "host": "Activepieces",
+      "case": "Existing piece extension; map typed contract, auth, action wiring, version and lint/build",
+      "expected_origin_traits": [
+        "typed_api_contracts",
+        "auth_mapping",
+        "action_trigger_design",
+        "evidence_collection"
+      ]
+    }
+  ],
+  "acceptance_gates": [
+    "Both real SKILL.md parents fetched and provenance pinned",
+    "No unlicensed copying; original instructions summarized only",
+    "A single shared core must route to two native adapters",
+    "Each planned task includes a contribution from each parent, not superficial concatenation",
+    "Independent execution in both real apps required before a working-cross-app claim",
+    "No edits to third-party repositories without scoped authorization"
+  ]
+}
