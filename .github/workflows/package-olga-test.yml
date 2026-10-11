@@ -1,0 +1,23 @@
+name: Package OLGA GitHub Test App
+on:
+  workflow_dispatch:
+  push:
+    branches: [transformix-desktop-v01]
+    paths:
+      - '.github/workflows/package-olga-test.yml'
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package OLGA
+        run: |
+          mkdir -p package
+          cp -R olga-chess package/OLGA_GitHub_Test_App
+          cd package
+          zip -r ../OLGA_GitHub_Test_App.zip OLGA_GitHub_Test_App
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OLGA_GitHub_Test_App
+          path: OLGA_GitHub_Test_App.zip
+          if-no-files-found: error
