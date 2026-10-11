@@ -1,0 +1,55 @@
+name: Transformix Scan OLGA
+on:
+  workflow_dispatch:
+  push:
+    branches: [transformix-desktop-v01]
+    paths:
+      - '.github/workflows/transformix-test-olga.yml'
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run Transformix read-only scan on OLGA
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');
+          const path=require('path');
+          const {scanProject}=require('./transformix-desktop/src/core/scanner');
+          const target=path.resolve('olga-chess');
+          const before=fs.readdirSync(target,{recursive:true}).length;
+          const report=scanProject(target);
+          const after=fs.readdirSync(target,{recursive:true}).length;
+          if(!report.readOnly) throw new Error('Expected readOnly=true');
+          if(before!==after) throw new Error('File count changed during scan');
+          fs.mkdirSync('transformix-test-output',{recursive:true});
+          fs.writeFileSync('transformix-test-output/olga-transformix-report.json',JSON.stringify(report,null,2));
+          const summary={
+            source:'olga-chess',
+            readOnly:report.readOnly,
+            files:report.stats.files,
+            textFiles:report.stats.textFiles,
+            languages:report.stats.languages,
+            exposureFindings:report.reports.exposure.items.length,
+            productRealityFindings:report.reports.productReality.items.length,
+            dependencies:report.reports.dependencies.items.length,
+            readinessScore:report.reports.readiness.score,
+            plutoxDecision:report.plutox.decision,
+            plutoxReason:report.plutox.reason,
+            plutoxActions:report.plutox.actions,
+            fingerprint:report.sourceSnapshotFingerprint
+          };
+          fs.writeFileSync('transformix-test-output/olga-transformix-summary.json',JSON.stringify(summary,null,2));
+          console.log(JSON.stringify(summary,null,2));
+          NODE
+      - name: Verify OLGA source unchanged in git
+        run: |
+          git diff --exit-code -- olga-chess
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Transformix-OLGA-ReadOnly-Report
+          path: transformix-test-output/*
+          if-no-files-found: error
