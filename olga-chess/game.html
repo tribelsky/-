@@ -1125,8 +1125,16 @@
         }
 </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#00ffc8">
+    <link rel="icon" href="olga-icon.svg">
+    <style>
+      #olga-install-app{position:fixed;top:14px;right:14px;z-index:10000;background:#10232d;color:#eafffb;border:1px solid #00ffc8;border-radius:10px;padding:9px 13px;font-weight:700;cursor:pointer;box-shadow:0 8px 25px rgba(0,0,0,.25)}
+      #olga-install-app[hidden]{display:none}
+    </style>
 </head>
 <body>
+<button id="olga-install-app" hidden>⬇ Install OLGA</button>
     <!-- LOGIN SCREEN -->
     <div class="login-screen" id="login-screen">
         <div class="login-container">
@@ -3550,5 +3558,11 @@
             updateSpeech(getRandomComment('gameStart'), 'gameStart');
         });
     </script>
+<script>
+let olgaInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();olgaInstallPrompt=e;const b=document.getElementById('olga-install-app');if(b)b.hidden=false;});
+document.getElementById('olga-install-app')?.addEventListener('click',async()=>{if(!olgaInstallPrompt)return;olgaInstallPrompt.prompt();await olgaInstallPrompt.userChoice;olgaInstallPrompt=null;document.getElementById('olga-install-app').hidden=true;});
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
+</script>
 </body>
 </html>
