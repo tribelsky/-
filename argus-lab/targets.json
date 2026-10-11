@@ -1,0 +1,213 @@
+{
+  "experiment": "ARGUS-10",
+  "date": "2026-10-11",
+  "mode": "READ_ONLY_STATIC_WITH_OPTIONAL_ISOLATED_FUNCTION_PROBE",
+  "disclaimer": "A source signature and an open issue do not prove a current bug.",
+  "targets": [
+    {
+      "id": "01",
+      "name": "OpenHands",
+      "repo": "OpenHands/OpenHands",
+      "commit": "fddb0ddcfe0d5ab8e32dd109291406a1d33813f1",
+      "issue": 18287,
+      "tool": "React key uniqueness + UI regression",
+      "treatment": "להחליף מזהים מבוססי שם במזהי מקור יציבים ולבדוק סינון",
+      "checks": [
+        {
+          "file": "src/routes/skills-plugins.tsx",
+          "needle": "key={plugin.name}",
+          "meaning": "React key based solely on plugin name"
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "name": "Dify",
+      "repo": "langgenius/dify",
+      "commit": "eb0b4fd94c3d3d6128e2933999e8b416b7fbe699",
+      "issue": 36230,
+      "tool": "Mock MCP server + OAuth state tests",
+      "treatment": "לבדוק גילוי צורך ב-OAuth גם אחרי initialize 200",
+      "checks": [
+        {
+          "file": "api/core/mcp/auth_client.py",
+          "needle": "MCPAuthError",
+          "meaning": "MCP auth error handling exists"
+        },
+        {
+          "file": "api/core/mcp/auth_client.py",
+          "needle": "_execute_with_retry",
+          "meaning": "Retry wrapper exists"
+        }
+      ]
+    },
+    {
+      "id": "03",
+      "name": "Langflow",
+      "repo": "langflow-ai/langflow",
+      "commit": "504c02fc47e76087b82b0e7cbe4186e9cdd916d4",
+      "issue": 15702,
+      "tool": "Isolated Python encoding function + pytest",
+      "treatment": "לתקן מסלול CP1252 או לדווח שגיאה מפורשת בלי החלפה שקטה",
+      "checks": [
+        {
+          "file": "src/lfx/src/lfx/base/data/utils.py",
+          "needle": "_detect_encoding_with_fallbacks",
+          "meaning": "Encoding detection function exists"
+        },
+        {
+          "file": "src/lfx/src/lfx/base/data/utils.py",
+          "needle": "Windows-1252",
+          "meaning": "Special handling of CP1252 detected"
+        }
+      ]
+    },
+    {
+      "id": "04",
+      "name": "AnythingLLM",
+      "repo": "Mintplex-Labs/anything-llm",
+      "commit": "2a10d052a1812d7be12c43f9024072cf26a27a8b",
+      "issue": 6682,
+      "tool": "Jest isolated prompt substitution tests",
+      "treatment": "לייצב החלפות לתחומי המחרוזת המקורית ולמנוע הרחבת ערכים חדשים",
+      "checks": [
+        {
+          "file": "server/models/systemPromptVariables.js",
+          "needle": "const matches = str.match(",
+          "meaning": "Match enumeration operates on original prompt"
+        },
+        {
+          "file": "server/models/systemPromptVariables.js",
+          "needle": "result.replace(match",
+          "meaning": "Replacements occur on mutated result"
+        }
+      ]
+    },
+    {
+      "id": "05",
+      "name": "RAGFlow",
+      "repo": "infiniflow/ragflow",
+      "commit": "b45dfd927f7bad20069558e3563adbbacab0140d",
+      "issue": 20716,
+      "tool": "Go schema contract + fixture validation",
+      "treatment": "לשמור או להמיר פורמט פרמטרים ישן בתבניות",
+      "checks": [
+        {
+          "file": "internal/ingestion/pipeline/pipeline_params.go",
+          "needle": "CleanComponentParams",
+          "meaning": "Parameter cleaner exists"
+        },
+        {
+          "file": "internal/agent/templates/chunk_summary.json",
+          "needle": "\"field_name\"",
+          "meaning": "Legacy field in template"
+        },
+        {
+          "file": "internal/agent/templates/chunk_summary.json",
+          "needle": "\"prompts\"",
+          "meaning": "Legacy prompt field in template"
+        }
+      ]
+    },
+    {
+      "id": "06",
+      "name": "n8n",
+      "repo": "n8n-io/n8n",
+      "commit": "3301b2cc0f59d28753b0219883f2c9dbc522dc03",
+      "issue": 40839,
+      "tool": "Typed HTTP response fixture + Node test",
+      "treatment": "לשמר JSON string כשורש בלי פירוק כפול",
+      "checks": [
+        {
+          "file": "packages/nodes-base/nodes/HttpRequest/V3/HttpRequestV3.node.ts",
+          "needle": "autoDetectResponseFormat",
+          "meaning": "Autodetect branch present"
+        },
+        {
+          "file": "packages/nodes-base/nodes/HttpRequest/V3/HttpRequestV3.node.ts",
+          "needle": "jsonParse",
+          "meaning": "JSON parsing helper referenced"
+        }
+      ]
+    },
+    {
+      "id": "07",
+      "name": "Khoj",
+      "repo": "khoj-ai/khoj",
+      "commit": "ae229ca894c0b80ad84664afcfdde523b5e87057",
+      "issue": 1439,
+      "tool": "Python history window unit test",
+      "treatment": "לשמר את ההודעות האחרונות תוך שמירת סדר כרונולוגי",
+      "checks": [
+        {
+          "file": "src/khoj/processor/operator/operator_agent_base.py",
+          "needle": "self.message_limit",
+          "meaning": "Context window budget exists"
+        },
+        {
+          "file": "src/khoj/processor/operator/operator_agent_anthropic.py",
+          "needle": "if len(self.messages) > self.message_limit:",
+          "meaning": "Context compaction trigger exists"
+        }
+      ]
+    },
+    {
+      "id": "08",
+      "name": "Open WebUI",
+      "repo": "open-webui/open-webui",
+      "commit": "f8ae8a6c328946dc62cd0712961a0632574581bf",
+      "issue": 32238,
+      "tool": "Browser compatibility tests",
+      "treatment": "לבדוק API randomUUID ותמיכת דפדפנים נתמכים",
+      "checks": [
+        {
+          "file": "src/lib/components/workspace/Skills.svelte",
+          "needle": "crypto.randomUUID()",
+          "meaning": "UUID call in Skills view"
+        }
+      ]
+    },
+    {
+      "id": "09",
+      "name": "Activepieces",
+      "repo": "activepieces/activepieces",
+      "commit": "cbcb98faaac92e0e47cef204c7e3c9aa1f071cc4",
+      "issue": 16368,
+      "tool": "Self-host integration smoke test",
+      "treatment": "לבדוק יצירת metadata של Google Sheets piece בסביבת פיתוח",
+      "checks": [
+        {
+          "file": "packages/server/api/src/app/pieces/piece-install-service.ts",
+          "needle": "extractPieceInformation",
+          "meaning": "Piece metadata extraction path present"
+        },
+        {
+          "file": "packages/pieces/community/google-sheets/src/index.ts",
+          "needle": "createPiece",
+          "meaning": "Google Sheets piece registration present"
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "name": "Continue",
+      "repo": "continuedev/continue",
+      "commit": "5522c6f44ca0ac3528b37244818fbfa39b5af470",
+      "issue": 13268,
+      "tool": "Ollama tool-call integration fixture",
+      "treatment": "לבדוק העברת סכמת search_web, בחירת כלי ותשובת מודל מקומי",
+      "checks": [
+        {
+          "file": "core/tools/builtIn.ts",
+          "needle": "SearchWeb = \"search_web\"",
+          "meaning": "Search web tool identifier"
+        },
+        {
+          "file": "core/llm/llms/Ollama.ts",
+          "needle": "tools?: OllamaTool[]",
+          "meaning": "Ollama tool transport type present"
+        }
+      ]
+    }
+  ]
+}
