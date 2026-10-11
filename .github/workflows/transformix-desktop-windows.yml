@@ -1,0 +1,29 @@
+name: Build Transformix Desktop Windows
+on:
+  workflow_dispatch:
+  push:
+    branches: [transformix-desktop-v01]
+    paths:
+      - 'transformix-desktop/**'
+      - '.github/workflows/transformix-desktop-windows.yml'
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: transformix-desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: transformix-desktop/package.json
+      - run: npm install
+      - run: npm test
+      - run: npm run dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Transformix-Desktop-Windows-0.1
+          path: transformix-desktop/dist/*
+          if-no-files-found: error
