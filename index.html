@@ -270,7 +270,8 @@
         }
         @media(display-mode:standalone){#mcm-install{display:none!important}}
       </style>`;
-      const mentorRetirementScript = `<script id="mcm-mentor-retirement-v1">\n        (() => {\n          document.querySelectorAll("#mentor,.mentor-shell,[data-mentor-question]").forEach(element => element.remove());\n          document.querySelectorAll("a[href=\'#mentor\'],a[href$=\'#mentor\']").forEach(element => element.remove());\n        })();\n      <\\/script>`;\n      const installControl = `<button id="mcm-install" type="button" aria-label="שמירת האפליקציה בטלפון">שמירת האפליקציה בטלפון</button>
+      const mentorRetirementScript = `<script id="mcm-mentor-retirement-v1">\n        (() => {\n          document.querySelectorAll("#mentor,.mentor-shell,[data-mentor-question]").forEach(element => element.remove());\n          document.querySelectorAll("a[href=\'#mentor\'],a[href$=\'#mentor\']").forEach(element => element.remove());\n        })();\n      <\\/script>`;
+      const installControl = `<button id="mcm-install" type="button" aria-label="שמירת האפליקציה בטלפון">שמירת האפליקציה בטלפון</button>
         <section id="mcm-install-sheet" role="dialog" aria-modal="true" aria-labelledby="mcm-install-title" hidden>
           <div id="mcm-install-panel">
             <h2 id="mcm-install-title">שמירת האפליקציה בטלפון</h2>
