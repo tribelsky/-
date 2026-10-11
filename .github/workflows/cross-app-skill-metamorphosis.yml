@@ -1,0 +1,30 @@
+name: Cross-App Skill Metamorphosis v0.1
+
+on:
+  push:
+    branches: [cross-app-skill-metamorphosis-v01]
+    paths:
+      - 'cross-app-metamorphosis/**'
+      - '.agents/skills/cross-app-contract-builder-verifier/**'
+      - '.github/workflows/cross-app-skill-metamorphosis.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-composite-skill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate lineage, skill format and both app adapters
+        run: python3 cross-app-metamorphosis/prototype.py
+      - name: Preserve two app-specific plans and honest outcome
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cross-App-Metamorphosis-v01-ReadOnly-Probe
+          path: cross-app-metamorphosis/out/*.json
+          if-no-files-found: warn
+          retention-days: 30
