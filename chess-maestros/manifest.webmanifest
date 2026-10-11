@@ -1,0 +1,11 @@
+{
+  "name":"Chess Maestros — The 15 Immortals",
+  "short_name":"Chess Maestros",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#071019",
+  "theme_color":"#0b1724",
+  "description":"A character-driven chess world built around 15 legendary masters: play, study, explore games, style, history and community.",
+  "icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
