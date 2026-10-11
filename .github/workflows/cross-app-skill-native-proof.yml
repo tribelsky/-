@@ -1,0 +1,117 @@
+name: Cross-App Skill Metamorphosis - Native Code Proof
+
+on:
+  push:
+    branches: [cross-app-skill-metamorphosis-v01]
+    paths:
+      - 'cross-app-metamorphosis/**'
+      - '.agents/skills/cross-app-contract-builder-verifier/**'
+      - '.github/workflows/cross-app-skill-native-proof.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  execute-skill:
+    name: Execute composite skill / ${{ matrix.host }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - host: OpenHands
+            repository: OpenHands/OpenHands
+            ref: 1104f0af1debed08bd8e0ab9daf31111ff1d8b0c
+            sparse: |
+              src/api/skills-service.ts
+              .agents/skills/frontend-api-contracts/SKILL.md
+          - host: Activepieces
+            repository: activepieces/activepieces
+            ref: cbcb98faaac92e0e47cef204c7e3c9aa1f071cc4
+            sparse: |
+              packages/pieces/community/google-sheets/src/index.ts
+              packages/pieces/community/google-sheets/src/lib/actions/get-rows.ts
+              .agents/skills/piece-builder/SKILL.md
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.repository }}
+          ref: ${{ matrix.ref }}
+          path: host-code
+          persist-credentials: false
+          sparse-checkout: ${{ matrix.sparse }}
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install TypeScript AST parser only (do not install host code dependencies)
+        run: npm install --prefix cross-app-metamorphosis --no-save --ignore-scripts --no-audit --no-fund typescript@5.9.3
+      - name: Execute real SHA-pinned host functions with controlled mock I/O
+        run: node cross-app-metamorphosis/real_probe.cjs "${{ matrix.host }}" host-code "cross-app-metamorphosis/out/${{ matrix.host }}.json"
+      - name: Preserve host-specific evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skill-proof-${{ matrix.host }}
+          path: cross-app-metamorphosis/out/${{ matrix.host }}.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  evidence:
+    name: Cross-app evidence gate
+    needs: [execute-skill]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: skill-proof-*
+          merge-multiple: true
+          path: native-proof-results
+      - name: Independently gate reports from both native-code adapters
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+          p=Path('native-proof-results')
+          reports={f.stem:json.loads(f.read_text()) for f in p.glob('*.json')}
+          out=[
+            '# Cross-app Skill Metamorphosis - Native Code Proof',
+            '',
+            'Two actual application codebases, pinned to specific commits. Real upstream methods executed under mocked external boundaries.',
+            '',
+            '| Host | Result | Baseline checks | Negative control | Harmless comment |',
+            '|---|---|---:|---|---|'
+          ]
+          for host in ['OpenHands','Activepieces']:
+            report=reports.get(host)
+            if not report:
+              out.append('| '+host+' | MISSING | 0 | - | - |')
+              continue
+            gates=report['original_code_checks']
+            controls=report['controls']
+            out.append('| '+host+' | '+report['status']+' | '+str(sum(x['pass'] for x in gates))+'/'+str(len(gates))+
+              ' | '+str(controls['seeded_auth_or_registration_error_detected'])+
+              ' | '+str(controls['harmless_comment_passed'])+' |')
+          out+=['','Scope: not a full-application launch or a proof of autonomous skill synthesis. No upstream repositories modified.']
+          Path('NATIVE-PROOF.md').write_text('\n'.join(out)+'\n')
+          print('\n'.join(out))
+          assert set(reports)=={'OpenHands','Activepieces'}, 'Both hosts must report'
+          assert all(x['status']=='PASS' for x in reports.values()), 'One native-code adapter failed'
+      - name: Archive both original evidence receipts and summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CROSS-APP-REAL-CODE-PROOF
+          path: |
+            NATIVE-PROOF.md
+            native-proof-results/*.json
+          if-no-files-found: warn
+          retention-days: 30
