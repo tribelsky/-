@@ -1,0 +1,225 @@
+{
+  "experiment": "ARGUS-PREVENTIVE-WAVE-01",
+  "as_of": "2026-10-12",
+  "version": "0.1.0",
+  "source": "ARGUS-10 read-only pinned sources and reported GitHub issues; some reports are not independently reproduced",
+  "design_rule": "A proactive hypothesis is not a forecast; detect and test early indicators before claiming a repair or averted outage.",
+  "scope": "Generate 10 original host-specific SKILL.md candidates in owned isolated repo. Never install or write to third-party repositories without authorization.",
+  "stages": {
+    "Code 1": "diagnose, detect risk signals, reproduce within isolated sandbox",
+    "Code 2": "compose tailored preventive skill, propose minimal patch or test",
+    "Code 3": "verify regression and baseline, record evidence; no persistent monitoring active"
+  },
+  "cases": [
+    {
+      "id": "01",
+      "repo": "OpenHands/OpenHands",
+      "name": "OpenHands",
+      "slug": "openhands-skill-source-guard",
+      "issue": 18287,
+      "kind": "source_risk",
+      "purpose": "Prevent duplicate/misidentified skills when local and bundled sources use the same skill name.",
+      "primaryFile": "src/routes/skills-plugins.tsx",
+      "positive": "key={plugin.name}",
+      "watch": "React card identity is derived only from a name; overlapping local/public skill names can produce unstable reconciliation.",
+      "earlySigns": [
+        "Two distinct skill source records resolve to the same display identity",
+        "Cards visually repeat one source path after reload or filtering"
+      ],
+      "preflight": "Inspect stable React keys and verify both original skill sources stay distinguishable; read-only simulate same-name/different-source records.",
+      "prevention": "Create a regression fixture with duplicate display names from different sources. Propose a source-scoped stable identity and verify filtering/selection is preserved.",
+      "acceptance": "Two skill records with the same name and distinct source IDs render exactly two correctly labeled selectable cards after search, reload and install-state changes.",
+      "integration": "Run frontend React component tests and Playwright against isolated Agent Canvas, not live accounts.",
+      "priority": "medium"
+    },
+    {
+      "id": "02",
+      "repo": "langgenius/dify",
+      "name": "Dify",
+      "slug": "dify-mcp-oauth-lifecycle-guard",
+      "issue": 36230,
+      "kind": "integration_gap",
+      "purpose": "Proactively verify MCP OAuth negotiation when initialize succeeds before a protected call.",
+      "primaryFile": "api/core/mcp/auth_client.py",
+      "positive": "MCPAuthError",
+      "watch": "A successful MCP initialize response need not mean subsequent resources/tools calls are authorized.",
+      "earlySigns": [
+        "Initialize HTTP 200 followed by a 401/WWW-Authenticate response during tools/list",
+        "Authentication retry runs without preserving action state"
+      ],
+      "preflight": "Require protocol fixtures for HTTP 200 initialize followed by unauthorized tools/list; inventory resource metadata and OAuth challenge parsing.",
+      "prevention": "Add mocked MCP integration scenario, bounded retry behavior and error report that preserves the original unauthorized cause.",
+      "acceptance": "Authenticated and unauthenticated mock flows both behave correctly, token refresh is bounded, no infinite retry and no credential leakage.",
+      "integration": "Python pytest with local mocked MCP transport; no real Google account or tokens.",
+      "priority": "high"
+    },
+    {
+      "id": "03",
+      "repo": "langflow-ai/langflow",
+      "name": "Langflow",
+      "slug": "langflow-encoding-data-integrity-guard",
+      "issue": 15702,
+      "kind": "isolated_reproduced",
+      "purpose": "Prevent silent corruption of non-UTF-8 file text and prevent guessing unsupported encodings.",
+      "primaryFile": "src/lfx/src/lfx/base/data/utils.py",
+      "positive": "if detected_encoding in {\"Windows-1252\"",
+      "watch": "Windows-1252/MacRoman/Windows-1254 detector decisions may be discarded; fallback to permissive codecs hides corruption.",
+      "earlySigns": [
+        "Smart quotes and euro symbols become control characters",
+        "Encoding detector confidence is low and permissive fallback silently succeeds"
+      ],
+      "preflight": "Run isolated upstream _detect_encoding_with_fallbacks with known CP1252 bytes and a mocked detector; capture mismatched Unicode codepoints.",
+      "prevention": "Use reviewed conditional fallback policy plus explicit confidence/round-trip tests and preserve UTF-8 behavior; avoid naive Latin-1 acceptance.",
+      "acceptance": "CP1252 quote, euro, em dash decode correctly; UTF-8 and ASCII remain correct; ambiguous bytes are flagged rather than silently reported as correct.",
+      "integration": "Real read_text_file pytest fixture in isolated Langflow checkout, then whole-project tests; no uploads of private documents.",
+      "priority": "critical"
+    },
+    {
+      "id": "04",
+      "repo": "Mintplex-Labs/anything-llm",
+      "name": "AnythingLLM",
+      "slug": "anythingllm-template-substitution-guard",
+      "issue": 6682,
+      "kind": "isolated_reproduced",
+      "purpose": "Prevent user/workspace prompt variables from altering original placeholder positions.",
+      "primaryFile": "server/models/systemPromptVariables.js",
+      "positive": "const matches = str.match(",
+      "watch": "Replacing matches sequentially in a growing result can mutate inserted values before replacing original placeholders.",
+      "earlySigns": [
+        "Inserted value contains literal {key} token",
+        "Duplicate token keys or unknown tokens appear in prompt after expansion"
+      ],
+      "preflight": "Run upstream expandSystemPromptVariables in a dependency-mocked VM on {first} {second} with first='X {second}' and second='Y'.",
+      "prevention": "Preserve original match positions through single-pass interpolation or collision-safe source-slot mapping, plus tests for duplicates and unknown tokens.",
+      "acceptance": "Original placeholders get their own values exactly once, literal inserted placeholders are preserved, unknown keys stay untouched, user-provided text is not recursively expanded.",
+      "integration": "Server Jest targeted tests in a sandboxed checkout with generated inputs; never use a real user prompt.",
+      "priority": "critical"
+    },
+    {
+      "id": "05",
+      "repo": "infiniflow/ragflow",
+      "name": "RAGFlow",
+      "slug": "ragflow-template-compatibility-guard",
+      "issue": 20716,
+      "kind": "source_risk",
+      "purpose": "Detect ingestion template drift before legacy Extractor parameters disappear.",
+      "primaryFile": "internal/agent/templates/chunk_summary.json",
+      "positive": "\"field_name\"",
+      "watch": "Templates may carry older field_name/prompts/sys_prompt format while CleanComponentParams only accepts scoped/normalized parameter schemas.",
+      "earlySigns": [
+        "Template Extractor contains legacy flat keys without an approved migration",
+        "Cleaning silently removes required prompts from ingestion"
+      ],
+      "preflight": "Compare chunk_summary.json and title_chunker.json Extractor parameters against the Go cleaner/normalizer logic.",
+      "prevention": "Create schema migration/contract fixtures that fail whenever a template loses prompts after cleaning; test both old and modular templates.",
+      "acceptance": "Summary/title templates retain configured prompt semantics through parser and Go backend; unknown param rejection remains safe.",
+      "integration": "Go unit tests and Python ingest-template fixture in an isolated repository checkout.",
+      "priority": "high"
+    },
+    {
+      "id": "06",
+      "repo": "n8n-io/n8n",
+      "name": "n8n",
+      "slug": "n8n-json-primitive-preservation-guard",
+      "issue": 40839,
+      "kind": "source_risk",
+      "purpose": "Preserve JSON scalar types in HTTP autodetect mode before they corrupt downstream workflows.",
+      "primaryFile": "packages/nodes-base/nodes/HttpRequest/V3/HttpRequestV3.node.ts",
+      "positive": "if (responseFormat === 'json' && typeof returnItem.body === 'string')",
+      "watch": "A body already parsed as a JSON string may be parsed again, failing plain strings or coercing numeric-looking strings.",
+      "earlySigns": [
+        "JSON top-level \"ordinary string\" rejected as invalid",
+        "JSON top-level \"42\" converted to number 42"
+      ],
+      "preflight": "Check the branch that calls jsonParse on the raw body and later JSON.parse on string output, with fullResponse variations.",
+      "prevention": "Build typed-fixture regression for JSON primitives, arrays, objects and null through autodetect and explicit-json paths.",
+      "acceptance": "String, numeric-string, number, boolean, null, array and object all preserve valid JSON value type with both full-response modes.",
+      "integration": "Targeted n8n HTTP Request node TypeScript tests with a local fake HTTP server; no external URLs.",
+      "priority": "high"
+    },
+    {
+      "id": "07",
+      "repo": "khoj-ai/khoj",
+      "name": "Khoj",
+      "slug": "khoj-conversation-recency-guard",
+      "issue": 1439,
+      "kind": "behavioral_candidate",
+      "purpose": "Prevent operator from losing the most recent user turns in long conversations.",
+      "primaryFile": "src/khoj/processor/conversation/utils.py",
+      "positive": "for chat in conversation_history:",
+      "watch": "History constructor iterates oldest-first and stops when message cap is reached, contrary to its 'last n' contract.",
+      "earlySigns": [
+        "Operator repeatedly answers a superseded user question",
+        "Follow-up context disappears after a few turns"
+      ],
+      "preflight": "Extract original construct_chat_history_for_operator helper into a controlled Python test, feed three completed turns and assert the most recent turn is retained.",
+      "prevention": "Build an ordered complete-turn sliding window with attachment integrity and explicit behavior for incomplete trailing turns.",
+      "acceptance": "Latest n completed turns survive in chronological order, attachments remain on the correct turn, and orphan assistant messages are not inserted.",
+      "integration": "Focused Python pytest using upstream conversation types; then `/operator` integration smoke.",
+      "priority": "high"
+    },
+    {
+      "id": "08",
+      "repo": "open-webui/open-webui",
+      "name": "Open WebUI",
+      "slug": "openwebui-browser-crypto-compat-guard",
+      "issue": 32238,
+      "kind": "upstream_fix_reported",
+      "purpose": "Prevent reintroduction of skills editor failures on plain HTTP and non-secure contexts.",
+      "primaryFile": "src/lib/components/workspace/Skills.svelte",
+      "positive": "crypto.randomUUID()",
+      "watch": "Native crypto.randomUUID may be unavailable outside a secure context; upstream issue #32238 was marked closed after dev commits.",
+      "earlySigns": [
+        "Skill editor fails on private LAN HTTP deployment",
+        "Console TypeError crypto.randomUUID is not a function"
+      ],
+      "preflight": "Inspect Skills UI and new-skill imports for unguarded native randomUUID; compare pinned historic revision to current maintainer patch.",
+      "prevention": "Retain browser compatibility regression on supported HTTP local scenarios, with graceful UUID fallback and no permission expansion.",
+      "acceptance": "Create/edit/clone/export skills works in HTTPS and supported HTTP LAN setup without native randomUUID; no regression in security checks.",
+      "integration": "Svelte frontend unit test + Playwright in isolated browser origins; treat upstream closure as reported, not our repair.",
+      "priority": "medium"
+    },
+    {
+      "id": "09",
+      "repo": "activepieces/activepieces",
+      "name": "Activepieces",
+      "slug": "activepieces-piece-load-preflight-guard",
+      "issue": 16368,
+      "kind": "integration_gap",
+      "purpose": "Spot package/metadata load failures of Google Sheets piece before end users open an automation.",
+      "primaryFile": "packages/server/api/src/app/pieces/piece-install-service.ts",
+      "positive": "extractPieceInformation",
+      "watch": "Self-hosted piece extraction may fail from missing network/dependency/worker metadata and surface a generic UI error.",
+      "earlySigns": [
+        "Worker EXECUTE_EXTRACT_PIECE_INFORMATION fails",
+        "Google Sheets available in catalog but piece action metadata cannot load"
+      ],
+      "preflight": "Check supported piece registration and server metadata worker path; do an offline staging smoke in a self-hosted test container.",
+      "prevention": "Preflight package availability, worker request/response and accessible error cause before enabling a piece for customers.",
+      "acceptance": "Google Sheets actions load from a clean self-hosted fixture; failures are surfaced clearly and never expose credentials.",
+      "integration": "Local self-host container and isolated worker integration tests; no live Google authorization.",
+      "priority": "high"
+    },
+    {
+      "id": "10",
+      "repo": "continuedev/continue",
+      "name": "Continue",
+      "slug": "continue-local-ollama-tool-contract-guard",
+      "issue": 13268,
+      "kind": "integration_gap",
+      "purpose": "Proactively check local Ollama tool-call compatibility before search_web fails in agent mode.",
+      "primaryFile": "core/llm/llms/Ollama.ts",
+      "positive": "tools?: OllamaTool[]",
+      "watch": "Advertised search_web action may not align with Ollama tool schema or tool results in a local model session.",
+      "earlySigns": [
+        "Agent requests search_web but tool dispatch returns error",
+        "Permission settings and model tool-call mode diverge"
+      ],
+      "preflight": "Validate search_web registration and Ollama function tool schema; record actual model/provider revision.",
+      "prevention": "Local fake Ollama server test for tool request/result plus permission-denied and unsupported-tool behavior.",
+      "acceptance": "Agent can call search_web with a mocked permitted response, fails safely if unavailable and does not issue external requests without authorization.",
+      "integration": "Continue agent integration test against a local deterministic Ollama protocol fixture, not a live model.",
+      "priority": "medium"
+    }
+  ]
+}
