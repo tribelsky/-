@@ -17,6 +17,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 ROOT = Path.cwd()
@@ -231,7 +232,20 @@ def olga_case():
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument("--app",choices=APP_IDS,required=True)
+    parser.add_argument("--gate-file", default=None)
+    parser.add_argument("--ready-dir", default=None)
     args=parser.parse_args()
+    if args.gate_file:
+        if not args.ready_dir:
+            raise ValueError("Gate requires a ready directory")
+        ready_dir=Path(args.ready_dir)
+        ready_dir.mkdir(parents=True,exist_ok=True)
+        (ready_dir/("ready-"+args.app)).write_text(str(os.getpid()))
+        started_wait=time.monotonic()
+        while not Path(args.gate_file).exists():
+            if time.monotonic()-started_wait>60:
+                raise RuntimeError("Synchronized start gate timed out")
+            time.sleep(0.02)
     started=utcnow()
     res=olga_case() if args.app=="olga" else python_cases(args.app)
     signal=signed_lab_event(args.app,APP_TO_AREA[args.app])
@@ -243,6 +257,8 @@ def main():
         "experiment":"TAGFORMIX-THREE-APP-PARALLEL-01",
         "app":args.app,
         "started_at":started,"finished_at":utcnow(),
+        "worker_pid":os.getpid(),
+        "synchronized_start":bool(args.gate_file),
         "source":res,
         "trigger":signal,
         "rescue_roles":signal["skills"],
