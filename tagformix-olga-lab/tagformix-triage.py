@@ -95,6 +95,22 @@ for n, incident in enumerate(report["isolated_faults"], 1):
         "no_external_execution": True,
     })
 
+# Product owner controls whether the small signal includes the fault category.
+# Off mode still reports that something failed, without location or count.
+owner_hidden = CareSealMonitor(tag, seal, issuer_key, report_fault_area=False)
+modified_checks = {area: True for area in baseline}
+modified_checks["workflow"] = False
+hidden_event = owner_hidden.event({
+    "revision": report["source_commit"],
+    "fingerprints": baseline, "checks": modified_checks,
+}, event_id="olga-hidden-category-001", at=now)
+assert hidden_event is not None and verify_message(app_key, hidden_event)
+assert hidden_event["status"] == "fault"
+assert hidden_event["areas"] == [] and hidden_event["failed_checks"] == 0
+hidden_triage = receiver.receive(hidden_event, now=now)
+assert hidden_triage["decision"] == "request_authorized_diagnosis"
+assert hidden_triage["areas"] == []
+
 summary = {
     "experiment": "TAGFORMIX-OLGA-FUNCTION-FAULT-LAB-01",
     "source": report["repo"] + "/" + report["app_path"],
@@ -105,6 +121,13 @@ summary = {
     "all_three_fault_types": result_cases,
     "correct_classifications": len(result_cases),
     "healthy_baseline_alerts": 0,
+    "fault_category_enabled_test": True,
+    "fault_category_disabled_test": {
+        "transmitted_category": hidden_event["areas"],
+        "transmitted_failed_check_count": hidden_event["failed_checks"],
+        "fault_status_kept": hidden_event["status"],
+        "triage_still_requests_authorized_diagnosis": True,
+    },
     "real_olga_source_changed": False,
     "real_olga_production_tag_installed": False,
     "actual_remote_alerts_sent": 0,
