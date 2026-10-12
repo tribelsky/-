@@ -44,7 +44,7 @@ description: {case["purpose"]}
 ## Origin and evidence boundary
 
 - Upstream repository: https://github.com/{case["repo"]}
-- Git revision inspected: {target["pinned_commit"]}
+- Git revision inspected: {target["commit"]}
 - Original reported issue: {issue_link(case)}
 - Source file: {case["primaryFile"]}
 - Wave: ARGUS-PREVENTIVE-WAVE-01, 2026-10-12
@@ -147,7 +147,7 @@ def inspect_target(id_, evidence_dir, generated_dir):
         raise KeyError("Target not configured: " + id_)
     case, target = CAT_CASES[id_], TARGETS[id_]
     assert case["repo"] == target["repo"]
-    assert case["issue"] == int(target["issue_report"].rsplit("/", 1)[-1])
+    assert case["issue"] == int(target["issue"])
     read_list = [case["primaryFile"]]
     if id_ == "05":
         read_list += ["internal/agent/templates/title_chunker.json",
@@ -158,7 +158,7 @@ def inspect_target(id_, evidence_dir, generated_dir):
     metadata = []
     for path in read_list:
         try:
-            body, receipt = fetch_source(case["repo"], target["pinned_commit"], path)
+            body, receipt = fetch_source(case["repo"], target["commit"], path)
             seen[path] = body
             metadata.append({"state": "fetched", **receipt})
         except Exception as exc:
@@ -221,7 +221,7 @@ def inspect_target(id_, evidence_dir, generated_dir):
     result = {
         "experiment": CATALOG["experiment"], "id": id_, "app": case["name"],
         "repo": case["repo"], "issue": issue_link(case),
-        "pinned_commit": target["pinned_commit"],
+        "pinned_commit": target["commit"],
         "source_receipts": metadata, "signature": signature_control,
         "isolation_test": behavior, "extra_findings": extra,
         "classification": classification,
