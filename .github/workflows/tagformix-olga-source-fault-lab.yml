@@ -1,0 +1,73 @@
+name: TAGFORMIX Olga Real-Source Isolated Fault Classification
+
+on:
+  push:
+    branches: [tagformix-olga-lab-20261012]
+    paths:
+      - 'tagformix-olga-lab/**'
+      - '.github/workflows/tagformix-olga-source-fault-lab.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  olga-fault-classification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Checkout only Tagformix lab code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            aluma-tag
+            tagformix-olga-lab
+          sparse-checkout-cone-mode: true
+      - name: Checkout exact original Olga Chess source into a separate read-only reference directory
+        uses: actions/checkout@v4
+        with:
+          repository: tribelsky/-
+          ref: 6177a9144e4b6c8035e0224b90810e2241f6966d
+          path: source-ref
+          persist-credentials: false
+          sparse-checkout: |
+            olga-chess/game.html
+          sparse-checkout-cone-mode: false
+      - name: Test clean Olga source and three temporary intentional defects
+        run: |
+          node tagformix-olga-lab/olga-real-source-probe.mjs source-ref/olga-chess/game.html
+      - name: Test signed Tagformix alerts and specific issue categories
+        run: |
+          python3 tagformix-olga-lab/tagformix-triage.py
+      - name: Verify no modifications to the checked-out original Olga source
+        run: |
+          cd source-ref
+          test -z "$(git status --porcelain)"
+          echo 'Original pinned Olga source still unchanged.'
+      - name: Display evidence summary
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('tagformix-olga-lab/out/TAGFORMIX-OLGA-TRIAGE.json')
+          r=json.loads(p.read_text())
+          assert r['correct_classifications']==3
+          assert r['healthy_baseline_alerts']==0
+          assert r['real_olga_source_changed'] is False
+          assert r['fully_integrated_browser_test'] is False
+          assert [x['category_on_wire'][0] for x in r['all_three_fault_types']]==[
+              'workflow','runtime','data']
+          print('TAGFORMIX-OLGA acceptance: 3 classified, 0 baseline alerts, no live modification')
+          PY
+      - name: Save isolated before-and-after evidence, not source code
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TAGFORMIX-OLGA-REAL-SOURCE-FAULT-LAB-01
+          path: |
+            tagformix-olga-lab/out/OLGA-REAL-SOURCE-RESULT.json
+            tagformix-olga-lab/out/TAGFORMIX-OLGA-TRIAGE.json
+            tagformix-olga-lab/README.md
+          if-no-files-found: warn
+          retention-days: 30
