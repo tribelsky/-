@@ -1,0 +1,22 @@
+{
+  "protocol": "ALUMA-TAG/1",
+  "tag_id": "demo-app-01",
+  "enabled_by_default": false,
+  "mode": "OWNER_OPT_IN_EVENT_HOOK_OR_AUTHENTICATED_QUERY",
+  "allowed_events": [
+    "build_pass",
+    "build_fail",
+    "health_warning"
+  ],
+  "status_reply_fields": [
+    "health",
+    "changed",
+    "failed_checks"
+  ],
+  "network_listener_included": false,
+  "background_task_included": false,
+  "remote_command_execution": false,
+  "source_code_export": false,
+  "issuer_authentication": "HMAC-SHA256-Demo-Only",
+  "deployment": "NOT_DEPLOYED"
+}
