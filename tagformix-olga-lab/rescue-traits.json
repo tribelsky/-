@@ -1,0 +1,86 @@
+{
+  "experiment": "TAGFORMIX-RESCUE-TRIAD-01",
+  "version": "0.1.0",
+  "as_of": "2026-10-12",
+  "target": "Owned, isolated Olga Chess lab against pinned original source",
+  "premise": "Signed owner-opted-in status signals trigger an automatic 3-skill candidate response, NEVER automatic deployment",
+  "roles": {
+    "scout": {
+      "skill_id": "rescue-scout",
+      "fixed_traits": [
+        "scope-to-alert-area",
+        "identify-failed-contract",
+        "compare-with-pinned-baseline"
+      ],
+      "authority": "READ_ONLY"
+    },
+    "builder": {
+      "skill_id": "rescue-composer",
+      "fixed_traits": [
+        "select-trusted-delta",
+        "assemble-one-function-candidate",
+        "record-lineage"
+      ],
+      "authority": "SANDBOX_WRITE_ONLY"
+    },
+    "verifier": {
+      "skill_id": "rescue-verifier",
+      "fixed_traits": [
+        "rerun-original-contract",
+        "rerun-all-regressions",
+        "test-negative-control",
+        "reject-untested-writes"
+      ],
+      "authority": "VERIFY_ONLY"
+    }
+  },
+  "domain_traits": {
+    "workflow": {
+      "trait_id": "chess-history-consistency",
+      "file": "olga-chess/game.html",
+      "function": "undoMove",
+      "check": "undo_history",
+      "fault_type": "GAMEPLAY_HISTORY",
+      "risk": "undo counter and move history"
+    },
+    "runtime": {
+      "trait_id": "chess-engine-callback",
+      "file": "olga-chess/game.html",
+      "function": "findBestMoveStockfish",
+      "check": "engine_fallback",
+      "fault_type": "ENGINE_FALLBACK_STALL",
+      "risk": "fallback engine never delivers move"
+    },
+    "data": {
+      "trait_id": "local-storage-durability",
+      "file": "olga-chess/game.html",
+      "function": "saveStats",
+      "check": "stats_persistence",
+      "fault_type": "LOCAL_STATS_STORAGE",
+      "risk": "stats not written to localStorage"
+    }
+  },
+  "limits": {
+    "allowed_app": "olga-lab-20261012",
+    "base_commit": "6177a9144e4b6c8035e0224b90810e2241f6966d",
+    "base_blob": "e9874ebc58be579ce50aae89fa566b0dba1b6384",
+    "max_dispatched_skills": 3,
+    "max_changed_functions": 1,
+    "max_candidate_attempts": 1,
+    "no_upstream_writes": true,
+    "no_production_deploy": true,
+    "no_remote_network": true,
+    "no_secret_transfer": true,
+    "owner_preapproved_scope": "SIMULATED_LOCAL_REPAIR_CANDIDATES_ONLY"
+  },
+  "source_of_truth": "Last independently tested function snapshot in a pinned checkout; not a general solution generator",
+  "claims_not_proven": [
+    "novel algorithm invention",
+    "full Olga/browser integration",
+    "deployment into real Olga",
+    "repair in a customer app",
+    "operational remote rescue",
+    "future outage prevention",
+    "real subscription uptime"
+  ]
+}
