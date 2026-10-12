@@ -163,15 +163,40 @@
           clearTimeout(timeout);
         }
       };
+      const privateCacheName = "mcm-private-report-cache-v1";
+      const privateCacheKey = kind => new Request(`https://mcm-offline-cache.invalid/${encodeURIComponent(reportId)}/${kind}`);
+      const verifyReportPair = (version, report) => {
+        if (!version.generated_at || report.generated_at !== version.generated_at) throw new Error("revision-mismatch");
+        if (report.algorithm !== "chacha20" || report.compression !== "gzip") throw new Error("unsupported");
+        if (!report.days?.[currentDate]?.data || !report.days?.[currentDate]?.nonce) throw new Error("date-not-ready");
+        return report;
+      };
+      const savePrivateReportCache = async (version, report) => {
+        if (!("caches" in window)) return;
+        const cache = await caches.open(privateCacheName);
+        await Promise.all([
+          cache.put(privateCacheKey("version"), new Response(JSON.stringify(version), { headers: { "content-type": "application/json" } })),
+          cache.put(privateCacheKey("report"), new Response(JSON.stringify(report), { headers: { "content-type": "application/json" } }))
+        ]);
+      };
+      const loadPrivateReportCache = async () => {
+        if (!("caches" in window)) throw new Error("offline-cache-unavailable");
+        const cache = await caches.open(privateCacheName);
+        const [versionResponse, reportResponse] = await Promise.all([
+          cache.match(privateCacheKey("version")),
+          cache.match(privateCacheKey("report"))
+        ]);
+        if (!versionResponse || !reportResponse) throw new Error("offline-cache-empty");
+        return verifyReportPair(await versionResponse.json(), await reportResponse.json());
+      };
       const loadVerifiedPair = async (base) => {
         const nonce = Date.now();
         const encodedId = encodeURIComponent(reportId);
         const version = await readJson(`${base}/versions/${encodedId}.json?v=${nonce}`);
         const report = await readJson(`${base}/reports/${encodedId}.json?v=${nonce}`);
-        if (!version.generated_at || report.generated_at !== version.generated_at) throw new Error("revision-mismatch");
-        if (report.algorithm !== "chacha20" || report.compression !== "gzip") throw new Error("unsupported");
-        if (!report.days?.[currentDate]?.data || !report.days?.[currentDate]?.nonce) throw new Error("date-not-ready");
-        return report;
+        const verifiedReport = verifyReportPair(version, report);
+        savePrivateReportCache(version, report).catch(() => {});
+        return verifiedReport;
       };
       let encrypted = null;
       let loadedSource = "";
@@ -183,6 +208,12 @@
           encrypted = await loadVerifiedPair(origin.base);
           loadedSource = origin.name;
           break;
+        } catch {}
+      }
+      if (!encrypted) {
+        try {
+          encrypted = await loadPrivateReportCache();
+          loadedSource = "offline-cache";
         } catch {}
       }
       if (!encrypted) throw new Error("no-verified-origin");
