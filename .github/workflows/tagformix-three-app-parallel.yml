@@ -1,0 +1,109 @@
+name: TAGFORMIX Parallel Rescue - Three Independent Applications
+
+on:
+  push:
+    branches: [tagformix-three-app-parallel-lab-20261012]
+    paths:
+      - 'multi-host/**'
+      - '.github/workflows/tagformix-three-app-parallel.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rescue:
+    name: Independent bounded rescue of ${{ matrix.app }}
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        app: [olga, langflow, anythingllm]
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            multi-host
+            aluma-tag
+            tagformix-olga-lab
+          sparse-checkout-cone-mode: true
+
+      - name: Reference existing ARGUS proof at frozen branch
+        uses: actions/checkout@v4
+        with:
+          repository: tribelsky/-
+          ref: argus-ten-probe-lab-20261011
+          path: argus-ref
+          persist-credentials: false
+          sparse-checkout: |
+            argus-lab
+          sparse-checkout-cone-mode: true
+
+      - name: Read-only frozen Olga original when appropriate
+        if: matrix.app == 'olga'
+        uses: actions/checkout@v4
+        with:
+          repository: tribelsky/-
+          ref: 6177a9144e4b6c8035e0224b90810e2241f6966d
+          path: source-ref
+          persist-credentials: false
+          sparse-checkout: |
+            olga-chess/game.html
+          sparse-checkout-cone-mode: false
+
+      - name: Run independently signed lab alert, diagnosis, candidate and verification
+        env:
+          TARGET_APP: ${{ matrix.app }}
+        run: python3 multi-host/case_runner.py --app "$TARGET_APP"
+
+      - name: Confirm no modification of upstream Olga checkout
+        if: matrix.app == 'olga'
+        run: |
+          cd source-ref
+          test -z "$(git status --porcelain)"
+          echo 'Olga original source remains unchanged'
+
+      - name: Archive only this app's scoped report and candidate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tagformix-case-${{ matrix.app }}
+          path: multi-host/out/${{ matrix.app }}/
+          if-no-files-found: warn
+          retention-days: 30
+
+  independent-review:
+    name: Independent three-app evidence gate
+    runs-on: ubuntu-latest
+    needs: [rescue]
+    if: always()
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: multi-host
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: tagformix-case-*
+          path: multi-host/collected
+          merge-multiple: false
+      - name: Validate exact 3 separate tenants and all candidate tests
+        run: python3 multi-host/aggregate.py
+      - name: Publish accurate proof limits in run summary
+        run: cat multi-host/summary/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Archive independent reviewer result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TAGFORMIX-THREE-APP-PARALLEL-01-EVIDENCE
+          path: |
+            multi-host/collected/*/case.json
+            multi-host/collected/*/candidate.patch
+            multi-host/summary/SUMMARY.json
+            multi-host/summary/SUMMARY.md
+          if-no-files-found: warn
+          retention-days: 30
