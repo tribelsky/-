@@ -1,0 +1,86 @@
+name: ARGUS Preventive Wave 01 - Ten Host Specific Skills
+
+on:
+  push:
+    branches: [argus-preventive-wave-01-20261012]
+    paths:
+      - 'preventive/**'
+      - '.github/workflows/argus-preventive-wave-01.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preventive-wave-01-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    name: Preventive preflight ${{ matrix.id }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        id: ['01','02','03','04','05','06','07','08','09','10']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Analyze pinned public source and create preventive skill candidate
+        run: |
+          python3 preventive/engine.py --id "${{ matrix.id }}" \
+            --evidence-dir preventive/out/evidence \
+            --skill-dir preventive/out/skills
+      - name: Archive isolated case and generated original SKILL.md
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: argus-preventive-${{ matrix.id }}
+          path: |
+            preventive/out/evidence/*.json
+            preventive/out/skills/*/SKILL.md
+          if-no-files-found: warn
+          retention-days: 30
+
+  review:
+    name: Independent evidence and ten skills gate
+    runs-on: ubuntu-latest
+    needs: [scan]
+    if: always()
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: argus-preventive-*
+          path: preventive/collected
+          merge-multiple: true
+      - name: Validate evidence and skill count
+        run: |
+          python3 preventive/engine.py --aggregate \
+            --evidence-dir preventive/collected/evidence \
+            --out-dir preventive/summary
+          python3 - <<'PY'
+          from pathlib import Path
+          paths=list(Path('preventive/collected/skills').glob('*/SKILL.md'))
+          assert len(paths)==10, 'Ten distinct SKILL.md files required'
+          print('Verified generated Skills:',len(paths))
+          PY
+      - name: Summarize to GitHub Actions UI
+        run: cat preventive/summary/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ARGUS-PREVENTIVE-WAVE-01-10-SKILLS-EVIDENCE
+          path: |
+            preventive/collected/evidence/*.json
+            preventive/collected/skills/*/SKILL.md
+            preventive/summary/SUMMARY.json
+            preventive/summary/SUMMARY.md
+          if-no-files-found: warn
+          retention-days: 30
