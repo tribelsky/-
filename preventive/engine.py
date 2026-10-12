@@ -121,7 +121,7 @@ def behavior_khoj(source):
     module = ast.Module(body=[ast.ImportFrom(module="__future__",
                                              names=[ast.alias(name="annotations")],
                                              level=0), fn], type_ignores=[])
-    exec(compile(module, "<reviewed-khoj-function>", "exec"), ns)
+    exec(compile(ast.fix_missing_locations(module), "<reviewed-khoj-function>", "exec"), ns)
     turns = []
     for i in range(1, 4):
         turns.extend([SimpleNamespace(by="you", message=f"USER-{i}", queryFiles=[]),
