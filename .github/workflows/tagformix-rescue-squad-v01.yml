@@ -65,6 +65,8 @@ jobs:
           assert work['real_app_modified'] is False
           assert work['actual_skills_sent_over_network']==0
           assert len(list((root/'patches').glob('*.patch')))==3
+          skill_files=list(Path('tagformix-olga-lab/rescue-skills').glob('*/SKILL.md'))
+          assert len(skill_files)==3, 'Three original documented rescue skill contracts required'
           print('RESCUE SQUAD ACCEPTANCE: 3 signed dispatches, 3 scoped candidate fixes, 3 verifications, 10 negative controls, 0 external writes')
           PY
 
@@ -81,6 +83,7 @@ jobs:
           name: TAGFORMIX-OLGA-AUTOMATIC-RESCUE-TRIAD-01
           path: |
             tagformix-olga-lab/rescue-traits.json
+            tagformix-olga-lab/rescue-skills/*/SKILL.md
             tagformix-olga-lab/out/OLGA-REAL-SOURCE-RESULT.json
             tagformix-olga-lab/out/RESCUE-AUTHORIZED-DISPATCH.json
             tagformix-olga-lab/out/RESCUE-VERIFIED-CANDIDATES.json
