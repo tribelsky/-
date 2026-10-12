@@ -1,0 +1,89 @@
+name: TAGFORMIX Rescue Squad 01 - Automatic Bounded Olga Recovery
+
+on:
+  push:
+    branches: [tagformix-rescue-squad-v01-20261012]
+    paths:
+      - 'tagformix-olga-lab/**'
+      - '.github/workflows/tagformix-rescue-squad-v01.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Read owned rescue lab source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tagformix-olga-lab
+            aluma-tag
+          sparse-checkout-cone-mode: true
+
+      - name: Fetch frozen original Olga code into isolated read-only checkout
+        uses: actions/checkout@v4
+        with:
+          repository: tribelsky/-
+          ref: 6177a9144e4b6c8035e0224b90810e2241f6966d
+          path: source-ref
+          persist-credentials: false
+          sparse-checkout: |
+            olga-chess/game.html
+          sparse-checkout-cone-mode: false
+
+      - name: Establish source-pinned baseline and three injected Olga faults
+        run: node tagformix-olga-lab/olga-real-source-probe.mjs source-ref/olga-chess/game.html
+
+      - name: Automatically dispatch three policy-approved skill compositions after signed alerts
+        run: python3 tagformix-olga-lab/rescue_dispatch.py
+
+      - name: Run automatically assembled Scout Composer Verifier chain
+        run: node tagformix-olga-lab/rescue_execute.mjs source-ref/olga-chess/game.html
+
+      - name: Gate all actual evidence and consent controls
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          root=Path('tagformix-olga-lab/out')
+          plans=json.loads((root/'RESCUE-AUTHORIZED-DISPATCH.json').read_text())
+          work=json.loads((root/'RESCUE-VERIFIED-CANDIDATES.json').read_text())
+          assert len(plans['rescue_plans'])==3
+          assert all(len(p['skills'])==3 for p in plans['rescue_plans'])
+          assert all(p['deployment_authorized'] is False for p in plans['rescue_plans'])
+          assert plans['hidden_fault_type_no_guessing'] is True
+          assert plans['two_skill_no_build_path_passed'] is True
+          assert len(plans['negative_controls_passed'])>=10
+          assert work['verified_sandbox_recoveries']==3
+          assert work['multiple_change_negative_control_blocked'] is True
+          assert work['algorithm_scope'].startswith('Recombined predetermined traits')
+          assert work['real_app_modified'] is False
+          assert work['actual_skills_sent_over_network']==0
+          assert len(list((root/'patches').glob('*.patch')))==3
+          print('RESCUE SQUAD ACCEPTANCE: 3 signed dispatches, 3 scoped candidate fixes, 3 verifications, 10 negative controls, 0 external writes')
+          PY
+
+      - name: Confirm pinned original app never changed
+        run: |
+          cd source-ref
+          test -z "$(git status --porcelain)"
+          echo 'Original Olga source untouched'
+
+      - name: Preserve controlled evidence, never transmit original Olga source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TAGFORMIX-OLGA-AUTOMATIC-RESCUE-TRIAD-01
+          path: |
+            tagformix-olga-lab/rescue-traits.json
+            tagformix-olga-lab/out/OLGA-REAL-SOURCE-RESULT.json
+            tagformix-olga-lab/out/RESCUE-AUTHORIZED-DISPATCH.json
+            tagformix-olga-lab/out/RESCUE-VERIFIED-CANDIDATES.json
+            tagformix-olga-lab/out/patches/*.patch
+          if-no-files-found: warn
+          retention-days: 30
