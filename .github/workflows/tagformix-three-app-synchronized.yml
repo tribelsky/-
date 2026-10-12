@@ -1,0 +1,78 @@
+name: TAGFORMIX 3 App Rescue - Synchronized Parallel Processes
+
+on:
+  push:
+    branches: [tagformix-three-app-parallel-lab-20261012]
+    paths:
+      - 'multi-host/**'
+      - '.github/workflows/tagformix-three-app-synchronized.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synchronized-three-processes:
+    name: Three independent repair workers, synchronized release
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            multi-host
+            aluma-tag
+            tagformix-olga-lab
+          sparse-checkout-cone-mode: true
+      - name: Freeze preexisting ARGUS function-level tests and patches
+        uses: actions/checkout@v4
+        with:
+          repository: tribelsky/-
+          ref: argus-ten-probe-lab-20261011
+          path: argus-ref
+          persist-credentials: false
+          sparse-checkout: |
+            argus-lab
+          sparse-checkout-cone-mode: true
+      - name: Freeze exact original Olga application source
+        uses: actions/checkout@v4
+        with:
+          repository: tribelsky/-
+          ref: 6177a9144e4b6c8035e0224b90810e2241f6966d
+          path: source-ref
+          persist-credentials: false
+          sparse-checkout: |
+            olga-chess/game.html
+          sparse-checkout-cone-mode: false
+      - name: Release 3 app-specific rescue processes together and verify overlap
+        run: python3 multi-host/synchronized_lab.py
+      - name: Verify original Olga source did not change
+        run: |
+          cd source-ref
+          test -z "$(git status --porcelain)"
+      - name: Verify absence of external repair claims
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('multi-host/parallel/SUMMARY.json').read_text())
+          assert d['all_three_workers_overlapped']
+          assert d['independent_processes']==3
+          assert d['all_candidate_tests_passed']
+          assert d['live_targets_repaired']==0
+          assert d['customer_scripts_installed']==0
+          assert d['simultaneous_activity_overlap_seconds']>0
+          print('SYNCHRONIZED THREE-APP RESCUE ACCEPTANCE: PASS')
+          PY
+      - name: Save independent app outputs and overlapping process receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TAGFORMIX-3-APP-SYNCHRONIZED-RESCUE-EVIDENCE
+          path: |
+            multi-host/out/*/case.json
+            multi-host/out/*/candidate.patch
+            multi-host/parallel/SUMMARY.json
+          if-no-files-found: warn
+          retention-days: 30
