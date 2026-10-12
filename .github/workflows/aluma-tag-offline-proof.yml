@@ -1,0 +1,40 @@
+name: ALUMA-TAG Offline Signal Proof v0.1
+
+on:
+  push:
+    branches: [aluma-tag-signal-v01]
+    paths:
+      - 'aluma-tag/**'
+      - '.github/workflows/aluma-tag-offline-proof.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tag-protocol:
+    name: Authenticated mini-tag, no transport
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify marker authentication and negative controls
+        shell: bash
+        run: |
+          python3 -m unittest discover -s aluma-tag/tests -v 2>&1 | tee aluma-tag/test-results.txt
+          grep -q 'OK' aluma-tag/test-results.txt
+      - name: Simulate one signed question and one signed event locally
+        run: python3 aluma-tag/demo.py
+      - name: Preserve test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ALUMA-TAG-V01-LOCAL-PROTOCOL-EVIDENCE
+          path: |
+            aluma-tag/marker.json
+            aluma-tag/out/ALUMA-TAG-DEMO.json
+            aluma-tag/test-results.txt
+          if-no-files-found: warn
+          retention-days: 30
