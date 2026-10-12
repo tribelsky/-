@@ -1,0 +1,53 @@
+name: ALUMA Care Seal v02 - Bounded Repair Warranty Signal Proof
+
+on:
+  push:
+    branches: [aluma-care-seal-v02-20261012]
+    paths:
+      - 'aluma-tag/**'
+      - '.github/workflows/aluma-care-seal-v02-proof.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  care-seal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Test care seal and baseline ALUMA-TAG contract
+        shell: bash
+        run: |
+          set -o pipefail
+          python3 -m unittest discover -s aluma-tag/tests -v 2>&1 | tee aluma-tag/care-seal-tests.txt
+      - name: Demonstrate verified repair then later problem and Beam decision
+        run: python3 aluma-tag/care_seal_demo.py
+      - name: Protect status report schema
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('aluma-tag/out/CARE-SEAL-V02-DEMO.json').read_text())
+          assert r['certificate_authenticated'] is True
+          assert r['after_repair_consistent_no_alert'] is True
+          assert r['triage']['areas']==['dependencies']
+          assert r['triage']['decision']=='request_authorized_diagnosis'
+          assert r['real_repairs_executed']==0
+          assert r['customer_apps_contacted']==0
+          print('Care seal acceptance gates: PASS')
+          PY
+      - name: Preserve tests and sample proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ALUMA-CARE-SEAL-V02-PROOF
+          path: |
+            aluma-tag/care-seal-tests.txt
+            aluma-tag/out/CARE-SEAL-V02-DEMO.json
+            aluma-tag/CARE-SEAL-README.md
+          if-no-files-found: warn
+          retention-days: 30
