@@ -119,6 +119,7 @@ class CareSealMonitor:
     tag: AlumaTag
     seal: dict[str, Any] = field(repr=False)
     issuer_secret: bytes = field(repr=False)
+    report_fault_area: bool = True  # owner-approved output policy; default for current test
 
     def __post_init__(self):
         if not verify_care_seal(self.seal, self.issuer_secret, tag_id=self.tag.tag_id):
@@ -166,8 +167,8 @@ class CareSealMonitor:
             "v": 2, "kind": "care_alert", "tag": self.tag.tag_id,
             "seal_id": self.seal["seal_id"], "event_id": event_id,
             "at": at, "status": result["status"],
-            "areas": result["areas"],
-            "failed_checks": result["failed_checks"],
+            "areas": result["areas"] if self.report_fault_area else [],
+            "failed_checks": result["failed_checks"] if self.report_fault_area else 0,
         }
         return authenticated(self.tag.secret, payload)
 
