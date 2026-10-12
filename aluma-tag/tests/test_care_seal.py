@@ -144,6 +144,7 @@ class CareSealTests(unittest.TestCase):
         snap["admin_token"] = "PRIVATE-SECRET-DONT-EXFILTRATE"
         snap["source_code"] = "private repository source"
         snap["client_email"] = "name@example.net"
+        snap["checks"]["runtime"] = False  # emit an alert, otherwise a healthy state emits nothing
         x = self.alert(snap, ref="privacy-check-001")
         self.assertEqual(set(x), {"v", "kind", "tag", "seal_id",
                                   "event_id", "at", "status", "areas",
