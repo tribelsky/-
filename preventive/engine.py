@@ -170,7 +170,7 @@ def inspect_target(id_, evidence_dir, generated_dir):
     signature_control = {
         "anchor_found": found,
         "positive_control": found and anchor in (src + "\n# harmless comment\n"),
-        "negative_control": found and anchor not in src.replace(anchor, "__REMOVED_ANCHOR__", 1),
+        "negative_control": found and anchor not in src.replace(anchor, "__REMOVED_ANCHOR__"),
         "note": "Signature controls only: do not certify a bug from these.",
     }
     behavior = {"status": "not_run", "reason": "needs host-native integration fixture"}
