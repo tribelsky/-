@@ -143,3 +143,6 @@ writeFileSync('tagformix-olga-lab/out/OLGA-REAL-SOURCE-RESULT.json',
 console.log(JSON.stringify({result:'PASS',original_source_verified:true,
  baseline:baseline.length,broken_probes:incidents.length,
  categories:incidents.map(x=>x.diagnosed_area),original_app_unchanged:true}));
+
+// The owned sandbox Rescue Squad reuses exactly these original-source fixtures.
+export { fixtures, actual, testAll, baseline, pinnedCommit, pinnedBlob };
