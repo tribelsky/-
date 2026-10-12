@@ -1,0 +1,32 @@
+name: ARGUS Khoj Isolated Repair Candidate
+
+on:
+  push:
+    branches: [argus-preventive-wave-01-20261012]
+    paths:
+      - 'preventive/khoj_patch_candidate.py'
+      - '.github/workflows/argus-khoj-candidate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fix-candidate:
+    name: Khoj native helper before after
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Generate candidate without upstream writes
+        run: python3 preventive/khoj_patch_candidate.py
+      - name: Archive reviewed diff and independent sample checks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ARGUS-KHOJ-PREVENTIVE-REPAIR-CANDIDATE
+          path: preventive/candidate_out/*
+          if-no-files-found: warn
+          retention-days: 30
