@@ -18,6 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run MCM shell regression gates
+        run: |
+          node tests/mcm-shell-syntax.mjs
+          node tests/astrodamos-bridge-acceptance.mjs
       - uses: actions/configure-pages@v5
         with:
           enablement: true
@@ -27,4 +34,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
