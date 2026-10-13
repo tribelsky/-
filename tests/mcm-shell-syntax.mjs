@@ -13,7 +13,9 @@ for (const [index, source] of inlineScripts.entries()) {
   new Script(source, { filename: `index.inline.${index + 1}.js` });
 }
 
-const generatedScriptTemplates = ["processTimingScript", "dailyFeedbackScript"];
+assert.ok(!html.includes("<\\\\/script>"), "generated script tags must close without a literal backslash");
+
+const generatedScriptTemplates = ["mentorRetirementScript", "processTimingScript", "dailyFeedbackScript"];
 for (const templateName of generatedScriptTemplates) {
   const pattern = templateName === "dailyFeedbackScript"
     ? /const dailyFeedbackScript = requestedPage === "today" \? (`[\s\S]*?`) : "";/
