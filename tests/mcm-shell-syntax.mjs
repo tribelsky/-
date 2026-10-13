@@ -30,6 +30,12 @@ for (const templateName of generatedScriptTemplates) {
   new Script(generatedSource, { filename: `generated-${templateName}.js` });
 }
 
+const processExtractorSource = html.match(/const extractAstrodamosProcesses = html => \{[\s\S]*?\n      \};/)?.[0];
+assert.ok(processExtractorSource, "Astrodamos process extractor must exist");
+const extractedProcesses = new Script(`${processExtractorSource}\nextractAstrodamosProcesses('const processes=[{"title":"בדיקה","start":"13:00","peak":"14:00","end":"15:00"}];\\n    const next=true;');`).runInNewContext();
+assert.equal(extractedProcesses.length, 1, "Astrodamos context must receive report processes");
+assert.equal(extractedProcesses[0].title, "בדיקה");
+
 console.log(JSON.stringify({
   status: "PASS",
   check: "All inline and generated report scripts parse as valid JavaScript",

@@ -822,13 +822,8 @@
             if (!process?.start || !process?.peak || !process?.end) return "";
             return "<span>תחילת הזווית: " + clean(process.start) + "</span><span class=\\\"mcm-time-peak\\\">שיא: " + clean(process.peak) + "</span><span>סיום: " + clean(process.end) + "</span>";
           };
-          let processes = [];
-          for (const script of document.scripts) {
-            const match = script.textContent.match(/const processes=(\\[[\\s\\S]*?\\]);const /);
-            if (!match) continue;
-            try { processes = JSON.parse(match[1]); break; } catch {}
-          }
-          const byTitle = new Map(processes.map(process => [clean(process.title), process]));
+          const reportProcesses = typeof processes !== "undefined" && Array.isArray(processes) ? processes : [];
+          const byTitle = new Map(reportProcesses.map(process => [clean(process.title), process]));
           document.querySelectorAll(".short-item").forEach(item => {
             const source = item.querySelector(".short-time,.process-time,.process-window");
             if (source) source.classList.add("mcm-process-time");
@@ -899,8 +894,8 @@
       const extractAstrodamosProcesses = html => {
         const source = String(html || "");
         const patterns = [
-          /const\\s+processes\\s*=\\s*(\\[[\\s\\S]*?\\])\\s*;\\s*const\\s/,
-          /(?:window\\.)?processes\\s*=\\s*(\\[[\\s\\S]*?\\])\\s*;/
+          /const\s+processes\s*=\s*(\[[\s\S]*?\])\s*;\s*(?:const|let|var)\s/,
+          /(?:window\.)?processes\s*=\s*(\[[\s\S]*?\])\s*;/
         ];
         for (const pattern of patterns) {
           const match = source.match(pattern);
