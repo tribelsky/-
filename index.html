@@ -842,15 +842,12 @@
       const dailyFeedbackScript = requestedPage === "today" ? `<script>
         (() => {
           if (document.getElementById("mcm-daily-feedback")) return;
-          const host = document.querySelector("main,.page") || document.body;
-          const footer = document.querySelector("footer");
           const section = document.createElement("section");
           section.id = "mcm-daily-feedback";
           section.className = "mcm-daily-feedback";
           section.setAttribute("aria-labelledby", "mcm-feedback-title");
           section.innerHTML = '<h2 id="mcm-feedback-title">איך היה היום שלך עם My Cosmic Mentor?</h2><p>החוויה שלך עוזרת לנו לדייק את האפליקציה.</p><form id="mcm-feedback-form"><label>האם זה התאים ליום שלך?</label><div class="mcm-stars" role="radiogroup" aria-label="דירוג יומי"><button class="mcm-star" type="button" role="radio" aria-checked="false" aria-label="כוכב אחד" data-rating="1">★</button><button class="mcm-star" type="button" role="radio" aria-checked="false" aria-label="שני כוכבים" data-rating="2">★</button><button class="mcm-star" type="button" role="radio" aria-checked="false" aria-label="שלושה כוכבים" data-rating="3">★</button><button class="mcm-star" type="button" role="radio" aria-checked="false" aria-label="ארבעה כוכבים" data-rating="4">★</button><button class="mcm-star" type="button" role="radio" aria-checked="false" aria-label="חמישה כוכבים" data-rating="5">★</button></div><label for="mcm-feedback-note">האם משהו חסר לך? מה היית משנה?</label><textarea id="mcm-feedback-note" maxlength="600" placeholder="אפשר לכתוב כאן בקצרה"></textarea><button class="mcm-feedback-submit" type="submit">שמירת המשוב</button><p class="mcm-feedback-status" role="status" aria-live="polite"></p></form>';
-          if (footer?.parentElement) footer.insertAdjacentElement("beforebegin", section);
-          else host.append(section);
+          document.body.append(section);
           const date = String(window.__MCM_ASTRODAMOS_CONTEXT__?.todayDate || new Date().toLocaleDateString("en-CA", {timeZone:"Asia/Jerusalem"}));
           const storageKey = "mcm-daily-feedback:" + date;
           const form = section.querySelector("#mcm-feedback-form");

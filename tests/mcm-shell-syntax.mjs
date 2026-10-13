@@ -30,6 +30,15 @@ for (const templateName of generatedScriptTemplates) {
   new Script(generatedSource, { filename: `generated-${templateName}.js` });
 }
 
+assert.ok(
+  html.includes("document.body.append(section);"),
+  "daily feedback should be appended after the full report"
+);
+assert.ok(
+  !html.includes('footer.insertAdjacentElement("beforebegin", section)'),
+  "daily feedback should not be inserted before the report footer"
+);
+
 const processExtractorSource = html.match(/const extractAstrodamosProcesses = html => \{[\s\S]*?\n      \};/)?.[0];
 assert.ok(processExtractorSource, "Astrodamos process extractor must exist");
 const extractedProcesses = new Script(`${processExtractorSource}\nextractAstrodamosProcesses('const processes=[{"title":"בדיקה","start":"13:00","peak":"14:00","end":"15:00"}];\\n    const next=true;');`).runInNewContext();
