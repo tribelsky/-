@@ -152,7 +152,7 @@
       const primaryBase = new URL(".", location.href).href.replace(/\/$/, "");
       const emergencyBase = "https://mcm-emergency-read-mss7f3xmgq-ew.a.run.app";
       const currentDate = israelReportDate();
-      const readJson = async (url, timeoutMs = 8000) => {
+      const readJson = async (url, timeoutMs = 20000) => {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), timeoutMs);
         try {
@@ -192,24 +192,32 @@
       const loadVerifiedPair = async (base) => {
         const nonce = Date.now();
         const encodedId = encodeURIComponent(reportId);
-        const version = await readJson(`${base}/versions/${encodedId}.json?v=${nonce}`);
-        const report = await readJson(`${base}/reports/${encodedId}.json?v=${nonce}`);
-        const verifiedReport = verifyReportPair(version, report);
-        savePrivateReportCache(version, report).catch(() => {});
-        return verifiedReport;
+        const [version, report] = await Promise.all([
+          readJson(`${base}/versions/${encodedId}.json?v=${nonce}`),
+          readJson(`${base}/reports/${encodedId}.json?v=${nonce}`),
+        ]);
+        return {
+          version,
+          report: verifyReportPair(version, report),
+        };
       };
-      let encrypted = null;
-      let loadedSource = "";
-      for (const origin of [
+      const origins = [
         { name: "primary", base: primaryBase },
         { name: "emergency", base: emergencyBase },
-      ]) {
-        try {
-          encrypted = await loadVerifiedPair(origin.base);
-          loadedSource = origin.name;
-          break;
-        } catch {}
-      }
+      ];
+      let encrypted = null;
+      let loadedSource = "";
+      try {
+        const selected = await Promise.any(
+          origins.map(async (origin) => ({
+            ...(await loadVerifiedPair(origin.base)),
+            source: origin.name,
+          }))
+        );
+        encrypted = selected.report;
+        loadedSource = selected.source;
+        savePrivateReportCache(selected.version, selected.report).catch(() => {});
+      } catch {}
       if (!encrypted) {
         try {
           encrypted = await loadPrivateReportCache();
