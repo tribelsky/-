@@ -25,6 +25,7 @@ jobs:
         run: |
           node tests/mcm-shell-syntax.mjs
           node tests/astrodamos-bridge-acceptance.mjs
+          node tests/astrodamos-engine-acceptance.mjs
       - uses: actions/configure-pages@v5
         with:
           enablement: true

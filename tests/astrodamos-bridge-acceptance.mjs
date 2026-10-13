@@ -3,9 +3,16 @@ import { readFile } from "node:fs/promises";
 
 const shell = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const bridge = await readFile(new URL("../astrodamos-bridge.js", import.meta.url), "utf8");
+const engine = await readFile(new URL("../astrodamos-engine.js", import.meta.url), "utf8");
 
-assert.ok(shell.includes('astrodamos-bridge.js?v=1'));
-assert.ok(bridge.includes('reportChunks'));
-assert.ok(bridge.includes('Astrodamos לא ישלים את החסר בניחוש'));
+assert.ok(shell.includes('astrodamos-engine.js?v=2'));
+assert.ok(shell.includes('astrodamos-bridge.js?v=2'));
+assert.ok(shell.includes('__MCM_ASTRODAMOS_CONTEXT__'));
+assert.ok(bridge.includes('engine.collectContext'));
+assert.ok(bridge.includes('איך הגעתי למסקנה?'));
+assert.ok(bridge.includes('הקראת התשובה'));
+assert.ok(engine.includes('answerQuestion'));
+assert.ok(engine.includes('scanAlternatives'));
 assert.ok(!bridge.includes('fetch('));
-console.log(JSON.stringify({status:"PASS", integration:"Astrodamos question panel loads inside encrypted report shell"},null,2));
+assert.ok(!bridge.includes('matches.map'));
+console.log(JSON.stringify({status:"PASS", integration:"Astrodamos timing engine and clean conversation panel load inside the encrypted report shell"},null,2));
