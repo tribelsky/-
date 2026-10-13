@@ -301,6 +301,8 @@
         .short-group[data-rubric] .rubric-icon{border-color:var(--mcm-rubric-accent)!important}
         .mcm-process-time{display:flex!important;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0 4px!important;padding:12px 14px!important;border:1px solid #4cbf78!important;border-radius:14px!important;background:linear-gradient(135deg,#09251a,#102b24)!important;color:#a9f5c7!important;font-weight:800!important;line-height:1.6!important}
         .mcm-process-time span{display:inline-block;padding:3px 8px;border-radius:999px;background:#071b12;color:#a9f5c7;white-space:nowrap}.mcm-process-time .mcm-time-peak{color:#d4ffe4;background:#123c25}
+        .mcm-daily-feedback{margin:30px auto 18px;padding:22px;width:min(100%,760px);box-sizing:border-box;border:1px solid #d7b76a;border-radius:22px;background:linear-gradient(145deg,#121b2d,#09101d);color:#f8f1e4;box-shadow:0 18px 48px #0007;direction:rtl;text-align:right}
+        .mcm-daily-feedback h2{margin:0 0 8px;color:#f2c46d;font-size:25px}.mcm-daily-feedback>p{margin:0 0 16px;color:#d9e7f2!important}.mcm-stars{display:flex;direction:ltr;justify-content:flex-end;gap:5px;margin:4px 0 18px}.mcm-star{appearance:none;border:0;background:transparent;color:#78869a;font-size:36px;line-height:1;padding:2px;cursor:pointer;text-shadow:0 2px 9px #000}.mcm-star.is-on{color:#ffd66b}.mcm-star:focus-visible{outline:2px solid #63ddff;border-radius:8px;outline-offset:2px}.mcm-daily-feedback label{display:block;margin:0 0 8px;font-weight:800}.mcm-daily-feedback textarea{width:100%;min-height:100px;box-sizing:border-box;border:1px solid #536983;border-radius:14px;padding:13px;background:#07101e;color:#fff;font:inherit;resize:vertical}.mcm-daily-feedback textarea:focus{outline:2px solid #63ddff;outline-offset:2px}.mcm-feedback-submit{margin-top:12px;min-height:46px;border:1px solid #ffe08a;border-radius:13px;padding:10px 18px;background:linear-gradient(135deg,#f2c46d,#ffe292);color:#16110a;font:800 16px Arial,"Noto Sans Hebrew",sans-serif;cursor:pointer}.mcm-feedback-status{min-height:24px;margin:10px 0 0!important;color:#9ce8b6!important;font-size:14px!important}
         .list-panel.recommended .list-head h2{color:#79e4a7!important}
         .list-panel.not-recommended .list-head h2{color:#ff9b9b!important}
         .hero-focus .focus-label{color:#7fddff!important}
@@ -818,7 +820,7 @@
           const titleOf = item => clean(item.querySelector("h3,h4")?.textContent);
           const timingText = process => {
             if (!process?.start || !process?.peak || !process?.end) return "";
-            return "<span>תחילת הזווית: " + clean(process.start) + "</span><span class=\"mcm-time-peak\">שיא: " + clean(process.peak) + "</span><span>סיום: " + clean(process.end) + "</span>";
+            return "<span>תחילת הזווית: " + clean(process.start) + "</span><span class=\\\"mcm-time-peak\\\">שיא: " + clean(process.peak) + "</span><span>סיום: " + clean(process.end) + "</span>";
           };
           let processes = [];
           for (const script of document.scripts) {
@@ -842,6 +844,58 @@
           });
         })();
       <\/script>`;
+      const dailyFeedbackScript = requestedPage === "today" ? `<script>
+        (() => {
+          if (document.getElementById("mcm-daily-feedback")) return;
+          const host = document.querySelector("main,.page") || document.body;
+          const footer = document.querySelector("footer");
+          const section = document.createElement("section");
+          section.id = "mcm-daily-feedback";
+          section.className = "mcm-daily-feedback";
+          section.setAttribute("aria-labelledby", "mcm-feedback-title");
+          section.innerHTML = '<h2 id="mcm-feedback-title">איך היה היום שלך עם My Cosmic Mentor?</h2><p>החוויה שלך עוזרת לנו לדייק את האפליקציה.</p><form id="mcm-feedback-form"><label>האם זה התאים ליום שלך?</label><div class="mcm-stars" role="radiogroup" aria-label="דירוג יומי"><button class="mcm-star" type="button" role="radio" aria-checked="false" aria-label="כוכב אחד" data-rating="1">★</button><button class="mcm-star" type="button" role="radio" aria-checked="false" aria-label="שני כוכבים" data-rating="2">★</button><button class="mcm-star" type="button" role="radio" aria-checked="false" aria-label="שלושה כוכבים" data-rating="3">★</button><button class="mcm-star" type="button" role="radio" aria-checked="false" aria-label="ארבעה כוכבים" data-rating="4">★</button><button class="mcm-star" type="button" role="radio" aria-checked="false" aria-label="חמישה כוכבים" data-rating="5">★</button></div><label for="mcm-feedback-note">האם משהו חסר לך? מה היית משנה?</label><textarea id="mcm-feedback-note" maxlength="600" placeholder="אפשר לכתוב כאן בקצרה"></textarea><button class="mcm-feedback-submit" type="submit">שמירת המשוב</button><p class="mcm-feedback-status" role="status" aria-live="polite"></p></form>';
+          if (footer?.parentElement) footer.insertAdjacentElement("beforebegin", section);
+          else host.append(section);
+          const date = String(window.__MCM_ASTRODAMOS_CONTEXT__?.todayDate || new Date().toLocaleDateString("en-CA", {timeZone:"Asia/Jerusalem"}));
+          const storageKey = "mcm-daily-feedback:" + date;
+          const form = section.querySelector("#mcm-feedback-form");
+          const note = section.querySelector("#mcm-feedback-note");
+          const status = section.querySelector(".mcm-feedback-status");
+          const stars = [...section.querySelectorAll(".mcm-star")];
+          let rating = 0;
+          const paint = value => stars.forEach(star => {
+            const selected = Number(star.dataset.rating) <= value;
+            star.classList.toggle("is-on", selected);
+            star.setAttribute("aria-checked", String(Number(star.dataset.rating) === value));
+          });
+          try {
+            const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
+            rating = Number(saved?.rating || 0);
+            note.value = String(saved?.note || "");
+            paint(rating);
+            if (rating) status.textContent = "המשוב שלך להיום נשמר.";
+          } catch {}
+          stars.forEach(star => star.addEventListener("click", () => {
+            rating = Number(star.dataset.rating);
+            paint(rating);
+            status.textContent = "";
+          }));
+          form.addEventListener("submit", event => {
+            event.preventDefault();
+            if (!rating) {
+              status.textContent = "כדי לשמור, בחרו קודם דירוג בכוכבים.";
+              stars[0]?.focus();
+              return;
+            }
+            try {
+              localStorage.setItem(storageKey, JSON.stringify({rating,note:note.value.trim(),date,updatedAt:new Date().toISOString()}));
+              status.textContent = "תודה — המשוב שלך נשמר ועוזר לנו להשתפר.";
+            } catch {
+              status.textContent = "לא הצלחנו לשמור כרגע. כדאי לנסות שוב בעוד רגע.";
+            }
+          });
+        })();
+      <\/script>` : "";
       const extractAstrodamosProcesses = html => {
         const source = String(html || "");
         const patterns = [
@@ -886,7 +940,7 @@
       const installableReport = reportHtml
         .replace("</head>", `${revisionMeta}<link rel="manifest" href="manifest.webmanifest?v=6"><link rel="icon" href="mcm-launcher-bright-v5-mao-192.png?v=6" type="image/png"><link rel="apple-touch-icon" sizes="180x180" href="assets/mcm-launcher-bright-v5-mao-180.png?v=6">${mobileScrollFix}</head>`)
         .replace(/<body([^>]*)>/i, `<body$1>${installControl}`)
-        .replace("</body>", `${mentorRetirementScript}${mapExplanationScript}${processTimingScript}${astrodamosContextScript}${astrodamosEngineScript}${astrodamosBridgeScript}${installScript}</body>`);
+        .replace("</body>", `${mentorRetirementScript}${mapExplanationScript}${processTimingScript}${astrodamosContextScript}${astrodamosEngineScript}${astrodamosBridgeScript}${dailyFeedbackScript}${installScript}</body>`);
       reportRendered = true;
       clearTimeout(loadingWatchdog);
       document.open();

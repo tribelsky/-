@@ -13,8 +13,23 @@ for (const [index, source] of inlineScripts.entries()) {
   new Script(source, { filename: `index.inline.${index + 1}.js` });
 }
 
+const generatedScriptTemplates = ["processTimingScript", "dailyFeedbackScript"];
+for (const templateName of generatedScriptTemplates) {
+  const pattern = templateName === "dailyFeedbackScript"
+    ? /const dailyFeedbackScript = requestedPage === "today" \? (`[\s\S]*?`) : "";/
+    : new RegExp(`const ${templateName} = (\\\`[\\s\\S]*?\\\`);`);
+  const template = html.match(pattern);
+  assert.ok(template, `${templateName} template must exist`);
+  const generatedHtml = new Script(template[1], {
+    filename: `${templateName}-template.js`,
+  }).runInNewContext();
+  const generatedSource = generatedHtml.match(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/i)?.[1];
+  assert.ok(generatedSource, `${templateName} must generate an inline script`);
+  new Script(generatedSource, { filename: `generated-${templateName}.js` });
+}
+
 console.log(JSON.stringify({
   status: "PASS",
-  check: "All inline scripts in index.html parse as valid JavaScript",
-  scripts: inlineScripts.length,
+  check: "All inline and generated report scripts parse as valid JavaScript",
+  scripts: inlineScripts.length + generatedScriptTemplates.length,
 }, null, 2));
