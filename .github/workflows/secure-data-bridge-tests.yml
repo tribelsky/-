@@ -1,0 +1,38 @@
+name: Secure data bridge tests
+
+on:
+  pull_request:
+    paths:
+      - "astrodamos-engine.js"
+      - "mcm-extension-*.js"
+      - "my-daily-navigator-extension/**"
+      - "tests/**"
+      - ".github/workflows/secure-data-bridge-tests.yml"
+  push:
+    branches:
+      - "codex/secure-bridge-rev3"
+    paths:
+      - "astrodamos-engine.js"
+      - "mcm-extension-*.js"
+      - "my-daily-navigator-extension/**"
+      - "tests/**"
+      - ".github/workflows/secure-data-bridge-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run bridge acceptance suite
+        run: |
+          node tests/astrodamos-bridge-acceptance.mjs
+          node tests/astrodamos-engine-acceptance.mjs
+          node tests/calendar-extension-bridge-acceptance.mjs
+          node tests/mcm-shell-syntax.mjs
+          node tests/secure-data-bridge-acceptance.mjs
