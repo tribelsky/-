@@ -1,57 +1,50 @@
-# My Daily Navigator Extension Beta Scaffold
+# My Cosmic Mentor Calendar Extension — Beta 0.2.1
 
-This Manifest V3 extension connects read-only Google Calendar events to the local ASTRODAMOS timing engine.
+This Manifest V3 extension reads Google Calendar availability and evaluates events against the precomputed ASTRODAMOS `activityTimingMatrix` supplied by My Cosmic Mentor.
 
-## Privacy and permissions
+## Safety and privacy boundaries
 
-- Calendar access is read-only.
-- Meeting titles are classified locally with keyword rules.
-- Descriptions and attendee lists are not read by the bridge.
-- Gemini fallback is not enabled in this beta scaffold. It requires a separate explicit opt-in flow.
-- The extension never reschedules an event automatically.
+- Google Calendar access is read-only (`calendar.events.readonly` and `calendar.freebusy`).
+- The extension never creates, edits, moves, or deletes calendar events.
+- Calendar event classification stays inside trusted extension pages/background code.
+- The website bridge sends derived category scores and windows only. It excludes natal longitudes, birth data, user identifiers, report URLs, decryption keys, and free-text processes.
+- `chrome.storage.local` and `chrome.storage.session` are restricted to `TRUSTED_CONTEXTS`, so the injected Calendar content script cannot read bridge data.
+- Missing, expired, or incomplete category data returns `null` / `UNAVAILABLE`; no general score is substituted.
 
-## Required setup before tester installation
+## Required setup before canary installation
 
-1. Create a Google OAuth client for the final unpacked extension ID.
-2. Replace `REPLACE_WITH_GOOGLE_OAUTH_CLIENT_ID` in `manifest.json`.
-3. Add each focus-group participant as an OAuth test user.
-4. Load the folder from `chrome://extensions` with Developer mode and **Load unpacked**.
+1. Upload a draft ZIP to Chrome Developer Dashboard without publishing it.
+2. Reserve the item ID, retrieve the dashboard public key, and add it as the manifest `key`. Do not generate an ad-hoc private key.
+3. Create a Google OAuth client for that reserved extension ID and replace the placeholder `oauth2.client_id`.
+4. Copy the resulting 32-character extension ID into `../mcm-extension-config.js`.
+5. Add Yair as an OAuth test user, build the canary ZIP, and load it through `chrome://extensions`.
 
-## Personal runtime handoff contract
+The website bridge remains deliberately fail-closed until steps 2–4 are complete.
 
-Authorized extension code can store verified personal data through the `MCM_SAVE_CONTEXT` runtime message:
+## Secure handoff
 
-```js
-{
-  type: "MCM_SAVE_CONTEXT",
-  context: { processes: [] },
-  profile: { birthDate: "1990-01-01" },
-  moonTimeline: [],
-  scoringWeights: { astrology: 1, biorhythm: 0, moon: 0 }
-}
+1. The user selects **Approve one-time sync** in the extension side panel.
+2. The approved My Cosmic Mentor page sends `MCM_SYNC_INIT`.
+3. The extension issues a 256-bit challenge valid for 60 seconds and binds it to origin, tab ID, and document ID in `chrome.storage.session`.
+4. The page sends `MCM_CONTEXT_COMMIT` protocol `1.1.0` with the matching challenge and category matrix.
+5. The extension atomically consumes the challenge and stores the normalized envelope under `mcm_bridge_envelope_v1`.
+
+Only `https://tribelsky.github.io/-/*` is externally connectable.
+
+## Canonical scoring path
+
+`engine/astrodamos.js` is a packaged copy of the repository's canonical `astrodamos-engine.js`. `engine/calendar_bridge.js` maps a locally classified event to exactly one matrix category and consumes only that category's hourly score/window. A professional execution score can never become a romance score.
+
+## Acceptance tests
+
+From the repository root:
+
+```bash
+node tests/astrodamos-bridge-acceptance.mjs
+node tests/astrodamos-engine-acceptance.mjs
+node tests/calendar-extension-bridge-acceptance.mjs
+node tests/mcm-shell-syntax.mjs
+node tests/secure-data-bridge-acceptance.mjs
 ```
 
-The default weights deliberately use ASTRODAMOS only. Biorhythm and Moon scores become part of the composite only after product-approved weights are supplied. Moon data must be marked `verified: true` or `sourceVerified: true`; otherwise it is excluded rather than guessed.
-
-The secure handoff from the encrypted My Cosmic Mentor report into this message is intentionally not wired in the scaffold yet. It must be added and tested before the package is distributed to focus-group users.
-
-## Calendar to ASTRODAMOS bridge
-
-The primary bridge is:
-
-```js
-CalendarAstrodamosBridge.evaluateCalendarEvent({
-  event,             // Google Calendar event resource
-  context,           // verified ASTRODAMOS processes
-  profile,           // birthDate only for the biorhythm module
-  moonTimeline,      // verified hourly ephemeris rows
-  scoringWeights,    // product-approved component weights
-  timeZone
-})
-```
-
-It returns the normalized event, local meeting classification, 0–100 score, traffic-light band, component scores, and concise calculation factors. `rankCalendarAlternatives()` evaluates only free slots supplied by the Calendar Free/Busy response.
-
-## Canonical engine
-
-`engine/astrodamos.js` is a packaged copy of the repository's canonical `astrodamos-engine.js`. The acceptance test fails if the packaged copy drifts from the canonical source.
+The automated suite covers the 14-point secure bridge contract. Final rollout still requires the reserved Chrome item ID, OAuth client, and a manual canary run before the 10-user beta.
