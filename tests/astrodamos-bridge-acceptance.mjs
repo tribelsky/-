@@ -9,6 +9,8 @@ assert.ok(shell.includes('astrodamos-engine.js?v=2'));
 assert.ok(shell.includes('astrodamos-bridge.js?v=2'));
 assert.ok(shell.includes('__MCM_ASTRODAMOS_CONTEXT__'));
 assert.ok(shell.includes('reportPackage?.activityTimingMatrix'));
+assert.ok(shell.includes('entitlementFeatures.includes("astrodamos_chat")'));
+assert.ok(shell.includes('astrodamosEnabled ?'));
 assert.ok(bridge.includes('engine.collectContext'));
 assert.ok(bridge.includes('איך הגעתי למסקנה?'));
 assert.ok(bridge.includes('הקראת התשובה'));
