@@ -1,0 +1,92 @@
+{
+  "extensionName": {
+    "message": "הנווט היומי שלי"
+  },
+  "extensionDescription": {
+    "message": "תזמון אישי לפגישות ב-Google Calendar, באמצעות ASTRODAMOS."
+  },
+  "actionTitle": {
+    "message": "פתיחת הנווט היומי שלי"
+  },
+  "anchorAriaLabel": {
+    "message": "פתיחת הנווט היומי להיום"
+  },
+  "panelTitle": {
+    "message": "הנווט היומי שלי"
+  },
+  "poweredBy": {
+    "message": "מופעל באמצעות ASTRODAMOS"
+  },
+  "todayMeetings": {
+    "message": "הפגישות של היום"
+  },
+  "dailyScore": {
+    "message": "התאמת הפגישות היומית"
+  },
+  "connectCalendar": {
+    "message": "חיבור ל-Google Calendar"
+  },
+  "refresh": {
+    "message": "רענון"
+  },
+  "loading": {
+    "message": "קורא את היומן של היום…"
+  },
+  "noMeetings": {
+    "message": "לא נמצאו היום פגישות בעלות שעה מוגדרת."
+  },
+  "calculationUnavailable": {
+    "message": "החישוב האישי של ASTRODAMOS עדיין אינו מחובר לפגישה הזאת."
+  },
+  "findAlternatives": {
+    "message": "מצא שעה טובה יותר"
+  },
+  "alternativesTitle": {
+    "message": "שעות פנויות טובות יותר"
+  },
+  "highAlignment": {
+    "message": "חלון חזק"
+  },
+  "moderateAlignment": {
+    "message": "חלון אפשרי"
+  },
+  "challengingAlignment": {
+    "message": "חלון מאתגר"
+  },
+  "privacyNote": {
+    "message": "סוג הפגישה מסווג מקומית. הגישה ליומן היא לקריאה בלבד."
+  },
+  "biorhythmTitle": {
+    "message": "ביוריתם"
+  },
+  "physical": {
+    "message": "פיזי"
+  },
+  "emotional": {
+    "message": "רגשי"
+  },
+  "intellectual": {
+    "message": "אינטלקטואלי"
+  },
+  "errorTitle": {
+    "message": "נדרש חיבור"
+  },
+  "personalDataTitle": {
+    "message": "חיבור התזמון האישי"
+  },
+  "personalDataDisconnected": {
+    "message": "נתוני התזמון האישיים אינם מחוברים."
+  },
+  "personalDataConnected": {
+    "message": "נתוני התזמון מחוברים עד"
+  },
+  "approveOneTimeSync": {
+    "message": "אישור סנכרון חד־פעמי"
+  },
+  "disconnectPersonalData": {
+    "message": "ניתוק הנתונים האישיים"
+  },
+  "syncApprovalReady": {
+    "message": "האישור תקף לחמש דקות. חזור אל My Cosmic Mentor ובחר חיבור ליומן."
+  }
+}
