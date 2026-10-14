@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_extensionName__",
+  "description": "__MSG_extensionDescription__",
+  "version": "0.2.1",
+  "minimum_chrome_version": "114",
+  "default_locale": "en",
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "identity"
+  ],
+  "host_permissions": [
+    "https://www.googleapis.com/*"
+  ],
+  "oauth2": {
+    "client_id": "REPLACE_WITH_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/calendar.events.readonly",
+      "https://www.googleapis.com/auth/calendar.freebusy"
+    ]
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "externally_connectable": {
+    "matches": [
+      "https://tribelsky.github.io/-/*"
+    ]
+  },
+  "action": {
+    "default_title": "__MSG_actionTitle__"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://calendar.google.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
