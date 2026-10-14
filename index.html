@@ -913,6 +913,8 @@
         version: "timing-mvp-v1",
         todayDate: currentDate,
         tomorrowDate: astrodamosTomorrowDate,
+        reportDate: currentDate,
+        activityTimingMatrix: reportPackage?.activityTimingMatrix || reportPackage?.astrodamos?.activityTimingMatrix || null,
         today: {
           processes: extractAstrodamosProcesses(
             reportPackage?.pages?.["today.html"] || (requestedPage === "today" ? reportHtml : "")
@@ -928,11 +930,13 @@
       const astrodamosContextScript = `<script>window.__MCM_ASTRODAMOS_CONTEXT__=${astrodamosContextJson};<\/script>`;
       const astrodamosEngineScript = `<script src="astrodamos-engine.js?v=2"><\/script>`;
       const astrodamosBridgeScript = `<script src="astrodamos-bridge.js?v=2"><\/script>`;
+      const extensionConfigScript = `<script src="mcm-extension-config.js?v=1"><\/script>`;
+      const extensionBridgeScript = `<script src="mcm-extension-bridge.js?v=1"><\/script>`;
       const revisionMeta = `<meta name="mcm-revision" content="${String(encrypted.generated_at || "").replace(/[&"<>]/g, "")}">`;
       const installableReport = reportHtml
         .replace("</head>", `${revisionMeta}<link rel="manifest" href="manifest.webmanifest?v=6"><link rel="icon" href="mcm-launcher-bright-v5-mao-192.png?v=6" type="image/png"><link rel="apple-touch-icon" sizes="180x180" href="assets/mcm-launcher-bright-v5-mao-180.png?v=6">${mobileScrollFix}</head>`)
         .replace(/<body([^>]*)>/i, `<body$1>${installControl}`)
-        .replace("</body>", `${mentorRetirementScript}${mapExplanationScript}${processTimingScript}${astrodamosContextScript}${astrodamosEngineScript}${astrodamosBridgeScript}${dailyFeedbackScript}${installScript}</body>`);
+        .replace("</body>", `${mentorRetirementScript}${mapExplanationScript}${processTimingScript}${astrodamosContextScript}${astrodamosEngineScript}${astrodamosBridgeScript}${extensionConfigScript}${extensionBridgeScript}${dailyFeedbackScript}${installScript}</body>`);
       reportRendered = true;
       clearTimeout(loadingWatchdog);
       document.open();
