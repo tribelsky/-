@@ -17,57 +17,35 @@ assert.ok(engine, "engine must expose AstrodamosEngine");
 
 const todayDate = "2026-10-13";
 const tomorrowDate = "2026-10-14";
-const processes = [
-  {
-    id: "mercury-trine-sun",
-    title: "House 10 good בהירות מקצועית",
-    transit: "Mercury",
-    natal: "Sun",
-    aspect: "Trine",
-    house: 10,
-    start: "2026-10-13T13:00:00+03:00",
-    peak: "2026-10-13T14:00:00+03:00",
-    end: "2026-10-13T15:00:00+03:00",
-    fallbackDate: todayDate,
+const context = {
+  todayDate,
+  tomorrowDate,
+  reportDate: todayDate,
+  activityTimingMatrix: {
+    timezone: "Asia/Jerusalem",
+    categories: {
+      BUSINESS_CONTRACT: {
+        isDataAvailable: true,
+        dailySummaryScore: 80,
+        hourlyScores: { "11:00": 95, "12:00": 78, "14:00": 62, "17:00": 88 },
+        optimalWindows: [{ start: "16:30", end: "18:30", score: 88, ruler: "Moon trine natal Jupiter" }],
+      },
+      ROMANCE: {
+        isDataAvailable: true,
+        dailySummaryScore: 72,
+        hourlyScores: { "11:00": 40, "18:00": 82, "20:00": 94 },
+        optimalWindows: [{ start: "18:30", end: "21:30", score: 91, ruler: "Moon trine natal Venus" }],
+      },
+      GENERAL_EXECUTION: {
+        isDataAvailable: true,
+        dailySummaryScore: 93,
+        hourlyScores: { "11:00": 93, "12:00": 90, "14:00": 84 },
+        optimalWindows: [],
+      },
+    },
   },
-  {
-    id: "moon-square-saturn",
-    title: "not good עומס רגשי",
-    transit: "Moon",
-    natal: "Saturn",
-    aspect: "Square",
-    house: 7,
-    start: "2026-10-13T13:15:00+03:00",
-    peak: "2026-10-13T14:15:00+03:00",
-    end: "2026-10-13T15:15:00+03:00",
-    fallbackDate: todayDate,
-  },
-  {
-    id: "venus-sextile-mercury",
-    title: "תקשורת נעימה ומדויקת",
-    transit: "Venus",
-    natal: "Mercury",
-    aspect: "Sextile",
-    house: 3,
-    start: "2026-10-13T16:00:00+03:00",
-    peak: "2026-10-13T17:00:00+03:00",
-    end: "2026-10-13T18:00:00+03:00",
-    fallbackDate: todayDate,
-  },
-  {
-    id: "jupiter-trine-mercury",
-    title: "ראייה רחבה ושיחה מקדמת",
-    transit: "Jupiter",
-    natal: "Mercury",
-    aspect: "Trine",
-    house: 10,
-    start: "2026-10-14T09:00:00+03:00",
-    peak: "2026-10-14T10:00:00+03:00",
-    end: "2026-10-14T11:00:00+03:00",
-    fallbackDate: tomorrowDate,
-  },
-];
-const context = { todayDate, tomorrowDate, processes };
+  processes: [],
+};
 const now = new Date("2026-10-13T08:00:00Z");
 
 const parsedWords = engine.parseQuestion(
@@ -89,19 +67,43 @@ const result = engine.answerQuestion({
 });
 assert.equal(typeof result.score, "number");
 assert.match(result.answer, /14:00/);
-assert.match(result.answer, /\/10/);
+assert.match(result.answer, /\/100/);
 assert.ok(result.alternatives.length >= 1, "a materially better alternative should be offered");
 assert.doesNotMatch(result.answer, /House|good|not good|trigger|prompt/i);
-assert.ok(result.details?.rows?.length, "calculation details should be available on demand");
-assert.ok(result.details.rows.every(row => !/House|good|not good|trigger|prompt/i.test(row.title + row.technical)));
+assert.equal(result.status, "AVAILABLE");
 
 const noonResult = engine.answerQuestion({
   question: "מה כדאי לי לעשות היום בשעות הצהריים?",
   context,
   now,
 });
-assert.match(noonResult.answer, /הכיוון החזק ביותר/);
+assert.match(noonResult.answer, /התחום החזק ביותר/);
 assert.doesNotMatch(noonResult.answer, /House|good|not good/i);
+
+for (const wording of ["רומנטי", "רומנטית", "רומנטיקה", "דייט", "זוגיות"]) {
+  assert.equal(engine.parseQuestion(`מפגש ${wording} היום בשעה 11:00`, { context, now }).activity, "relationship");
+}
+
+const romance = engine.answerQuestion({
+  question: "איזו שעה תתאים היום למפגש רומנטי? אני יכול גם בשעה 11:00",
+  context,
+  now,
+});
+assert.equal(romance.score, 40);
+assert.notEqual(romance.score, 93);
+assert.match(romance.answer, /20:00|18:30|18:00/u);
+
+const unavailableContext = structuredClone(context);
+unavailableContext.activityTimingMatrix.categories.ROMANCE = {
+  isDataAvailable: false,
+  dailySummaryScore: null,
+  hourlyScores: {},
+  optimalWindows: [],
+};
+const unavailable = engine.answerQuestion({ question: "מתי כדאי דייט היום?", context: unavailableContext, now });
+assert.equal(unavailable.status, "UNAVAILABLE");
+assert.equal(unavailable.score, null);
+assert.doesNotMatch(unavailable.answer, /93/u);
 
 console.log(JSON.stringify({
   status: "PASS",
@@ -112,5 +114,8 @@ console.log(JSON.stringify({
     "Alternative-time proposal",
     "Natural answer with hidden calculation",
     "No internal labels in visible output",
+    "Hebrew romance vocabulary",
+    "Romance score isolation from execution",
+    "Fail-closed missing romance data",
   ],
 }, null, 2));
