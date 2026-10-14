@@ -8,6 +8,7 @@ const engine = await readFile(new URL("../astrodamos-engine.js", import.meta.url
 assert.ok(shell.includes('astrodamos-engine.js?v=2'));
 assert.ok(shell.includes('astrodamos-bridge.js?v=2'));
 assert.ok(shell.includes('__MCM_ASTRODAMOS_CONTEXT__'));
+assert.ok(shell.includes('reportPackage?.activityTimingMatrix'));
 assert.ok(bridge.includes('engine.collectContext'));
 assert.ok(bridge.includes('איך הגעתי למסקנה?'));
 assert.ok(bridge.includes('הקראת התשובה'));
