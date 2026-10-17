@@ -14,7 +14,7 @@
   const ACTIVITIES = Object.freeze({
     business: {
       label: "פגישה עסקית",
-      keywords: ["פגישה", "עסק", "לקוח", "משא ומתן", "ראיון", "שיווק", "מכירה", "חתימה"],
+      keywords: ["עסק", "עסקית", "לקוח", "משא ומתן", "ראיון", "שיווק", "מכירה", "חתימה", "חוזה"],
       planets: ["mercury", "venus", "jupiter", "saturn", "sun", "מרקורי", "ונוס", "יופיטר", "סטורן", "שמש"],
       houses: [2, 3, 6, 7, 10, 11],
     },
@@ -23,6 +23,12 @@
       keywords: ["שיחה", "לדבר", "טלפון", "מייל", "הודעה", "תקשורת", "לשוחח"],
       planets: ["mercury", "moon", "venus", "מרקורי", "ירח", "ונוס"],
       houses: [3, 7, 11],
+    },
+    social: {
+      label: "מפגש חברתי",
+      keywords: ["חברתי", "חברתית", "חברים", "חברות", "מסיבה", "מפגש חברים", "social", "friends", "party"],
+      planets: ["moon", "sun", "venus", "jupiter", "ירח", "שמש", "ונוס", "יופיטר"],
+      houses: [3, 5, 7, 11],
     },
     creative: {
       label: "עבודה יצירתית",
@@ -38,7 +44,7 @@
     },
     relationship: {
       label: "קשר ויחסים",
-      keywords: ["זוג", "קשר", "יחסים", "אהבה", "רגש", "משפחה", "דייט"],
+      keywords: ["זוג", "זוגיות", "קשר", "יחסים", "אהבה", "רגש", "משפחה", "דייט", "רומנטי", "רומנטית", "רומנטיקה", "romance", "romantic"],
       planets: ["venus", "moon", "mercury", "mars", "ונוס", "ירח", "מרקורי", "מרס"],
       houses: [4, 5, 7, 8],
     },
@@ -54,6 +60,15 @@
       planets: [],
       houses: [],
     },
+  });
+
+  const MATRIX_CATEGORY_BY_ACTIVITY = Object.freeze({
+    business: "BUSINESS_CONTRACT",
+    social: "SOCIAL",
+    creative: "CREATIVE",
+    action: "GENERAL_EXECUTION",
+    relationship: "ROMANCE",
+    rest: "WELLNESS",
   });
 
   const PERIODS = Object.freeze([
@@ -175,6 +190,7 @@
       windowStart: clamp(windowStart, 0, 23 * 60 + 30),
       windowEnd: clamp(Math.max(windowStart, windowEnd), 0, 23 * 60 + 30),
       period: Boolean(period),
+      openEnded: /מה כדאי|מה מומלץ|מה לעשות|הזמן הכי טוב|השעה הכי טובה|what should|best time/iu.test(text),
     };
   }
 
@@ -247,7 +263,13 @@
       const key = process.id || [process.title, process.transit, process.natal, process.aspect, process.start, process.peak, process.end, index].join("|");
       if (!unique.has(key)) unique.set(key, process);
     });
-    return { todayDate, tomorrowDate, processes: [...unique.values()] };
+    return {
+      todayDate,
+      tomorrowDate,
+      reportDate: context.reportDate || todayDate,
+      activityTimingMatrix: context.activityTimingMatrix || null,
+      processes: [...unique.values()],
+    };
   }
 
   function parseMoment(value, fallbackDate = "") {
@@ -429,7 +451,7 @@
 
   function describeAlternative(result, todayDate) {
     const day = result.date === todayDate ? "היום" : result.date === addDays(todayDate, 1) ? "מחר" : result.date;
-    return `${day} ב־${formatTime(result.minutes)} (${result.score}/10)`;
+    return `${day} ב־${formatTime(result.minutes)} (${result.score}/100)`;
   }
 
   function detailRows(result) {
@@ -450,83 +472,174 @@
     return rows;
   }
 
-  function bestActivityInWindow(processes, request) {
-    const activityIds = Object.keys(ACTIVITIES).filter(id => id !== "general");
+  function matrixTimeMinutes(value) {
+    const match = String(value || "").match(/^(\d{2}):([0-5]\d)$/u);
+    if (!match || Number(match[1]) > 23) return null;
+    return Number(match[1]) * 60 + Number(match[2]);
+  }
+
+  function activityForMatrixCategory(categoryId) {
+    return Object.entries(MATRIX_CATEGORY_BY_ACTIVITY).find(([, matrixId]) => matrixId === categoryId)?.[0] || null;
+  }
+
+  function categoryCandidates(category, request) {
+    if (!category?.isDataAvailable) return [];
     const candidates = [];
-    const start = Math.floor(request.windowStart / 30) * 30;
-    const end = Math.max(start, request.windowEnd);
-    for (let minutes = start; minutes <= end; minutes += 30) {
-      for (const activity of activityIds) {
-        const result = evaluateMoment(processes, request.targetDate, minutes, activity);
-        if (result.score !== null) candidates.push(result);
-      }
+    for (const [time, score] of Object.entries(category.hourlyScores || {})) {
+      const minutes = matrixTimeMinutes(time);
+      if (minutes === null || !Number.isFinite(score) || minutes < request.windowStart || minutes > request.windowEnd) continue;
+      candidates.push({ minutes, score, ruler: null, source: "hourly-score" });
     }
-    candidates.sort((a, b) => b.score - a.score || a.minutes - b.minutes);
-    return candidates[0] || null;
+    for (const window of category.optimalWindows || []) {
+      const start = matrixTimeMinutes(window.start);
+      const end = matrixTimeMinutes(window.end);
+      if (start === null || end === null || !Number.isFinite(window.score) || end <= request.windowStart || start > request.windowEnd) continue;
+      candidates.push({
+        minutes: Math.max(start, request.windowStart),
+        score: window.score,
+        ruler: sanitizeVisibleText(window.ruler),
+        source: "optimal-window",
+        window: { start: window.start, end: window.end },
+      });
+    }
+    return candidates.sort((a, b) => b.score - a.score || a.minutes - b.minutes);
+  }
+
+  function alternativeRequest(request, activityId) {
+    return {
+      ...request,
+      windowStart: activityId === "relationship" ? 17 * 60 : 10 * 60,
+      windowEnd: 22 * 60 + 30,
+    };
+  }
+
+  function exactMatrixResult(category, minutes) {
+    if (!category?.isDataAvailable) return null;
+    const exactKey = formatTime(minutes);
+    const hourKey = formatTime(Math.floor(minutes / 60) * 60);
+    const directScore = category.hourlyScores?.[exactKey] ?? category.hourlyScores?.[hourKey];
+    const window = (category.optimalWindows || []).find(item => {
+      const start = matrixTimeMinutes(item.start);
+      const end = matrixTimeMinutes(item.end);
+      return start !== null && end !== null && minutes >= start && minutes < end;
+    });
+    const score = Number.isFinite(directScore) ? directScore : window?.score;
+    if (!Number.isFinite(score)) return null;
+    return {
+      minutes,
+      score,
+      ruler: sanitizeVisibleText(window?.ruler || ""),
+      source: Number.isFinite(directScore) ? "hourly-score" : "optimal-window",
+      window: window ? { start: window.start, end: window.end } : null,
+    };
+  }
+
+  function unavailableMatrixAnswer(request, activityId, reason = "activity-data-unavailable") {
+    const label = ACTIVITIES[activityId]?.label || "הפעילות שביקשת";
+    return {
+      answer: `אין כרגע שכבת תזמון יומית־שעתית מלאה ל${label} במועד שביקשת. אני לא אחליף אותה בציון של פעילות אחרת.`,
+      score: null,
+      status: "UNAVAILABLE",
+      reason,
+      alternatives: [],
+      details: null,
+      request,
+    };
+  }
+
+  function matrixScorePhrase(score) {
+    if (score >= 85) return "חלון חזק מאוד";
+    if (score >= 75) return "חלון טוב";
+    if (score >= 60) return "חלון אפשרי";
+    if (score >= 40) return "חלון חלש יחסית";
+    return "חלון שאינו מומלץ";
+  }
+
+  function matrixDetails(result, categoryId) {
+    if (!result?.ruler) return null;
+    return {
+      summary: `הציון נלקח ממטריצת התזמון הסמכותית של ${categoryId}, ללא פירוש טקסט של תהליכים קצרים.`,
+      rows: [{ tone: "תומך", title: result.ruler, technical: result.window ? `${result.window.start}–${result.window.end}` : "" }],
+    };
   }
 
   function answerQuestion({ question, context, now = new Date() }) {
     const safeContext = context || { todayDate: israelDateParts(now).date, processes: [] };
     const request = parseQuestion(question, { now, context: safeContext });
-    const processes = Array.isArray(safeContext.processes) ? safeContext.processes.map(item => normalizeProcess(item, item.fallbackDate)) : [];
 
     if (!request.question) return { answer: "כתוב לי מה אתה מתכנן ומתי.", details: null, request };
-    if (!processes.length) {
-      return {
-        answer: "אין לי כרגע נתוני חישוב אישיים מספיקים כדי לענות על השעה הזאת ביושר. אני לא אשלים אותם בניחוש.",
-        details: null,
-        request,
-      };
-    }
+    const matrix = safeContext.activityTimingMatrix;
+    const matrixDate = safeContext.reportDate || safeContext.todayDate;
+    if (!matrix || matrixDate !== request.targetDate) return unavailableMatrixAnswer(request, request.activity, "timing-date-unavailable");
 
     if (request.activity === "general") {
-      const best = bestActivityInWindow(processes, request);
-      if (!best) {
-        return { answer: "לא נמצא חישוב שעתי מספיק לחלון שביקשת. עדיף לבחור שעה או פעילות אחרת ולבדוק שוב.", details: null, request };
+      if (!request.openEnded) {
+        return {
+          answer: "לא ברור לי לאיזו פעילות אתה מחפש שעה. האם הכוונה לרומנטיקה, לפגישה עסקית, למפגש חברתי, ליצירה או לבריאות ומנוחה?",
+          score: null,
+          status: "CLARIFICATION_REQUIRED",
+          details: null,
+          request,
+        };
       }
-      const activity = ACTIVITIES[best.activity];
-      const rangeLabel = request.exactMinutes !== null ? `ב־${formatTime(best.minutes)}` : `בחלון שביקשת, סביב ${formatTime(best.minutes)}`;
-      const answer = `${rangeLabel}, הכיוון החזק ביותר הוא ${activity.label} — ${best.score}/10. ${reasonSentence(best)}`;
+      const candidates = [];
+      for (const [categoryId, category] of Object.entries(matrix.categories || {})) {
+        const activityId = activityForMatrixCategory(categoryId);
+        if (!activityId) continue;
+        const result = request.exactMinutes !== null
+          ? exactMatrixResult(category, request.exactMinutes)
+          : categoryCandidates(category, request)[0];
+        if (result) candidates.push({ ...result, activityId, categoryId });
+      }
+      candidates.sort((a, b) => b.score - a.score || a.minutes - b.minutes);
+      const best = candidates[0];
+      if (!best) return unavailableMatrixAnswer(request, "general");
+      const activity = ACTIVITIES[best.activityId];
+      const answer = `בחלון שביקשת, התחום החזק ביותר הוא ${activity.label}, סביב ${formatTime(best.minutes)} — ${best.score}/100.`;
       return {
         answer: sanitizeVisibleText(answer),
         score: best.score,
-        details: {
-          summary: `נבדקו התהליכים האישיים הפעילים ב־${formatTime(best.minutes)} לפי שעון ישראל.`,
-          rows: detailRows(best),
-        },
-        request: { ...request, activity: best.activity },
+        status: "AVAILABLE",
+        details: matrixDetails(best, best.categoryId),
+        request: { ...request, activity: best.activityId },
       };
     }
 
-    const targetMinutes = request.exactMinutes ?? request.windowStart;
-    const result = evaluateMoment(processes, request.targetDate, targetMinutes, request.activity);
-    if (result.score === null) {
+    const categoryId = MATRIX_CATEGORY_BY_ACTIVITY[request.activity];
+    if (!categoryId) {
       return {
-        answer: `אין מספיק נתוני חישוב אישיים ל${ACTIVITIES[request.activity].label} ב־${formatTime(targetMinutes)}. אני מעדיף לומר זאת מאשר לתת ציון מלאכותי.`,
+        answer: "כדי לחשב שעה נכונה צריך לחדד את סוג הפעילות: עסקית, חברתית, רומנטית, יצירתית או בריאות ומנוחה.",
+        score: null,
+        status: "CLARIFICATION_REQUIRED",
         details: null,
         request,
       };
     }
+    const category = matrix.categories?.[categoryId];
+    if (!category?.isDataAvailable) return unavailableMatrixAnswer(request, request.activity);
+    const result = request.exactMinutes !== null
+      ? exactMatrixResult(category, request.exactMinutes)
+      : categoryCandidates(category, request)[0];
+    if (!result) return unavailableMatrixAnswer(request, request.activity, "hourly-score-unavailable");
 
-    const alternatives = scanAlternatives(processes, request, result);
+    const alternatives = categoryCandidates(category, alternativeRequest(request, request.activity))
+      .filter(item => item.score > result.score && Math.abs(item.minutes - result.minutes) >= 60)
+      .slice(0, 2)
+      .map(item => ({ date: request.targetDate, minutes: item.minutes, score: item.score, ruler: item.ruler }));
     const activity = ACTIVITIES[request.activity];
-    let answer = `${formatTime(targetMinutes)} הוא ${scorePhrase(result.score)} ל${activity.label} — ${result.score}/10. ${reasonSentence(result)}`;
+    const range = result.window ? `${result.window.start}–${result.window.end}` : `סביב ${formatTime(result.minutes)}`;
+    let answer = `${range} הוא ${matrixScorePhrase(result.score)} ל${activity.label} — ${result.score}/100.`;
+    if (result.ruler) answer += ` הגורם המרכזי: ${result.ruler}.`;
     if (alternatives.length) {
       answer += ` אם השעה גמישה, עדיף לבדוק ${alternatives.map(item => describeAlternative(item, safeContext.todayDate)).join(" או ")}.`;
-    } else if (result.score >= 6.5) {
-      answer += " אין כרגע חלופה מחושבת שנותנת שיפור משמעותי, ולכן אפשר להשאיר את התכנון כפי שהוא.";
-    } else {
-      answer += " לא מצאתי בחישוב הזמין חלופה טובה משמעותית, ולכן כדאי לבדוק יום נוסף לפני שקובעים.";
     }
 
     return {
       answer: sanitizeVisibleText(answer),
       score: result.score,
+      status: "AVAILABLE",
       alternatives,
-      details: {
-        summary: `הציון מבוסס על התהליכים האישיים הפעילים ב־${formatTime(targetMinutes)} ועל מידת ההתאמה שלהם ל${activity.label}.`,
-        rows: detailRows(result),
-      },
+      details: matrixDetails(result, categoryId),
       request,
     };
   }

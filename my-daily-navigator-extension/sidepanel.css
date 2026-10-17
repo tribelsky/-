@@ -1,0 +1,101 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, Arial, sans-serif;
+  background: #07111f;
+  color: #f5f0e7;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-width: 310px;
+  background: radial-gradient(circle at 20% 0%, #17355a 0, #0b1a2e 38%, #07111f 100%);
+}
+
+main { padding: 18px; }
+
+.hero {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.mark {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid #c29b4a;
+  border-radius: 50%;
+  color: #f2c46d;
+  font-size: 26px;
+}
+
+h1, h2, p { margin-top: 0; }
+h1 { margin-bottom: 4px; font-size: 21px; }
+h2 { margin: 22px 0 10px; font-size: 16px; }
+.hero p, footer { color: #abc0d4; font-size: 12px; }
+
+.daily, .meeting, .bridge-card {
+  border: 1px solid #294968;
+  border-radius: 16px;
+  background: rgba(7, 17, 31, .76);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .2);
+}
+
+.daily {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+}
+
+.eyebrow { display: block; color: #b9d5e7; font-size: 12px; }
+#daily-score { display: block; margin-top: 3px; font-size: 30px; }
+
+.pill {
+  padding: 6px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.high { background: #153f30; color: #a9f2c6; }
+.moderate { background: #493c19; color: #ffe39a; }
+.challenging { background: #4a2527; color: #ffc0bf; }
+.unavailable { background: #29394b; color: #c7d4df; }
+
+.actions { display: flex; gap: 8px; margin: 14px 0; }
+.bridge-card { margin: 14px 0; padding: 14px; }
+.bridge-card h2 { margin: 0 0 8px; }
+.bridge-card p { margin: 0; color: #bfd1de; font-size: 13px; line-height: 1.5; }
+.bridge-actions { margin-bottom: 0; }
+button {
+  border: 0;
+  border-radius: 11px;
+  padding: 10px 12px;
+  background: #f2c46d;
+  color: #251a06;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+button.secondary { border: 1px solid #3e5f7d; background: #102941; color: #eaf4fb; }
+button:disabled { cursor: wait; opacity: .55; }
+
+#status { color: #bfd1de; font-size: 13px; line-height: 1.5; }
+.meeting { margin-bottom: 10px; padding: 13px; }
+.meeting-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.meeting h3 { margin: 0 0 5px; font-size: 15px; }
+.meeting time, .meeting .factor { color: #adc2d2; font-size: 12px; }
+.meeting .score { font-size: 20px; font-weight: 800; white-space: nowrap; }
+.meeting button { margin-top: 11px; padding: 8px 10px; font-size: 12px; }
+.alternatives { margin: 10px 0 0; padding-inline-start: 20px; color: #d9e7f0; font-size: 12px; line-height: 1.7; }
+
+.bio-row { display: grid; grid-template-columns: 85px 1fr 40px; gap: 8px; align-items: center; margin: 8px 0; font-size: 12px; }
+.bio-track { height: 7px; border-radius: 999px; background: #27394c; overflow: hidden; }
+.bio-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #4ea9d8, #f2c46d); }
+
+footer { margin-top: 24px; border-top: 1px solid #253b51; padding-top: 12px; line-height: 1.5; }

@@ -1,0 +1,92 @@
+{
+  "extensionName": {
+    "message": "My Daily Navigator"
+  },
+  "extensionDescription": {
+    "message": "Personal meeting timing in Google Calendar, powered by ASTRODAMOS."
+  },
+  "actionTitle": {
+    "message": "Open My Daily Navigator"
+  },
+  "anchorAriaLabel": {
+    "message": "Open My Daily Navigator for today"
+  },
+  "panelTitle": {
+    "message": "My Daily Navigator"
+  },
+  "poweredBy": {
+    "message": "Powered by ASTRODAMOS"
+  },
+  "todayMeetings": {
+    "message": "Today's meetings"
+  },
+  "dailyScore": {
+    "message": "Daily meeting alignment"
+  },
+  "connectCalendar": {
+    "message": "Connect Google Calendar"
+  },
+  "refresh": {
+    "message": "Refresh"
+  },
+  "loading": {
+    "message": "Reading today's calendar…"
+  },
+  "noMeetings": {
+    "message": "No timed meetings were found today."
+  },
+  "calculationUnavailable": {
+    "message": "The personal ASTRODAMOS calculation is not connected for this meeting yet."
+  },
+  "findAlternatives": {
+    "message": "Find a better time"
+  },
+  "alternativesTitle": {
+    "message": "Better available times"
+  },
+  "highAlignment": {
+    "message": "Strong window"
+  },
+  "moderateAlignment": {
+    "message": "Usable window"
+  },
+  "challengingAlignment": {
+    "message": "Challenging window"
+  },
+  "privacyNote": {
+    "message": "Meeting titles are classified locally. Calendar access is read-only."
+  },
+  "biorhythmTitle": {
+    "message": "Biorhythm"
+  },
+  "physical": {
+    "message": "Physical"
+  },
+  "emotional": {
+    "message": "Emotional"
+  },
+  "intellectual": {
+    "message": "Intellectual"
+  },
+  "errorTitle": {
+    "message": "Connection needed"
+  },
+  "personalDataTitle": {
+    "message": "Personal timing connection"
+  },
+  "personalDataDisconnected": {
+    "message": "Personal timing data is not connected."
+  },
+  "personalDataConnected": {
+    "message": "Personal timing data is connected until"
+  },
+  "approveOneTimeSync": {
+    "message": "Allow one-time sync"
+  },
+  "disconnectPersonalData": {
+    "message": "Disconnect personal data"
+  },
+  "syncApprovalReady": {
+    "message": "Approved for five minutes. Return to My Cosmic Mentor and choose Sync to Calendar."
+  }
+}

@@ -1,8 +1,10 @@
-const CACHE_NAME = "mcm-shell-v44-astrodamos-timing-v1";
+const CACHE_NAME = "mcm-shell-v45-secure-calendar-bridge-v1";
 const SHELL = [
   "./manifest.webmanifest?v=6",
   "./astrodamos-engine.js?v=2",
   "./astrodamos-bridge.js?v=2",
+  "./mcm-extension-config.js?v=1",
+  "./mcm-extension-bridge.js?v=1",
   "./mcm-launcher-bright-v5-mao-192.png?v=6",
   "./mcm-launcher-bright-v5-mao-512.png?v=6",
   "./mcm-launcher-bright-v5-mao-maskable-192.png?v=6",
